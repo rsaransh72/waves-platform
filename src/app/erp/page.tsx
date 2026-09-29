@@ -73,57 +73,74 @@ export default function ErpPage() {
       <main className="flex-1 w-full overflow-hidden">
         
         {/* ========================================================================= */}
-        {/* 1. HERO SECTION - Zoho ERP Ambient Glow & 3D Dashboard Mockup             */}
+        {/* 1. HERO SECTION - Zoho ERP Light Beam & Grid Background                   */}
         {/* ========================================================================= */}
-        <section className="relative w-full bg-[#030d1a] text-white overflow-hidden" style={{ padding: "100px 5% 120px" }}>
-          {/* Ambient Glow Beam */}
-          <div className="waves-light-beam" />
-
-          <div className="relative z-10 w-full max-w-[1280px] mx-auto text-center">
+        <section className="relative w-full overflow-hidden bg-white" style={{ padding: "0 0 120px" }}>
+          
+          <div className="relative w-full flex justify-center items-center flex-col text-center z-10" style={{ padding: "100px 5% 0" }}>
             
-            {/* Zoho ERP Mono Badge */}
-            <div className="inline-flex items-center space-x-2 bg-[#0a2340] border border-[#1b436e] px-4 py-1.5 rounded-full mb-6">
-              <span className="w-2 h-2 rounded-full bg-[#4199ea] animate-pulse" />
-              <span className="font-mono text-[11px] font-bold tracking-widest text-[#7bb8ec] uppercase">
-                ERP SOFTWARE FOR INDIA &bull; CONTEXTUAL INTELLIGENCE
-              </span>
-            </div>
+            {/* Background Grid Lines (Mimicking Zoho's linear-gradient grid) */}
+            <div className="absolute inset-0 pointer-events-none z-0" style={{ 
+              backgroundImage: `linear-gradient(90deg, rgba(0, 0, 0, 0.04) 1px, transparent 0), linear-gradient(180deg, rgba(0, 0, 0, 0.04) 1px, transparent 0)`,
+              backgroundSize: '124px 124px',
+              maskImage: 'linear-gradient(180deg, #000 0, #000 70%, transparent)',
+              WebkitMaskImage: 'linear-gradient(180deg, #000 0, #000 70%, transparent)'
+            }} />
 
-            {/* Headline */}
-            <h1 className="text-[42px] sm:text-[50px] lg:text-[56px] font-medium text-white tracking-[-1px] leading-[1.14] max-w-4xl mx-auto">
-              ERP software built to bring <br />
-              <span className="bg-gradient-to-r from-white via-[#7bb8ec] to-[#4199ea] bg-clip-text text-transparent">
+            {/* Background Light Beam (Mimicking Zoho's blur gradient) */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[2400px] h-[1300px] pointer-events-none z-0" style={{ 
+              filter: 'blur(100px)', 
+              background: 'linear-gradient(0deg, #51acff 35%, #a5fff5 56%, rgba(255,126,126,0.89) 65%, #fff1b2 82%)',
+              clipPath: 'polygon(50% 0, 100% 100%, 0 100%)',
+              opacity: 0.8
+            }} />
+
+            <div className="relative z-10 w-full max-w-[1500px] mx-auto text-center flex flex-col items-center">
+              
+              {/* Product Secure Badge */}
+              <div className="mt-8 mb-4">
+                <p className="font-mono text-[13px] leading-[23px] text-[#404040] tracking-[1px]">
+                  WAVES ERP FOR INDIA
+                </p>
+              </div>
+
+              {/* Headline */}
+              <h1 className="text-[42px] sm:text-[50px] lg:text-[56px] font-medium text-black tracking-[-1px] leading-[1.1] max-w-[725px] mx-auto mb-2 text-balance">
+                ERP software built to bring <br />
                 your enterprise vision to life.
-              </span>
-            </h1>
+              </h1>
 
-            {/* Subtitle */}
-            <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-2xl mx-auto mt-5 mb-8 font-normal">
-              Waves ERP unifies core financials, multi-channel supply chain, Indian tax compliance, and vertical-specific workflows into one intuitive platform with zero data fragmentation.
-            </p>
+              {/* Subtitle */}
+              <p className="text-[16px] leading-[30px] text-[#404040] max-w-[645px] mx-auto mt-2 mb-6">
+                Waves ERP unifies core financials, multi-channel supply chain, Indian tax compliance, and vertical-specific workflows into one intuitive platform with zero data fragmentation.
+              </p>
 
-            {/* CTAs */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14">
-              <Link
-                href="/signup"
-                className="zw-erp-btn w-full sm:w-auto"
-              >
-                <span>SIGN UP NOW FOR FREE</span>
-                <span>&gt;</span>
-              </Link>
-              <a
-                href="#demo"
-                className="w-full sm:w-auto px-6 py-3.5 border border-slate-500 hover:border-white text-white text-xs font-bold uppercase tracking-wider rounded transition bg-slate-900/50 backdrop-blur-sm"
-              >
-                REQUEST AN ENTERPRISE DEMO
-              </a>
+              {/* CTAs */}
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-5 mb-[85px]">
+                <Link
+                  href="/signup"
+                  className="font-bold text-white text-[14px] px-[31px] py-[13px] rounded-[6px]"
+                  style={{ background: 'radial-gradient(#000, #0a3258)' }}
+                >
+                  SIGN UP NOW
+                </Link>
+                <a
+                  href="#demo"
+                  className="font-semibold text-black text-[14px] w-[167px] h-[50px] rounded-[6px] border border-white flex items-center justify-center hover:bg-white transition-all duration-500 shadow-sm"
+                  style={{ background: 'linear-gradient(45deg, rgba(255,255,255,0.35), rgba(255,255,255,0.30))' }}
+                >
+                  REQUEST DEMO
+                </a>
+              </div>
+
+              {/* Interactive 3D Perspective ERP Dashboard */}
+              <div className="relative w-full max-w-[800px] mx-auto z-50 transform perspective-1000 rotate-x-12 transition-transform duration-700 hover:scale-[1.02]">
+                <div className="rounded-[8px] shadow-[0_44px_50px_40px_rgba(0,0,0,0.07)] overflow-hidden bg-white">
+                  <ErpConsoleDemo />
+                </div>
+              </div>
+
             </div>
-
-            {/* Interactive 3D Perspective ERP Dashboard */}
-            <div className="max-w-5xl mx-auto mt-6">
-              <ErpConsoleDemo />
-            </div>
-
           </div>
         </section>
 
@@ -370,90 +387,91 @@ export default function ErpPage() {
         </section>
 
         {/* ========================================================================= */}
-        {/* 5. THE 4-LAYER UNIFIED ARCHITECTURE ("Zero Data Fragmentation")            */}
+        {/* 5. CONNECT BUSINESS FUNCTIONS (Zoho Light Mode Pattern)                    */}
         {/* ========================================================================= */}
-        <section id="architecture" className="w-full bg-[#030d1a] text-white py-16 sm:py-24 border-b border-[#1b354d]">
+        <section id="architecture" className="w-full bg-[#f8f9fa] py-16 sm:py-24 border-b border-[#e2e8f0]">
           <div className="w-full max-w-[1280px] mx-auto px-[5%]">
             
             <div className="text-center max-w-2xl mx-auto mb-16">
-              <span className="inline-flex items-center space-x-2 bg-[#0a2340] border border-[#1b436e] px-3.5 py-1.5 rounded-full mb-4">
-                <span className="w-2 h-2 rounded-full bg-[#4199ea]" />
-                <span className="font-mono text-[11px] font-bold tracking-widest text-[#7bb8ec] uppercase">
-                  UNIFIED ARCHITECTURE
+              <span className="inline-flex items-center space-x-2 bg-white border border-[#e2e8f0] px-3.5 py-1.5 rounded-full mb-4">
+                <span className="font-mono text-[11px] font-bold tracking-widest text-[#4199ea] uppercase">
+                  UNIFIED OPERATIONS
                 </span>
               </span>
-              <h2 className="text-2xl sm:text-4xl font-bold text-white tracking-tight mt-2">
-                Zero Data Fragmentation &bull; One Source of Truth
+              <h2 className="text-3xl sm:text-[40px] font-medium text-black tracking-[-1px] leading-[1.2] mt-2">
+                Connect business functions across operations
               </h2>
-              <p className="text-sm sm:text-base text-slate-300 mt-3">
-                How Waves replaces disjointed point tools with a 4-layer unified cloud architecture.
+              <p className="text-base text-[#404040] mt-4 leading-relaxed">
+                Break down data silos. Waves ERP creates a continuous flow of real-time information between every department, from procurement to final dispatch.
               </p>
             </div>
 
-            <div className="space-y-4 max-w-4xl mx-auto">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               
-              {/* Layer 4: Touchpoints */}
-              <div className="bg-[#0b1f38] border border-[#1e426f] p-5 sm:p-6 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="flex items-center space-x-4">
-                  <span className="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-sm">
-                    L4
-                  </span>
-                  <div>
-                    <h4 className="text-sm sm:text-base font-bold text-white">Omnichannel Touchpoint Layer</h4>
-                    <p className="text-xs text-slate-300 mt-0.5">Administrator Web Portal &bull; Mobile Apps &bull; WhatsApp Bot &bull; POS Barcode &bull; Biometric Readers</p>
-                  </div>
+              {/* Function 1 */}
+              <div className="bg-white border border-[#e2e8f0] p-8 rounded-lg hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all duration-300">
+                <div className="w-12 h-12 bg-[#f0f6ff] text-[#226eb4] flex items-center justify-center rounded-lg mb-6">
+                  <DollarSign className="w-6 h-6" />
                 </div>
-                <span className="text-[11px] font-mono text-emerald-400 bg-emerald-950 px-2.5 py-1 rounded border border-emerald-800">
-                  Instant Synced
-                </span>
+                <h3 className="text-xl font-bold text-black mb-3">Finance & Accounting</h3>
+                <p className="text-[15px] text-[#404040] leading-[1.7]">
+                  Automate general ledgers, accounts payable, and receivable. Maintain a real-time pulse on your cash flow and compliance.
+                </p>
               </div>
 
-              {/* Layer 3: Vertical Business Logic */}
-              <div className="bg-[#0b1f38] border border-[#1e426f] p-5 sm:p-6 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="flex items-center space-x-4">
-                  <span className="w-10 h-10 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-sm">
-                    L3
-                  </span>
-                  <div>
-                    <h4 className="text-sm sm:text-base font-bold text-white">Domain Workflows &amp; Vertical Engines</h4>
-                    <p className="text-xs text-slate-300 mt-0.5">CBSE/ICSE Grading &bull; Hospital OPD/IPD Bed Matrix &bull; Pharmacy Batch Expiry &bull; Student Records</p>
-                  </div>
+              {/* Function 2 */}
+              <div className="bg-white border border-[#e2e8f0] p-8 rounded-lg hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all duration-300">
+                <div className="w-12 h-12 bg-[#f0f6ff] text-[#226eb4] flex items-center justify-center rounded-lg mb-6">
+                  <Package className="w-6 h-6" />
                 </div>
-                <span className="text-[11px] font-mono text-blue-400 bg-blue-950 px-2.5 py-1 rounded border border-blue-800">
-                  Modular Core
-                </span>
+                <h3 className="text-xl font-bold text-black mb-3">Inventory & Warehouse</h3>
+                <p className="text-[15px] text-[#404040] leading-[1.7]">
+                  Optimize stock levels across multiple locations with predictive reordering, barcode scanning, and lot traceability.
+                </p>
               </div>
 
-              {/* Layer 2: Intelligence & AI Engine */}
-              <div className="bg-[#0b1f38] border border-[#1e426f] p-5 sm:p-6 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="flex items-center space-x-4">
-                  <span className="w-10 h-10 rounded-lg bg-purple-600 text-white flex items-center justify-center font-bold text-sm">
-                    L2
-                  </span>
-                  <div>
-                    <h4 className="text-sm sm:text-base font-bold text-white">Contextual AI &amp; Analytics Engine</h4>
-                    <p className="text-xs text-slate-300 mt-0.5">Predictive Inventory Ordering &bull; Working Capital Optimization &bull; Anomaly Detection &bull; AI Assistant</p>
-                  </div>
+              {/* Function 3 */}
+              <div className="bg-white border border-[#e2e8f0] p-8 rounded-lg hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all duration-300">
+                <div className="w-12 h-12 bg-[#f0f6ff] text-[#226eb4] flex items-center justify-center rounded-lg mb-6">
+                  <Users className="w-6 h-6" />
                 </div>
-                <span className="text-[11px] font-mono text-purple-400 bg-purple-950 px-2.5 py-1 rounded border border-purple-800">
-                  Agentic AI
-                </span>
+                <h3 className="text-xl font-bold text-black mb-3">Human Resources</h3>
+                <p className="text-[15px] text-[#404040] leading-[1.7]">
+                  Manage the entire employee lifecycle including onboarding, biometric attendance, automated payroll processing, and performance tracking.
+                </p>
               </div>
 
-              {/* Layer 1: Unified Enterprise Database */}
-              <div className="bg-[#0e2a4d] border border-[#2b5894] p-5 sm:p-6 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl">
-                <div className="flex items-center space-x-4">
-                  <span className="w-10 h-10 rounded-lg bg-[#226eb4] text-white flex items-center justify-center font-bold text-sm">
-                    L1
-                  </span>
-                  <div>
-                    <h4 className="text-sm sm:text-base font-bold text-white">Unified Ledger &amp; Relational Master Data</h4>
-                    <p className="text-xs text-slate-200 mt-0.5">Single source of truth &bull; 100% India residency &bull; Real-time ACID transactions &bull; AES-256 encryption</p>
-                  </div>
+              {/* Function 4 */}
+              <div className="bg-white border border-[#e2e8f0] p-8 rounded-lg hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all duration-300">
+                <div className="w-12 h-12 bg-[#f0f6ff] text-[#226eb4] flex items-center justify-center rounded-lg mb-6">
+                  <Globe2 className="w-6 h-6" />
                 </div>
-                <span className="text-[11px] font-mono text-emerald-300 bg-emerald-950 px-2.5 py-1 rounded border border-emerald-700">
-                  Zero Redundancy
-                </span>
+                <h3 className="text-xl font-bold text-black mb-3">Sales & CRM</h3>
+                <p className="text-[15px] text-[#404040] leading-[1.7]">
+                  Track leads, accelerate quote-to-cash workflows, and provide your sales team with live inventory data directly from the field.
+                </p>
+              </div>
+
+              {/* Function 5 */}
+              <div className="bg-white border border-[#e2e8f0] p-8 rounded-lg hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all duration-300">
+                <div className="w-12 h-12 bg-[#f0f6ff] text-[#226eb4] flex items-center justify-center rounded-lg mb-6">
+                  <Cpu className="w-6 h-6" />
+                </div>
+                <h3 className="text-xl font-bold text-black mb-3">Manufacturing (MRP)</h3>
+                <p className="text-[15px] text-[#404040] leading-[1.7]">
+                  Streamline production planning, manage multi-level Bills of Materials (BOM), and track machine routing efficiency.
+                </p>
+              </div>
+
+              {/* Function 6 */}
+              <div className="bg-white border border-[#e2e8f0] p-8 rounded-lg hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all duration-300">
+                <div className="w-12 h-12 bg-[#f0f6ff] text-[#226eb4] flex items-center justify-center rounded-lg mb-6">
+                  <Receipt className="w-6 h-6" />
+                </div>
+                <h3 className="text-xl font-bold text-black mb-3">Procurement & Sourcing</h3>
+                <p className="text-[15px] text-[#404040] leading-[1.7]">
+                  Centralize vendor management, automate purchase order approvals, and enforce budget controls across the organization.
+                </p>
               </div>
 
             </div>
@@ -541,7 +559,7 @@ export default function ErpPage() {
 
               {/* Booking Form */}
               <div className="lg:col-span-6 bg-white border border-[#e2e8f0] rounded-xl p-6 sm:p-10 shadow-sm">
-                <BookDemoForm defaultProduct="erp" />
+                <BookDemoForm />
               </div>
 
             </div>
@@ -553,9 +571,9 @@ export default function ErpPage() {
 
       {/* Footer */}
       <footer className="w-full bg-white py-8 border-t border-[#e2e8f0]">
-        <div className="w-full max-w-[1280px] mx-auto px-[5%] flex flex-col sm:flex-row items-center justify-between text-xs text-[#7d7d7d] gap-4">
-          <p>&copy; {new Date().getFullYear()} Waves Technologies. All rights reserved.</p>
-          <div className="flex items-center space-x-6">
+        <div className="w-full max-w-[1280px] mx-auto px-[5%] flex flex-col lg:flex-row items-center justify-between text-xs text-[#7d7d7d] gap-6 lg:gap-4">
+          <p className="text-center lg:text-left">&copy; {new Date().getFullYear()} Waves Technologies. All rights reserved.</p>
+          <div className="flex flex-wrap justify-center lg:justify-end items-center gap-4 lg:gap-6">
             <Link href="/school-erp" className="hover:text-black transition">School Suite</Link>
             <Link href="/hospital-erp" className="hover:text-black transition">Health Suite</Link>
             <Link href="/pharmacy-pos" className="hover:text-black transition">Pharmacy POS</Link>

@@ -36,22 +36,23 @@ export default function Home() {
         {/* ========================================================================= */}
         {/* 1. HERO SECTION — Exact Zoho Homepage Pattern                            */}
         {/* ========================================================================= */}
-        <section className="w-full bg-white" style={{ padding: "110px 5% 120px" }}>
-          <div className="max-w-[1280px] mx-auto">
-            <div className="flex flex-col lg:flex-row gap-16 lg:gap-24 items-start">
+        <section className="w-full bg-white px-6 pt-10 pb-16 lg:pt-[100px] lg:pb-[100px]">
+          <div className="max-w-[1280px] mx-auto lg:px-[2%]">
+            <div className="flex flex-col lg:flex-row gap-12 lg:gap-20 items-center lg:items-start">
               
               {/* Left Column: Typography + CTA */}
-              <div className="lg:w-1/2 pt-2">
+              <div className="lg:w-[55%] pt-2 text-center lg:text-left flex flex-col items-center lg:items-start">
                 
-                <h1 className="text-[44px] sm:text-[52px] lg:text-[60px] font-medium text-[#111111] tracking-[-1.5px] leading-[1.05]">
-                  Your institutional operations,
-                  <span className="block">powered by Waves.</span>
+                <h1 className="text-[32px] sm:text-[44px] lg:text-[56px] font-medium text-[#111111] tracking-[-1.5px] leading-[1.1]">
+                  Your institutional
+                  <span className="block">operations, powered</span>
+                  <span className="block">by <span className="text-[#e42525]">Waves</span>.</span>
                 </h1>
 
                 {/* Zoho-style divider line */}
-                <div className="w-[50px] border-t-2 border-black mt-8 mb-8" />
+                <div className="w-[50px] border-t-[3px] border-[#e42525] mt-7 mb-6 mx-auto lg:mx-0" />
 
-                <p className="text-[17px] text-[#404040] leading-[1.7] max-w-xl mb-10">
+                <p className="text-[15px] sm:text-[17px] text-[#404040] leading-[1.75] max-w-lg mb-8">
                   A unique and powerful cloud management software suite designed for schools, healthcare clinics, and retail pharmacies of all sizes, built by a company that{" "}
                   <Link href="#values" className="zw-privacy-link">
                     values your data privacy
@@ -59,107 +60,128 @@ export default function Home() {
                   .
                 </p>
 
-                <Link href="/signup" className="zw-cta-main shadow-lg shadow-red-500/20">
-                  Get Started For Free
+                <Link href="/signup" className="zw-cta-main shadow-lg shadow-red-500/20 w-full sm:w-auto text-center">
+                  GET STARTED FOR FREE <ChevronRight className="w-4 h-4 inline-block ml-1" />
                 </Link>
               </div>
 
               {/* Right Column: Featured Apps Grid (Zoho Style) */}
-              <div className="lg:w-1/2">
+              <div className="lg:w-[45%] w-full mt-6 lg:mt-0">
                 
-                <h2 className="text-[13px] font-bold text-[#111111] uppercase tracking-[1px] mb-8 text-center lg:text-left">
-                  Featured apps
-                </h2>
+                <div className="flex flex-col items-center lg:items-start mb-8">
+                  <h2 className="text-[13px] font-bold text-[#111111] uppercase tracking-[1px] mb-2 text-center lg:text-left">
+                    Featured apps
+                  </h2>
+                  <div className="w-[30px] border-t-2 border-[#e42525]" />
+                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-12">
+                <div className="flex flex-col gap-0 lg:grid lg:grid-cols-2 lg:gap-x-10 lg:gap-y-10">
                   
-                  <Link href="/school-erp" className="group flex items-start gap-5">
-                    <div className="text-[#0066cc] flex items-center justify-center shrink-0">
-                      <GraduationCap className="w-11 h-11" strokeWidth={1.5} />
+                  <Link href="/school-erp" className="group flex items-center lg:items-start justify-between lg:justify-start gap-4 py-6 border-b border-[#e6e9f0] lg:border-none lg:p-0">
+                    <div className="flex gap-5 items-start">
+                      <div className="text-[#0066cc] flex items-center justify-center shrink-0">
+                        <GraduationCap className="w-10 h-10 lg:w-11 lg:h-11" strokeWidth={1.5} />
+                      </div>
+                      <div>
+                        <h3 className="text-[18px] lg:text-[20px] font-medium text-[#111111] leading-tight mb-2 group-hover:text-[#0066cc] transition-colors">
+                          Classes
+                        </h3>
+                        <p className="text-[14px] text-[#444444] leading-[1.6]">
+                          AI-powered academic LMS with smart gate attendance.
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-[20px] font-medium text-[#111111] leading-tight mb-2 group-hover:text-[#0066cc] transition-colors">
-                        Classes
-                      </h3>
-                      <p className="text-[14px] text-[#444444] leading-[1.6]">
-                        AI-powered academic LMS with smart gate attendance.
-                      </p>
-                    </div>
+                    <ChevronRight className="w-5 h-5 text-[#ccc] lg:hidden shrink-0" />
                   </Link>
 
-                  <Link href="/hospital-erp" className="group flex items-start gap-5">
-                    <div className="text-[#008f52] flex items-center justify-center shrink-0">
-                      <Hospital className="w-11 h-11" strokeWidth={1.5} />
+                  <Link href="/hospital-erp" className="group flex items-center lg:items-start justify-between lg:justify-start gap-4 py-6 border-b border-[#e6e9f0] lg:border-none lg:p-0">
+                    <div className="flex gap-5 items-start">
+                      <div className="text-[#008f52] flex items-center justify-center shrink-0">
+                        <Hospital className="w-10 h-10 lg:w-11 lg:h-11" strokeWidth={1.5} />
+                      </div>
+                      <div>
+                        <h3 className="text-[18px] lg:text-[20px] font-medium text-[#111111] leading-tight mb-2 group-hover:text-[#008f52] transition-colors">
+                          Health
+                        </h3>
+                        <p className="text-[14px] text-[#444444] leading-[1.6]">
+                          OPD queue tokens on TV and digital Rx prescriptions.
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-[20px] font-medium text-[#111111] leading-tight mb-2 group-hover:text-[#008f52] transition-colors">
-                        Health
-                      </h3>
-                      <p className="text-[14px] text-[#444444] leading-[1.6]">
-                        OPD queue tokens on TV and digital Rx prescriptions.
-                      </p>
-                    </div>
+                    <ChevronRight className="w-5 h-5 text-[#ccc] lg:hidden shrink-0" />
                   </Link>
 
-                  <Link href="/pharmacy-pos" className="group flex items-start gap-5">
-                    <div className="text-[#d88900] flex items-center justify-center shrink-0">
-                      <Store className="w-11 h-11" strokeWidth={1.5} />
+                  <Link href="/pharmacy-pos" className="group flex items-center lg:items-start justify-between lg:justify-start gap-4 py-6 border-b border-[#e6e9f0] lg:border-none lg:p-0">
+                    <div className="flex gap-5 items-start">
+                      <div className="text-[#d88900] flex items-center justify-center shrink-0">
+                        <Store className="w-10 h-10 lg:w-11 lg:h-11" strokeWidth={1.5} />
+                      </div>
+                      <div>
+                        <h3 className="text-[18px] lg:text-[20px] font-medium text-[#111111] leading-tight mb-2 group-hover:text-[#d88900] transition-colors">
+                          Pharmacy
+                        </h3>
+                        <p className="text-[14px] text-[#444444] leading-[1.6]">
+                          3-second barcode billing and batch expiry alerts.
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-[20px] font-medium text-[#111111] leading-tight mb-2 group-hover:text-[#d88900] transition-colors">
-                        Pharmacy
-                      </h3>
-                      <p className="text-[14px] text-[#444444] leading-[1.6]">
-                        3-second barcode billing and batch expiry alerts.
-                      </p>
-                    </div>
+                    <ChevronRight className="w-5 h-5 text-[#ccc] lg:hidden shrink-0" />
                   </Link>
 
-                  <Link href="/erp" className="group flex items-start gap-5">
-                    <div className="text-[#8445e8] flex items-center justify-center shrink-0">
-                      <Layers className="w-11 h-11" strokeWidth={1.5} />
+                  <Link href="/erp" className="group flex items-center lg:items-start justify-between lg:justify-start gap-4 py-6 border-b border-[#e6e9f0] lg:border-none lg:p-0">
+                    <div className="flex gap-5 items-start">
+                      <div className="text-[#8445e8] flex items-center justify-center shrink-0">
+                        <Layers className="w-10 h-10 lg:w-11 lg:h-11" strokeWidth={1.5} />
+                      </div>
+                      <div>
+                        <h3 className="text-[18px] lg:text-[20px] font-medium text-[#111111] leading-tight mb-2 group-hover:text-[#8445e8] transition-colors">
+                          Waves ERP
+                        </h3>
+                        <p className="text-[14px] text-[#444444] leading-[1.6]">
+                          Unified general ledger, supply chain & GST e-invoicing.
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-[20px] font-medium text-[#111111] leading-tight mb-2 group-hover:text-[#8445e8] transition-colors">
-                        Waves ERP
-                      </h3>
-                      <p className="text-[14px] text-[#444444] leading-[1.6]">
-                        Unified general ledger, supply chain & GST e-invoicing.
-                      </p>
-                    </div>
+                    <ChevronRight className="w-5 h-5 text-[#ccc] lg:hidden shrink-0" />
                   </Link>
 
-                  <Link href="/pricing" className="group flex items-start gap-5">
-                    <div className="text-[#00b3d8] flex items-center justify-center shrink-0">
-                      <Receipt className="w-11 h-11" strokeWidth={1.5} />
+                  <Link href="/pricing" className="group flex items-center lg:items-start justify-between lg:justify-start gap-4 py-6 border-b border-[#e6e9f0] lg:border-none lg:p-0">
+                    <div className="flex gap-5 items-start">
+                      <div className="text-[#00b3d8] flex items-center justify-center shrink-0">
+                        <Receipt className="w-10 h-10 lg:w-11 lg:h-11" strokeWidth={1.5} />
+                      </div>
+                      <div>
+                        <h3 className="text-[18px] lg:text-[20px] font-medium text-[#111111] leading-tight mb-2 group-hover:text-[#00b3d8] transition-colors">
+                          Books
+                        </h3>
+                        <p className="text-[14px] text-[#444444] leading-[1.6]">
+                          GST invoicing, multi-counter cash balancing & audits.
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-[20px] font-medium text-[#111111] leading-tight mb-2 group-hover:text-[#00b3d8] transition-colors">
-                        Books
-                      </h3>
-                      <p className="text-[14px] text-[#444444] leading-[1.6]">
-                        GST invoicing, multi-counter cash balancing & audits.
-                      </p>
-                    </div>
+                    <ChevronRight className="w-5 h-5 text-[#ccc] lg:hidden shrink-0" />
                   </Link>
 
-                  <Link href="/services" className="group flex items-start gap-5">
-                    <div className="text-[#e42525] flex items-center justify-center shrink-0">
-                      <UserCheck className="w-11 h-11" strokeWidth={1.5} />
+                  <Link href="/services" className="group flex items-center lg:items-start justify-between lg:justify-start gap-4 py-6 border-b border-[#e6e9f0] lg:border-none lg:p-0">
+                    <div className="flex gap-5 items-start">
+                      <div className="text-[#e42525] flex items-center justify-center shrink-0">
+                        <UserCheck className="w-10 h-10 lg:w-11 lg:h-11" strokeWidth={1.5} />
+                      </div>
+                      <div>
+                        <h3 className="text-[18px] lg:text-[20px] font-medium text-[#111111] leading-tight mb-2 group-hover:text-[#e42525] transition-colors">
+                          People
+                        </h3>
+                        <p className="text-[14px] text-[#444444] leading-[1.6]">
+                          Biometric check-ins, nursing shifts & automated payroll.
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-[20px] font-medium text-[#111111] leading-tight mb-2 group-hover:text-[#e42525] transition-colors">
-                        People
-                      </h3>
-                      <p className="text-[14px] text-[#444444] leading-[1.6]">
-                        Biometric check-ins, nursing shifts & automated payroll.
-                      </p>
-                    </div>
+                    <ChevronRight className="w-5 h-5 text-[#ccc] lg:hidden shrink-0" />
                   </Link>
 
                 </div>
 
-                <div className="mt-12 text-center lg:text-left">
+                <div className="mt-8 lg:mt-12 text-center lg:text-left">
                   <Link href="/pricing" className="text-[#0066cc] text-[14px] font-bold uppercase flex items-center gap-1.5 justify-center lg:justify-start hover:underline">
                     Explore all products <ChevronRight className="w-4 h-4" />
                   </Link>
@@ -173,60 +195,58 @@ export default function Home() {
         {/* ========================================================================= */}
         {/* 2. PROMO TRAY — Zoho Catalyst + Zia Style                               */}
         {/* ========================================================================= */}
-        <section className="w-full bg-[#f8f9fa]" style={{ padding: "80px 5%" }}>
+        <section className="w-full bg-[#f8f9fa] border-t border-[#e6e9f0] px-6 py-14 lg:px-[5%] lg:py-[80px]">
           <div className="max-w-[1280px] mx-auto">
-            <div className="grid md:grid-cols-2 gap-8">
+            <div className="grid md:grid-cols-2 gap-6 lg:gap-8">
               
               {/* Promo Card 1: Low-Code */}
-              <div className="bg-[#f0f5ff] rounded-[10px] p-8 sm:p-12 flex flex-col justify-between transition-transform duration-300 hover:-translate-y-1">
+              <div className="bg-white rounded-xl p-7 sm:p-10 flex flex-col justify-between border border-[#e6e9f0] shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                 <div>
-                  <div className="zw-label mb-5">
+                  <div className="w-12 h-12 rounded-lg bg-blue-50 text-[#226eb4] flex items-center justify-center mb-6">
+                    <Sparkles className="w-6 h-6" />
+                  </div>
+                  <div className="zw-label mb-4">
                     <span>Low-Code Workflows</span>
                   </div>
-                  <div className="flex items-center gap-2 text-[#226eb4] font-medium text-[15px] mb-3">
-                    <Sparkles className="w-4 h-4" />
-                    <span>Waves Flow Studio</span>
-                  </div>
-                  <h3 className="text-[28px] font-medium text-black tracking-tight mb-4 leading-tight">
+                  <h3 className="text-[22px] sm:text-[26px] font-medium text-black tracking-tight mb-3 leading-tight">
                     Build custom institutional workflows without code
                   </h3>
-                  <p className="text-[16px] text-[#404040] leading-[1.7] mb-8">
+                  <p className="text-[15px] text-[#555] leading-[1.75] mb-8">
                     Craft student admission portals, outpatient intake forms, and automated WhatsApp alerts in minutes.
                   </p>
                 </div>
                 <div>
                   <Link 
                     href="/services#custom-development"
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-[#226eb4] hover:bg-[#1a5a96] text-white text-[13px] font-bold uppercase tracking-wider rounded-[4px] transition"
+                    className="inline-flex items-center gap-2 px-6 py-3.5 bg-[#226eb4] hover:bg-[#1a5a96] text-white text-[13px] font-bold uppercase tracking-wider rounded-md transition-all duration-200 hover:-translate-y-0.5 w-full sm:w-auto justify-center sm:justify-start"
                   >
-                    Build with Flow →
+                    Build with Flow <ArrowRight className="w-4 h-4" />
                   </Link>
                 </div>
               </div>
 
               {/* Promo Card 2: AI */}
-              <div className="bg-[#faf4fe] rounded-[10px] p-8 sm:p-12 flex flex-col justify-between transition-transform duration-300 hover:-translate-y-1">
+              <div className="bg-white rounded-xl p-7 sm:p-10 flex flex-col justify-between border border-[#e6e9f0] shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                 <div>
-                  <div className="zw-label mb-5">
+                  <div className="w-12 h-12 rounded-lg bg-purple-50 text-[#7e22ce] flex items-center justify-center mb-6">
+                    <Sparkles className="w-6 h-6" />
+                  </div>
+                  <div className="zw-label mb-4">
                     <span className="!text-[#7e22ce]">Autonomous AI</span>
                   </div>
-                  <div className="flex items-center gap-2 text-[#7e22ce] font-medium text-[15px] mb-3">
-                    <Sparkles className="w-4 h-4" />
-                    <span>Waves AI Assistant</span>
-                  </div>
-                  <h3 className="text-[28px] font-medium text-black tracking-tight mb-4 leading-tight">
+                  <h3 className="text-[22px] sm:text-[26px] font-medium text-black tracking-tight mb-3 leading-tight">
                     Deploy intelligent bots for parents & patients
                   </h3>
-                  <p className="text-[16px] text-[#404040] leading-[1.7] mb-8">
+                  <p className="text-[15px] text-[#555] leading-[1.75] mb-8">
                     Autonomous 24/7 AI assistants that answer fee inquiries, confirm appointments, and flag low inventory.
                   </p>
                 </div>
                 <div>
                   <Link 
                     href="#demo"
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-[#7e22ce] hover:bg-[#6b21a8] text-white text-[13px] font-bold uppercase tracking-wider rounded-[4px] transition"
+                    className="inline-flex items-center gap-2 px-6 py-3.5 bg-[#7e22ce] hover:bg-[#6b21a8] text-white text-[13px] font-bold uppercase tracking-wider rounded-md transition-all duration-200 hover:-translate-y-0.5 w-full sm:w-auto justify-center sm:justify-start"
                   >
-                    Explore AI Agents →
+                    Explore AI Agents <ArrowRight className="w-4 h-4" />
                   </Link>
                 </div>
               </div>
@@ -238,31 +258,31 @@ export default function Home() {
         {/* ========================================================================= */}
         {/* 3. WAVES ONE — Zoho One Pattern                                          */}
         {/* ========================================================================= */}
-        <section className="w-full bg-white" style={{ padding: "80px 5%" }}>
+        <section className="w-full bg-white border-t border-[#e6e9f0] px-6 py-14 lg:px-[5%] lg:py-[80px]">
           <div className="max-w-[1280px] mx-auto">
-            <div className="flex flex-col lg:flex-row gap-12 lg:gap-16 items-center">
+            <div className="flex flex-col lg:flex-row gap-10 lg:gap-16 items-center">
               
-              <div className="lg:w-7/12 space-y-5">
-                <span className="text-xs font-bold uppercase tracking-[2.5px] text-[#226eb4]" style={{ fontFamily: "var(--font-mono)" }}>
-                  All-in-one suite
-                </span>
+              <div className="lg:w-7/12 space-y-4 text-center lg:text-left flex flex-col items-center lg:items-start">
+                <div className="zw-label mb-2">
+                  <span className="!text-[#e42525]">ALL-IN-ONE SUITE</span>
+                </div>
                 
-                <h2 className="text-[36px] sm:text-[48px] font-medium text-black tracking-[-1px]">
+                <h2 className="text-[30px] sm:text-[42px] lg:text-[48px] font-medium text-black tracking-[-1.5px] leading-[1.1]">
                   Waves One
                 </h2>
 
-                <p className="text-base sm:text-lg text-[#404040] leading-[1.8]">
-                  <span className="font-medium text-black">The operating system for institutions.</span> Run your school, clinic, or pharmacy chain on Waves — our unified platform connecting admissions, fee collection, OPD queue calling, and pharmacy checkout.
+                <p className="text-[15px] sm:text-[17px] text-[#404040] leading-[1.75] max-w-lg">
+                  <span className="font-semibold text-black">The operating system for institutions.</span> Run your school, clinic, or pharmacy chain on Waves — our unified platform connecting admissions, fee collection, OPD queue calling, and pharmacy checkout.
                 </p>
 
-                <p className="text-sm text-[#404040]">
+                <div className="bg-[#fdf2f2] border border-red-100 rounded-lg px-5 py-3 text-sm text-[#404040]">
                   Get full campus-wide access, starting at{" "}
-                  <span className="font-bold text-black text-base">₹4,999/month</span> with unlimited staff logins.
-                </p>
+                  <span className="font-bold text-black">₹4,999/month</span> with unlimited staff logins.
+                </div>
 
-                <div className="pt-3">
-                  <Link href="/pricing" className="zw-cta-main">
-                    Try Waves One
+                <div className="pt-2 w-full sm:w-auto">
+                  <Link href="/pricing" className="zw-cta-main !bg-[#e42525] w-full sm:w-auto text-center block sm:inline-block">
+                    TRY WAVES ONE <ChevronRight className="w-4 h-4 inline-block ml-1" />
                   </Link>
                 </div>
               </div>
@@ -290,7 +310,7 @@ export default function Home() {
         {/* ========================================================================= */}
         {/* 4. IMPLEMENTATION SERVICES STRIP                                         */}
         {/* ========================================================================= */}
-        <section className="w-full bg-[#f8f9fa]" style={{ padding: "80px 5%" }}>
+        <section className="w-full bg-[#f8f9fa] px-6 py-16 lg:px-[5%] lg:py-[80px]">
           <div className="max-w-[1280px] mx-auto">
             
             <div className="text-center max-w-2xl mx-auto mb-14">
@@ -359,42 +379,55 @@ export default function Home() {
         {/* ========================================================================= */}
         {/* 5. CORE VALUES — Zoho Values Section                                     */}
         {/* ========================================================================= */}
-        <section id="values" className="w-full bg-white" style={{ padding: "80px 5%" }}>
+        <section id="values" className="w-full bg-white border-t border-[#e6e9f0] px-6 py-14 lg:px-[5%] lg:py-[80px]">
           <div className="max-w-[1280px] mx-auto">
             
-            <div className="text-center max-w-2xl mx-auto mb-14">
-              <h2 className="text-[28px] sm:text-[36px] font-medium text-black tracking-[-1px]">
-                The core values and principles that drive us
+            <div className="text-center max-w-2xl mx-auto mb-12 lg:mb-16">
+              <h2 className="text-[26px] sm:text-[34px] font-medium text-black tracking-[-1px] leading-tight">
+                The core values and principles
+                <span className="block">that drive us</span>
               </h2>
-              <div className="w-14 border-t border-black mx-auto mt-5" />
+              <div className="w-[50px] border-t-[3px] border-[#e42525] mx-auto mt-6" />
             </div>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-6">
               
-              <div className="bg-[#f8f9fa] p-6 rounded-lg border border-[#e6e9f0]">
-                <h3 className="text-base font-medium text-black mb-3">Long-term commitment</h3>
-                <p className="text-sm text-[#404040] leading-[1.8]">
+              <div className="bg-white p-6 sm:p-7 rounded-xl border border-[#e6e9f0] shadow-sm hover:shadow-md transition-shadow duration-200">
+                <div className="w-10 h-10 rounded-lg bg-blue-50 text-[#226eb4] flex items-center justify-center mb-5">
+                  <RefreshCw className="w-5 h-5" />
+                </div>
+                <h3 className="text-[16px] font-semibold text-black mb-2">Long-term commitment</h3>
+                <p className="text-[14px] text-[#555] leading-[1.75]">
                   We build software designed for decades of daily operational continuity. We never force disruptive redesigns or aggressive price hikes.
                 </p>
               </div>
 
-              <div className="bg-[#f8f9fa] p-6 rounded-lg border border-[#e6e9f0]">
-                <h3 className="text-base font-medium text-black mb-3">Customer-first philosophy</h3>
-                <p className="text-sm text-[#404040] leading-[1.8]">
+              <div className="bg-white p-6 sm:p-7 rounded-xl border border-[#e6e9f0] shadow-sm hover:shadow-md transition-shadow duration-200">
+                <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center mb-5">
+                  <Headphones className="w-5 h-5" />
+                </div>
+                <h3 className="text-[16px] font-semibold text-black mb-2">Customer-first philosophy</h3>
+                <p className="text-[14px] text-[#555] leading-[1.75]">
                   Direct phone access to human solutions engineers who know your institution by name. On-site visits and real local support.
                 </p>
               </div>
 
-              <div className="bg-[#f8f9fa] p-6 rounded-lg border border-[#e6e9f0]">
-                <h3 className="text-base font-medium text-black mb-3">Privacy and security first</h3>
-                <p className="text-sm text-[#404040] leading-[1.8]">
+              <div className="bg-white p-6 sm:p-7 rounded-xl border border-[#e6e9f0] shadow-sm hover:shadow-md transition-shadow duration-200">
+                <div className="w-10 h-10 rounded-lg bg-red-50 text-[#e42525] flex items-center justify-center mb-5">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <h3 className="text-[16px] font-semibold text-black mb-2">Privacy and security first</h3>
+                <p className="text-[14px] text-[#555] leading-[1.75]">
                   We do not own, sell, or advertise against your student records, patient histories, or medicine sales. Full data sovereignty.
                 </p>
               </div>
 
-              <div className="bg-[#f8f9fa] p-6 rounded-lg border border-[#e6e9f0]">
-                <h3 className="text-base font-medium text-black mb-3">Focus on R&D</h3>
-                <p className="text-sm text-[#404040] leading-[1.8]">
+              <div className="bg-white p-6 sm:p-7 rounded-xl border border-[#e6e9f0] shadow-sm hover:shadow-md transition-shadow duration-200">
+                <div className="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center mb-5">
+                  <Cpu className="w-5 h-5" />
+                </div>
+                <h3 className="text-[16px] font-semibold text-black mb-2">Focus on R&D</h3>
+                <p className="text-[14px] text-[#555] leading-[1.75]">
                   Software is our craft. We own the entire technology stack, including running our own data centres in India for sovereignty.
                 </p>
               </div>
@@ -406,48 +439,43 @@ export default function Home() {
         {/* ========================================================================= */}
         {/* 6. STATS — Zoho Stats Counter                                            */}
         {/* ========================================================================= */}
-        <section className="w-full bg-[#f8f9fa]" style={{ padding: "60px 5%" }}>
+        <section className="w-full bg-[#005fb8] px-6 py-16 lg:px-[5%] lg:py-[80px]">
           <div className="max-w-[1280px] mx-auto">
             
-            <div className="text-center mb-10">
-              <h2 className="text-[28px] sm:text-[36px] font-medium text-black tracking-[-1px]">
-                Made in India.<span className="block sm:inline"> Engineered for Institutional Reliability.</span>
+            <div className="text-center mb-10 flex flex-col items-center">
+              <h2 className="text-[28px] sm:text-[36px] font-medium text-white tracking-[-1px]">
+                Made in India.<span className="block lg:inline"> Engineered for the World.</span>
               </h2>
-              <div className="w-14 border-t border-black mx-auto mt-4" />
+              <div className="w-[50px] border-t-2 border-[#4ade80] mx-auto mt-6" />
             </div>
 
-            <div className="flex flex-wrap justify-center gap-0 text-center">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-y-16 gap-x-4 text-center mt-12">
               
-              <div className="flex-1 min-w-[140px] px-4 py-4 border-r border-[#e6e9f0] last:border-r-0">
-                <p className="text-[36px] sm:text-[42px] font-medium text-black">500<span className="text-[#226eb4]">+</span></p>
-                <p className="text-xs font-medium text-[#7d7d7d] uppercase tracking-wider mt-1">Institutions Served</p>
+              <div className="px-2">
+                <p className="text-[40px] sm:text-[48px] font-medium text-white">150K<span className="text-[#4ade80]">+</span></p>
+                <p className="text-[12px] sm:text-[14px] font-bold text-white/80 mt-2">Users Globally</p>
               </div>
 
-              <div className="flex-1 min-w-[140px] px-4 py-4 border-r border-[#e6e9f0] last:border-r-0">
-                <p className="text-[36px] sm:text-[42px] font-medium text-black">1.2M<span className="text-[#226eb4]">+</span></p>
-                <p className="text-xs font-medium text-[#7d7d7d] uppercase tracking-wider mt-1">Students & Patients</p>
+              <div className="px-2">
+                <p className="text-[40px] sm:text-[48px] font-medium text-white">500<span className="text-[#4ade80]">+</span></p>
+                <p className="text-[12px] sm:text-[14px] font-bold text-white/80 mt-2">Institutions Served</p>
               </div>
 
-              <div className="flex-1 min-w-[140px] px-4 py-4 border-r border-[#e6e9f0] last:border-r-0">
-                <p className="text-[36px] sm:text-[42px] font-medium text-black">99.98<span className="text-[#226eb4]">%</span></p>
-                <p className="text-xs font-medium text-[#7d7d7d] uppercase tracking-wider mt-1">Cloud Uptime SLA</p>
+              <div className="px-2">
+                <p className="text-[40px] sm:text-[48px] font-medium text-white">99.9<span className="text-[#4ade80]">%</span></p>
+                <p className="text-[12px] sm:text-[14px] font-bold text-white/80 mt-2">Cloud Uptime SLA</p>
               </div>
 
-              <div className="flex-1 min-w-[140px] px-4 py-4 border-r border-[#e6e9f0] last:border-r-0">
-                <p className="text-[36px] sm:text-[42px] font-medium text-black">3<span className="text-[#226eb4]"> Sec</span></p>
-                <p className="text-xs font-medium text-[#7d7d7d] uppercase tracking-wider mt-1">Barcode POS Billing</p>
-              </div>
-
-              <div className="flex-1 min-w-[140px] px-4 py-4">
-                <p className="text-[36px] sm:text-[42px] font-medium text-black">24<span className="text-[#226eb4]"> Hrs</span></p>
-                <p className="text-xs font-medium text-[#7d7d7d] uppercase tracking-wider mt-1">Migration Turnaround</p>
+              <div className="px-2">
+                <p className="text-[40px] sm:text-[48px] font-medium text-white">24<span className="text-[#4ade80]"> Hrs</span></p>
+                <p className="text-[12px] sm:text-[14px] font-bold text-white/80 mt-2">Setup Turnaround</p>
               </div>
 
             </div>
 
-            <div className="text-center mt-8">
-              <Link href="/contact" className="zw-cta-arrow">
-                More about Waves
+            <div className="text-center mt-16">
+              <Link href="/contact" className="inline-block border border-white/30 rounded px-6 py-3 text-white text-[13px] font-bold tracking-wider hover:bg-white/10 transition">
+                MORE ABOUT WAVES <ChevronRight className="w-4 h-4 inline-block ml-1" />
               </Link>
             </div>
           </div>
@@ -456,11 +484,11 @@ export default function Home() {
         {/* ========================================================================= */}
         {/* 7. DEMO BOOKING FORM                                                     */}
         {/* ========================================================================= */}
-        <section id="demo" className="w-full bg-white" style={{ padding: "80px 5%" }}>
+        <section id="demo" className="w-full bg-white border-t border-[#e6e9f0] px-6 py-14 lg:px-[5%] lg:py-[80px]">
           <div className="max-w-[1280px] mx-auto">
-            <div className="flex flex-col lg:flex-row gap-12 lg:gap-16 items-start">
+            <div className="flex flex-col lg:flex-row gap-10 lg:gap-16 items-start">
               
-              <div className="lg:w-5/12 space-y-5">
+              <div className="lg:w-5/12 space-y-5 lg:sticky lg:top-[80px]">
                 <div className="zw-label">
                   <span>Consultation & Pilot</span>
                 </div>
@@ -513,17 +541,17 @@ export default function Home() {
         {/* ========================================================================= */}
         {/* 8. FINAL CTA BANNER — Zoho "Ready to do your best work?"                */}
         {/* ========================================================================= */}
-        <section className="w-full bg-[#f8f9fa] border-t border-b border-[#e6e9f0]" style={{ padding: "80px 5%" }}>
-          <div className="max-w-[800px] mx-auto text-center">
-            <h2 className="text-[36px] sm:text-[48px] font-medium tracking-[-1px] mb-4 zw-text-gradient">
-              Ready to transform your institution?
+        <section className="w-full bg-gradient-to-b from-[#f0f5ff] to-[#e8f0fe] border-t border-[#d4e3f5] px-6 py-14 lg:px-[5%] lg:py-[80px]">
+          <div className="max-w-[700px] mx-auto text-center">
+            <h2 className="text-[28px] sm:text-[40px] lg:text-[46px] font-medium tracking-[-1.5px] mb-4 text-[#111]">
+              Ready to <span className="text-[#226eb4]">transform</span> your institution?
             </h2>
-            <div className="w-14 border-t border-black mx-auto mt-3 mb-6" />
-            <p className="text-base text-[#404040] mb-8 leading-[1.8]">
-              Let&apos;s get you started.
+            <div className="w-[50px] border-t-[3px] border-[#226eb4] mx-auto mt-4 mb-6" />
+            <p className="text-[15px] sm:text-base text-[#555] mb-8 leading-[1.8]">
+              Join 500+ institutions already running on Waves. Let&apos;s get you started.
             </p>
-            <Link href="/signup" className="zw-erp-btn">
-              Sign Up Now
+            <Link href="/signup" className="zw-cta-main !bg-[#226eb4] hover:!bg-[#1a5a96] shadow-lg shadow-blue-500/20 w-full sm:w-auto text-center">
+              GET STARTED FOR FREE <ChevronRight className="w-4 h-4 inline-block ml-1" />
             </Link>
           </div>
         </section>
@@ -533,7 +561,7 @@ export default function Home() {
       {/* ========================================================================= */}
       {/* FOOTER                                                                    */}
       {/* ========================================================================= */}
-      <footer className="w-full bg-[#0a0a0a] text-[#aaa] text-xs" style={{ padding: "64px 5% 48px" }}>
+      <footer className="w-full bg-[#0a0a0a] text-[#aaa] text-xs px-6 py-12 lg:px-[5%] lg:pt-[64px] lg:pb-[48px]">
         <div className="max-w-[1280px] mx-auto">
           
           <div className="grid grid-cols-2 md:grid-cols-5 gap-8 pb-12 border-b border-[#222]">

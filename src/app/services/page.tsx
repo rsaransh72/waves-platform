@@ -399,7 +399,7 @@ export default function ServicesPage() {
 
               {/* Booking Form */}
               <div className="lg:col-span-6">
-                <BookDemoForm defaultProduct="erp" />
+                <BookDemoForm />
               </div>
 
             </div>
@@ -411,9 +411,9 @@ export default function ServicesPage() {
 
       {/* Footer */}
       <footer className="w-full bg-white py-8 border-t border-[#e6e9f0]">
-        <div className="w-full max-w-[1280px] mx-auto px-[5%] flex flex-col sm:flex-row items-center justify-between text-xs text-[#7d7d7d] gap-4">
-          <p>&copy; {new Date().getFullYear()} Waves Technologies. All rights reserved.</p>
-          <div className="flex items-center space-x-6">
+        <div className="w-full max-w-[1280px] mx-auto px-[5%] flex flex-col lg:flex-row items-center justify-between text-xs text-[#7d7d7d] gap-6 lg:gap-4">
+          <p className="text-center lg:text-left">&copy; {new Date().getFullYear()} Waves Technologies. All rights reserved.</p>
+          <div className="flex flex-wrap justify-center lg:justify-end items-center gap-4 lg:gap-6">
             <Link href="/school-erp" className="hover:text-black transition">School Suite</Link>
             <Link href="/hospital-erp" className="hover:text-black transition">Health Suite</Link>
             <Link href="/pharmacy-pos" className="hover:text-black transition">Pharmacy POS</Link>

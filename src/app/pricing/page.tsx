@@ -3,660 +3,249 @@
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
-import { 
-  GraduationCap, 
-  Hospital, 
-  Store, 
-  Check, 
-  ArrowRight, 
-  ShieldCheck, 
-  Sparkles,
-  HelpCircle,
-  Layers 
-} from "lucide-react";
+import { Check, Info, HelpCircle, ChevronRight, X } from "lucide-react";
 
 export default function PricingPage() {
-  const [suite, setSuite] = useState<"erp" | "school" | "health" | "pharmacy">("erp");
+  const [billingCycle, setBillingCycle] = useState<"yearly" | "monthly">("yearly");
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
+
+  const faqs = [
+    {
+      q: "What is the difference between All Employee Pricing and Flexible User Pricing?",
+      a: "All Employee Pricing is designed for organizations that want to deploy Waves One across their entire workforce, offering a significantly lower per-user cost. Flexible User Pricing allows you to purchase licenses only for specific employees, which is ideal if only a single department needs access to the suite."
+    },
+    {
+      q: "Do I have to purchase a license for employees who do not use a computer?",
+      a: "No. For the All Employee Pricing model, you are only required to purchase licenses for employees who require access to a computer or mobile device for their daily work. Factory floor workers, janitorial staff, or offline contract laborers are generally exempt."
+    },
+    {
+      q: "Can I switch from Flexible User to All Employee Pricing later?",
+      a: "Yes! If you start with Flexible User Pricing for a specific department and later decide to roll out Waves One across your entire organization, you can transition to the All Employee Pricing model to take advantage of the lower rates."
+    },
+    {
+      q: "Is there a minimum number of users required?",
+      a: "For the All Employee model, you must purchase a license for every eligible employee (minimum of 5 employees). For Flexible User Pricing, there is no minimum requirement—you can start with just 1 user."
+    },
+    {
+      q: "Are there any hidden costs for implementation?",
+      a: "No. Your subscription includes full access to all 40+ apps. However, if you require dedicated hands-on implementation, customized workflows, or data migration services, we offer optional paid consulting packages through our Enterprise Services team."
+    }
+  ];
 
   return (
-    <div className="min-h-screen bg-white flex flex-col antialiased">
+    <div className="min-h-screen bg-white flex flex-col font-sans">
       <Navbar />
 
-      <main className="flex-1 w-full overflow-hidden">
+      <main className="flex-1 w-full pt-16">
         
-        {/* ========================================================================= */}
-        {/* 1. PRICING HERO SECTION                                                  */}
-        {/* ========================================================================= */}
-        <section className="w-full bg-white pt-12 pb-16 sm:pt-16 sm:pb-20 border-b border-[#e6e9f0]">
-          <div className="w-full max-w-[1280px] mx-auto px-[5%]">
-            <div className="text-center max-w-3xl mx-auto mb-10">
-              <span className="waves-mono-tag mb-4">
-                <span className="waves-mono-tag-dot" />
-                TRANSPARENT INSTITUTIONAL PRICING
-              </span>
+        {/* Header Section */}
+        <section className="w-full max-w-4xl mx-auto px-6 text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-[#111] tracking-tight mb-6">
+            Transparent pricing for <br className="hidden sm:block" /> your entire business.
+          </h1>
+          <p className="text-[17px] text-[#555] leading-relaxed max-w-2xl mx-auto">
+            Waves One gives you access to our entire suite of 40+ integrated business applications. Choose the licensing model that best fits your organizational strategy.
+          </p>
+        </section>
 
-              <h1 className="text-3xl sm:text-5xl font-bold text-black tracking-[-0.025em] leading-[1.15] mt-3">
-                Predictable plans built to scale with your institution
-              </h1>
+        {/* Billing Toggle */}
+        <div className="flex justify-center mb-16">
+          <div className="bg-[#f0f2f5] p-1 rounded-full flex items-center relative">
+            <button
+              onClick={() => setBillingCycle("monthly")}
+              className={`px-8 py-2.5 rounded-full text-[14px] font-semibold transition-all relative z-10 ${
+                billingCycle === "monthly" ? "bg-white text-black shadow-sm" : "text-[#555] hover:text-[#111]"
+              }`}
+            >
+              Pay Monthly
+            </button>
+            <button
+              onClick={() => setBillingCycle("yearly")}
+              className={`px-8 py-2.5 rounded-full text-[14px] font-semibold transition-all relative z-10 flex items-center gap-2 ${
+                billingCycle === "yearly" ? "bg-[#1d4ed8] text-white shadow-md" : "text-[#555] hover:text-[#111]"
+              }`}
+            >
+              Pay Yearly
+              {billingCycle !== "yearly" && (
+                <span className="bg-[#10b981] text-white text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">Save 20%</span>
+              )}
+            </button>
+          </div>
+        </div>
 
-              <div className="w-11 h-[2px] bg-[#e42525] mx-auto mt-4 mb-5" />
-
-              <p className="text-base sm:text-lg text-[#404040] leading-relaxed">
-                No hidden per-seat licensing penalties. All plans include 14-day zero-risk trial, free database migration, and dedicated phone support.
-              </p>
-
-              {/* Suite Selector Tabs */}
-              <div className="mt-8 inline-flex flex-wrap p-1 rounded-[4px] bg-[#f8f9fa] border border-[#e6e9f0] gap-1 justify-center">
-                <button
-                  onClick={() => setSuite("erp")}
-                  className={`flex items-center space-x-2 px-5 py-2.5 rounded-[2px] text-xs sm:text-sm font-bold transition cursor-pointer ${
-                    suite === "erp"
-                      ? "bg-[#226eb4] text-white shadow-xs"
-                      : "text-[#404040] hover:text-black"
-                  }`}
-                >
-                  <Layers className="w-4 h-4" />
-                  <span>Waves ERP</span>
-                </button>
-
-                <button
-                  onClick={() => setSuite("school")}
-                  className={`flex items-center space-x-2 px-5 py-2.5 rounded-[2px] text-xs sm:text-sm font-bold transition cursor-pointer ${
-                    suite === "school"
-                      ? "bg-[#226eb4] text-white shadow-xs"
-                      : "text-[#404040] hover:text-black"
-                  }`}
-                >
-                  <GraduationCap className="w-4 h-4" />
-                  <span>School Suite</span>
-                </button>
-
-                <button
-                  onClick={() => setSuite("health")}
-                  className={`flex items-center space-x-2 px-5 py-2.5 rounded-[2px] text-xs sm:text-sm font-bold transition cursor-pointer ${
-                    suite === "health"
-                      ? "bg-[#10b981] text-white shadow-xs"
-                      : "text-[#404040] hover:text-black"
-                  }`}
-                >
-                  <Hospital className="w-4 h-4" />
-                  <span>Health Suite</span>
-                </button>
-
-                <button
-                  onClick={() => setSuite("pharmacy")}
-                  className={`flex items-center space-x-2 px-5 py-2.5 rounded-[2px] text-xs sm:text-sm font-bold transition cursor-pointer ${
-                    suite === "pharmacy"
-                      ? "bg-[#f59e0b] text-white shadow-xs"
-                      : "text-[#404040] hover:text-black"
-                  }`}
-                >
-                  <Store className="w-4 h-4" />
-                  <span>Pharmacy POS</span>
-                </button>
+        {/* Pricing Cards */}
+        <section className="w-full max-w-6xl mx-auto px-6 mb-24">
+          <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-stretch">
+            
+            {/* All Employee Pricing */}
+            <div className="bg-white rounded-2xl border-2 border-[#1d4ed8] shadow-[0_20px_50px_rgba(29,78,216,0.1)] p-8 md:p-10 relative flex flex-col transform hover:-translate-y-1 transition-transform duration-300">
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 -mt-4 bg-[#1d4ed8] text-white text-[12px] font-bold uppercase tracking-widest px-6 py-1.5 rounded-full">
+                Best Value
+              </div>
+              
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold text-[#111] mb-3">All Employee Pricing</h2>
+                <p className="text-[15px] text-[#666] leading-relaxed">
+                  For businesses that want to empower their entire workforce with Waves One. Must purchase a license for every employee.
+                </p>
               </div>
 
+              <div className="mb-8">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-[28px] font-medium text-[#111] relative top-[-8px]">₹</span>
+                  <span className="text-[54px] font-extrabold text-[#111] leading-none tracking-tight">
+                    {billingCycle === "yearly" ? "1,800" : "2,200"}
+                  </span>
+                </div>
+                <div className="text-[14px] text-[#555] font-medium mt-2">
+                  / employee / month
+                </div>
+                <div className="text-[12px] text-[#888] mt-1">
+                  {billingCycle === "yearly" ? "Billed annually" : "Billed monthly"}
+                </div>
+              </div>
+
+              <Link 
+                href="/signup?plan=all-employee"
+                className="w-full py-4 bg-[#1d4ed8] hover:bg-[#1e40af] text-white rounded-xl font-bold text-[16px] transition-colors flex justify-center items-center mb-8"
+              >
+                Start your 30-day free trial
+              </Link>
+
+              <div className="flex-1 bg-[#f9fafb] -mx-8 md:-mx-10 -mb-8 md:-mb-10 p-8 md:p-10 rounded-b-[14px]">
+                <h4 className="font-bold text-[#111] text-[15px] mb-4">Includes everything in Waves One:</h4>
+                <ul className="space-y-4">
+                  {[
+                    "Access to all 40+ enterprise apps",
+                    "Unlimited data storage pooling",
+                    "Enterprise-grade security controls",
+                    "24/7 dedicated support via phone & chat",
+                    "Free concierge onboarding session"
+                  ].map((feature, i) => (
+                    <li key={i} className="flex items-start gap-3 text-[14px] text-[#444]">
+                      <Check className="w-5 h-5 text-[#10b981] shrink-0" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
+
+            {/* Flexible User Pricing */}
+            <div className="bg-white rounded-2xl border border-[#e5e7eb] shadow-sm hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)] p-8 md:p-10 flex flex-col transform hover:-translate-y-1 transition-transform duration-300">
+              
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold text-[#111] mb-3">Flexible User Pricing</h2>
+                <p className="text-[15px] text-[#666] leading-relaxed">
+                  For businesses that want to purchase Waves One only for specific teams, departments, or individual users.
+                </p>
+              </div>
+
+              <div className="mb-8">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-[28px] font-medium text-[#111] relative top-[-8px]">₹</span>
+                  <span className="text-[54px] font-extrabold text-[#111] leading-none tracking-tight">
+                    {billingCycle === "yearly" ? "4,500" : "5,400"}
+                  </span>
+                </div>
+                <div className="text-[14px] text-[#555] font-medium mt-2">
+                  / user / month
+                </div>
+                <div className="text-[12px] text-[#888] mt-1">
+                  {billingCycle === "yearly" ? "Billed annually" : "Billed monthly"}
+                </div>
+              </div>
+
+              <Link 
+                href="/signup?plan=flexible-user"
+                className="w-full py-4 bg-white border-2 border-[#1d4ed8] text-[#1d4ed8] hover:bg-[#f8faff] rounded-xl font-bold text-[16px] transition-colors flex justify-center items-center mb-8"
+              >
+                Start your 30-day free trial
+              </Link>
+
+              <div className="flex-1 bg-[#f9fafb] -mx-8 md:-mx-10 -mb-8 md:-mb-10 p-8 md:p-10 rounded-b-[14px]">
+                <h4 className="font-bold text-[#111] text-[15px] mb-4">Includes everything in Waves One:</h4>
+                <ul className="space-y-4">
+                  {[
+                    "Access to all 40+ enterprise apps",
+                    "Standard data storage allocation",
+                    "Advanced administrative controls",
+                    "Standard email and chat support",
+                    "Self-service onboarding portal"
+                  ].map((feature, i) => (
+                    <li key={i} className="flex items-start gap-3 text-[14px] text-[#444]">
+                      <Check className="w-5 h-5 text-[#10b981] shrink-0" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
           </div>
         </section>
 
-        {/* ========================================================================= */}
-        {/* 2. PRICING CARDS                                                         */}
-        {/* ========================================================================= */}
-        <section className="w-full bg-[#f8f9fa] py-16 sm:py-20 border-b border-[#e6e9f0]">
-          <div className="w-full max-w-[1280px] mx-auto px-[5%]">
-            
-            {/* WAVES ERP PRICING */}
-            {suite === "erp" && (
-              <div className="grid md:grid-cols-3 gap-8">
-                {/* ERP Plan 1 */}
-                <div className="bg-white p-8 rounded-[4px] border border-[#e6e9f0] hover:shadow-md transition flex flex-col justify-between">
-                  <div>
-                    <h3 className="text-xl font-bold text-black">Starter ERP</h3>
-                    <p className="text-xs text-[#404040] mt-1">For single entities &amp; growing commercial businesses</p>
-                    <div className="my-6">
-                      <span className="text-3xl sm:text-4xl font-medium text-black">₹6,999</span>
-                      <span className="text-xs text-[#7d7d7d]"> / month</span>
-                      <p className="text-[11px] text-[#888888] mt-1">Billed annually • Up to 10 user seats</p>
-                    </div>
-                    <ul className="space-y-3 text-xs sm:text-sm text-[#333333] border-t border-[#f1f5f9] pt-6">
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Core General Ledger &amp; Trial Balance</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>GST E-Invoicing &amp; E-Way Bill Auto-Generation</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Single warehouse inventory &amp; batch tracking</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Automated bank reconciliation via API</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Free Tally / Marg master data migration</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div className="pt-8">
-                    <Link
-                      href="/contact?plan=erp-starter"
-                      className="zw-cta-outlined w-full text-center block"
-                    >
-                      Start 14-Day Free Pilot
-                    </Link>
-                  </div>
-                </div>
+        {/* Feature Banner */}
+        <section className="w-full bg-[#111827] py-16">
+          <div className="w-full max-w-5xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-10">
+            <div className="flex-1 text-center md:text-left">
+              <h3 className="text-2xl font-bold text-white mb-3">Not ready for the full suite?</h3>
+              <p className="text-[#9ca3af] text-[16px]">
+                You can also purchase our applications individually or in smaller departmental bundles like CRM Plus or Finance Plus.
+              </p>
+            </div>
+            <Link href="/pricing/individual" className="shrink-0 px-8 py-3.5 bg-white text-black font-bold rounded-lg hover:bg-gray-100 transition-colors">
+              View Individual Pricing
+            </Link>
+          </div>
+        </section>
 
-                {/* ERP Plan 2 - Featured */}
-                <div className="bg-white p-8 rounded-[4px] border-2 border-[#226eb4] shadow-lg relative flex flex-col justify-between">
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#226eb4] text-white text-[10px] font-bold uppercase tracking-wider px-3 py-0.5 rounded-[2px]">
-                    Most Popular
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-black">Professional ERP</h3>
-                    <p className="text-xs text-[#404040] mt-1">For multi-location enterprises &amp; fast-growing chains</p>
-                    <div className="my-6">
-                      <span className="text-3xl sm:text-4xl font-medium text-black">₹14,999</span>
-                      <span className="text-xs text-[#7d7d7d]"> / month</span>
-                      <p className="text-[11px] text-[#888888] mt-1">Billed annually • Up to 50 user seats</p>
-                    </div>
-                    <ul className="space-y-3 text-xs sm:text-sm text-[#333333] border-t border-[#f1f5f9] pt-6">
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Multi-company consolidated ledgers</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Full multi-warehouse supply chain &amp; FEFO</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Contextual AI cashflow &amp; working capital alert</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Biometric attendance &amp; automated payroll/TDS</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Dedicated technical manager on hotline</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div className="pt-8">
-                    <Link
-                      href="/contact?plan=erp-pro"
-                      className="zw-cta-main w-full text-center block"
-                    >
-                      Get Started For Free &gt;
-                    </Link>
-                  </div>
-                </div>
+        {/* FAQs */}
+        <section className="w-full max-w-4xl mx-auto px-6 py-24">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-[#111] mb-4">Frequently Asked Questions</h2>
+            <p className="text-[#555] text-[16px]">Have questions about the All Employee pricing model? We have answers.</p>
+          </div>
 
-                {/* ERP Plan 3 */}
-                <div className="bg-white p-8 rounded-[4px] border border-[#e6e9f0] hover:shadow-md transition flex flex-col justify-between">
-                  <div>
-                    <h3 className="text-xl font-bold text-black">Enterprise Suite</h3>
-                    <p className="text-xs text-[#404040] mt-1">For corporate trusts, hospital networks &amp; large conglomerates</p>
-                    <div className="my-6">
-                      <span className="text-3xl sm:text-4xl font-medium text-black">₹29,999</span>
-                      <span className="text-xs text-[#7d7d7d]"> / month</span>
-                      <p className="text-[11px] text-[#888888] mt-1">Billed annually • Unlimited capacity &amp; users</p>
-                    </div>
-                    <ul className="space-y-3 text-xs sm:text-sm text-[#333333] border-t border-[#f1f5f9] pt-6">
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Unlimited entities, subsidiaries &amp; locations</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Dedicated isolated database instance</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Custom REST API endpoints &amp; SAP/Oracle link</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>24/7 dedicated solutions architect &amp; priority SLA</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>On-site implementation team included</span>
-                      </li>
-                    </ul>
+          <div className="space-y-4">
+            {faqs.map((faq, idx) => (
+              <div 
+                key={idx} 
+                className={`border rounded-xl overflow-hidden transition-colors ${openFaq === idx ? "border-[#1d4ed8] bg-[#f8faff]" : "border-[#e5e7eb] bg-white hover:border-[#cbd5e1]"}`}
+              >
+                <button 
+                  className="w-full px-6 py-5 flex items-center justify-between text-left focus:outline-none"
+                  onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
+                >
+                  <span className={`font-bold text-[16px] ${openFaq === idx ? "text-[#1d4ed8]" : "text-[#111]"}`}>
+                    {faq.q}
+                  </span>
+                  <div className={`shrink-0 ml-4 w-6 h-6 flex items-center justify-center rounded-full transition-transform duration-300 ${openFaq === idx ? "rotate-90 bg-[#1d4ed8] text-white" : "bg-[#f1f5f9] text-[#64748b]"}`}>
+                    <ChevronRight className="w-4 h-4" />
                   </div>
-                  <div className="pt-8">
-                    <Link
-                      href="/contact?plan=erp-enterprise"
-                      className="zw-cta-outlined w-full text-center block"
-                    >
-                      Book Executive Consultation
-                    </Link>
+                </button>
+                {openFaq === idx && (
+                  <div className="px-6 pb-6 text-[#444] text-[15px] leading-relaxed border-t border-[#1d4ed8]/10 pt-4">
+                    {faq.a}
                   </div>
-                </div>
+                )}
               </div>
-            )}
-
-            {/* SCHOOL SUITE PRICING */}
-            {suite === "school" && (
-              <div className="grid md:grid-cols-3 gap-8">
-                {/* School Plan 1 */}
-                <div className="bg-white p-8 rounded-[4px] border border-[#e6e9f0] hover:shadow-md transition flex flex-col justify-between">
-                  <div>
-                    <h3 className="text-xl font-bold text-black">Starter Campus</h3>
-                    <p className="text-xs text-[#404040] mt-1">For primary schools & institutes under 500 students</p>
-                    <div className="my-6">
-                      <span className="text-3xl sm:text-4xl font-medium text-black">₹2,499</span>
-                      <span className="text-xs text-[#7d7d7d]"> / month</span>
-                      <p className="text-[11px] text-[#888888] mt-1">Billed annually • Unlimited teachers</p>
-                    </div>
-                    <ul className="space-y-3 text-xs sm:text-sm text-[#333333] border-t border-[#f1f5f9] pt-6">
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Up to 500 active students</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Automated fee receipts & UPI links</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>CBSE/ICSE report card generator</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>WhatsApp parent announcements</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Free student master Excel migration</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div className="pt-8">
-                    <Link
-                      href="/contact?plan=school-starter"
-                      className="zw-cta-outlined w-full text-center block"
-                    >
-                      Start 14-Day Free Pilot
-                    </Link>
-                  </div>
-                </div>
-
-                {/* School Plan 2 - Featured */}
-                <div className="bg-white p-8 rounded-[4px] border-2 border-[#056cb8] shadow-lg relative flex flex-col justify-between">
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#226eb4] text-white text-[10px] font-bold uppercase tracking-wider px-3 py-0.5 rounded-[2px]">
-                    Most Popular
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-black">Growth Academy</h3>
-                    <p className="text-xs text-[#404040] mt-1">For established K-12 schools (500 to 2,000 students)</p>
-                    <div className="my-6">
-                      <span className="text-3xl sm:text-4xl font-medium text-black">₹4,999</span>
-                      <span className="text-xs text-[#7d7d7d]"> / month</span>
-                      <p className="text-[11px] text-[#888888] mt-1">Billed annually • Unlimited teachers & staff</p>
-                    </div>
-                    <ul className="space-y-3 text-xs sm:text-sm text-[#333333] border-t border-[#f1f5f9] pt-6">
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Up to 2,000 active students</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>RFID & Biometric gate punch sync</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Automated fee collection WhatsApp bot</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>School transport GPS live tracking</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Dedicated technical manager on call</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div className="pt-8">
-                    <Link
-                      href="/contact?plan=school-growth"
-                      className="zw-cta-main w-full text-center block"
-                    >
-                      Get Started For Free &gt;
-                    </Link>
-                  </div>
-                </div>
-
-                {/* School Plan 3 */}
-                <div className="bg-white p-8 rounded-[4px] border border-[#e6e9f0] hover:shadow-md transition flex flex-col justify-between">
-                  <div>
-                    <h3 className="text-xl font-bold text-black">Enterprise Network</h3>
-                    <p className="text-xs text-[#404040] mt-1">For multi-branch chains, colleges & trusts</p>
-                    <div className="my-6">
-                      <span className="text-3xl sm:text-4xl font-medium text-black">₹8,999</span>
-                      <span className="text-xs text-[#7d7d7d]"> / month</span>
-                      <p className="text-[11px] text-[#888888] mt-1">Multi-campus support • Unlimited capacity</p>
-                    </div>
-                    <ul className="space-y-3 text-xs sm:text-sm text-[#333333] border-t border-[#f1f5f9] pt-6">
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Unlimited students & multiple branches</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Centralized trust management dashboard</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Custom report card formats & grading logic</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>On-site staff training workshops</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Priority 15-minute SLA hotline</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div className="pt-8">
-                    <Link
-                      href="/contact?plan=school-enterprise"
-                      className="zw-cta-outlined w-full text-center block"
-                    >
-                      Schedule Executive Demo
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* HEALTH SUITE PRICING */}
-            {suite === "health" && (
-              <div className="grid md:grid-cols-3 gap-8">
-                {/* Health Plan 1 */}
-                <div className="bg-white p-8 rounded-[4px] border border-[#e6e9f0] hover:shadow-md transition flex flex-col justify-between">
-                  <div>
-                    <h3 className="text-xl font-bold text-black">Clinic Essential</h3>
-                    <p className="text-xs text-[#404040] mt-1">For single-doctor clinics & day-care centers</p>
-                    <div className="my-6">
-                      <span className="text-3xl sm:text-4xl font-medium text-black">₹1,999</span>
-                      <span className="text-xs text-[#7d7d7d]"> / month</span>
-                      <p className="text-[11px] text-[#888888] mt-1">Billed annually • 2 Doctor logins</p>
-                    </div>
-                    <ul className="space-y-3 text-xs sm:text-sm text-[#333333] border-t border-[#f1f5f9] pt-6">
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>OPD appointment & patient register</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Digital Rx prescription pad</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>WhatsApp prescription sharing</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Consultation fee billing & GST receipts</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div className="pt-8">
-                    <Link
-                      href="/contact?plan=health-clinic"
-                      className="zw-cta-outlined w-full text-center block"
-                    >
-                      Start 14-Day Free Pilot
-                    </Link>
-                  </div>
-                </div>
-
-                {/* Health Plan 2 - Featured */}
-                <div className="bg-white p-8 rounded-[4px] border-2 border-[#10b981] shadow-lg relative flex flex-col justify-between">
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#10b981] text-white text-[10px] font-bold uppercase tracking-wider px-3 py-0.5 rounded-[2px]">
-                    Recommended
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-black">Nursing Home & Polyclinic</h3>
-                    <p className="text-xs text-[#404040] mt-1">For facilities with 10 to 50 beds & multi-specialty OPD</p>
-                    <div className="my-6">
-                      <span className="text-3xl sm:text-4xl font-medium text-black">₹5,499</span>
-                      <span className="text-xs text-[#7d7d7d]"> / month</span>
-                      <p className="text-[11px] text-[#888888] mt-1">Billed annually • Unlimited nursing staff</p>
-                    </div>
-                    <ul className="space-y-3 text-xs sm:text-sm text-[#333333] border-t border-[#f1f5f9] pt-6">
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Waiting room TV token queue calling</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>IPD bed matrix & daily nursing charges</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Pathology lab diagnostics & PDF reports</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>TPA pre-auth & cashless insurance tracking</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Free patient database migration</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div className="pt-8">
-                    <Link
-                      href="/contact?plan=health-polyclinic"
-                      className="zw-cta-main w-full text-center block"
-                    >
-                      Get Started For Free &gt;
-                    </Link>
-                  </div>
-                </div>
-
-                {/* Health Plan 3 */}
-                <div className="bg-white p-8 rounded-[4px] border border-[#e6e9f0] hover:shadow-md transition flex flex-col justify-between">
-                  <div>
-                    <h3 className="text-xl font-bold text-black">Full Hospital ERP</h3>
-                    <p className="text-xs text-[#404040] mt-1">For 50+ bed multispecialty hospital centers</p>
-                    <div className="my-6">
-                      <span className="text-3xl sm:text-4xl font-medium text-black">₹11,999</span>
-                      <span className="text-xs text-[#7d7d7d]"> / month</span>
-                      <p className="text-[11px] text-[#888888] mt-1">Enterprise hospital package • Unlimited staff</p>
-                    </div>
-                    <ul className="space-y-3 text-xs sm:text-sm text-[#333333] border-t border-[#f1f5f9] pt-6">
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Full IPD, ICU, OT surgery schedule engine</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Integrated in-house hospital pharmacy POS</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>ABHA / NDHM digital health record sync</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>On-site doctor, nurse & billing training</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>24/7 dedicated clinical software hotline</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div className="pt-8">
-                    <Link
-                      href="/contact?plan=health-hospital"
-                      className="zw-cta-outlined w-full text-center block"
-                    >
-                      Book Hospital Consultation
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* PHARMACY POS PRICING */}
-            {suite === "pharmacy" && (
-              <div className="grid md:grid-cols-3 gap-8">
-                {/* Pharmacy Plan 1 */}
-                <div className="bg-white p-8 rounded-[4px] border border-[#e6e9f0] hover:shadow-md transition flex flex-col justify-between">
-                  <div>
-                    <h3 className="text-xl font-bold text-black">Single Chemist Counter</h3>
-                    <p className="text-xs text-[#404040] mt-1">For local retail pharmacies & medical shops</p>
-                    <div className="my-6">
-                      <span className="text-3xl sm:text-4xl font-medium text-black">₹1,299</span>
-                      <span className="text-xs text-[#7d7d7d]"> / month</span>
-                      <p className="text-[11px] text-[#888888] mt-1">Billed annually • 1 Billing counter</p>
-                    </div>
-                    <ul className="space-y-3 text-xs sm:text-sm text-[#333333] border-t border-[#f1f5f9] pt-6">
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>3-Second barcode scanner checkout</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Batch & near-expiry return alerts</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Strip-to-loose tablet price calculation</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Thermal POS receipt printer support</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>1-Click GSTR-1 JSON export</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div className="pt-8">
-                    <Link
-                      href="/contact?plan=pharmacy-single"
-                      className="zw-cta-outlined w-full text-center block"
-                    >
-                      Start 14-Day Free Trial
-                    </Link>
-                  </div>
-                </div>
-
-                {/* Pharmacy Plan 2 - Featured */}
-                <div className="bg-white p-8 rounded-[4px] border-2 border-[#f59e0b] shadow-lg relative flex flex-col justify-between">
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#f59e0b] text-white text-[10px] font-bold uppercase tracking-wider px-3 py-0.5 rounded-[2px]">
-                    Most Popular
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-black">Multi-Counter Store</h3>
-                    <p className="text-xs text-[#404040] mt-1">For busy retail pharmacies with 2 to 4 checkout terminals</p>
-                    <div className="my-6">
-                      <span className="text-3xl sm:text-4xl font-medium text-black">₹2,899</span>
-                      <span className="text-xs text-[#7d7d7d]"> / month</span>
-                      <p className="text-[11px] text-[#888888] mt-1">Billed annually • Up to 4 billing counters</p>
-                    </div>
-                    <ul className="space-y-3 text-xs sm:text-sm text-[#333333] border-t border-[#f1f5f9] pt-6">
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Multi-counter cash drawer reconciliation</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Schedule H / H1 audit register compliance</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Supplier purchase orders & credit debits</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Customer loyalty & automated refill alerts</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Free medicine inventory migration</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div className="pt-8">
-                    <Link
-                      href="/contact?plan=pharmacy-multi"
-                      className="zw-cta-main w-full text-center block"
-                    >
-                      Get Started For Free &gt;
-                    </Link>
-                  </div>
-                </div>
-
-                {/* Pharmacy Plan 3 */}
-                <div className="bg-white p-8 rounded-[4px] border border-[#e6e9f0] hover:shadow-md transition flex flex-col justify-between">
-                  <div>
-                    <h3 className="text-xl font-bold text-black">Pharmacy Chain</h3>
-                    <p className="text-xs text-[#404040] mt-1">For multi-outlet chemist networks & central warehouses</p>
-                    <div className="my-6">
-                      <span className="text-3xl sm:text-4xl font-medium text-black">₹6,499</span>
-                      <span className="text-xs text-[#7d7d7d]"> / month</span>
-                      <p className="text-[11px] text-[#888888] mt-1">Multi-branch chain • Central warehouse</p>
-                    </div>
-                    <ul className="space-y-3 text-xs sm:text-sm text-[#333333] border-t border-[#f1f5f9] pt-6">
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Centralized warehouse-to-store stock transfers</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Combined GSTR-1 & multi-branch GST filing</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Automated purchase reordering across outlets</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>On-site cashier hardware calibration</span>
-                      </li>
-                      <li className="flex items-center space-x-2.5">
-                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Priority 24/7 hotline support</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div className="pt-8">
-                    <Link
-                      href="/contact?plan=pharmacy-chain"
-                      className="zw-cta-outlined w-full text-center block"
-                    >
-                      Inquire for Chain Rates
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            )}
-
+            ))}
           </div>
         </section>
 
       </main>
 
-      <footer className="mt-auto border-t border-[#e6e9f0] bg-[#f8f9fa] py-8 text-center text-xs text-[#7d7d7d]">
-        <p>&copy; 2026 Waves Technologies. Transparent Institutional Software Pricing. 14-day zero-risk trial on all plans.</p>
+      {/* Footer */}
+      <footer className="w-full bg-[#f8f9fa] py-8 border-t border-[#e6e9f0]">
+        <div className="w-full max-w-[1280px] mx-auto px-[5%] flex flex-col lg:flex-row items-center justify-between text-xs text-[#7d7d7d] gap-6 lg:gap-4">
+          <p className="text-center lg:text-left">&copy; {new Date().getFullYear()} Waves Technologies. 30-day free trial. No credit card required.</p>
+          <div className="flex flex-wrap justify-center lg:justify-end items-center gap-4 lg:gap-6">
+            <Link href="/contact" className="hover:text-black transition">Contact Sales</Link>
+            <Link href="/services" className="hover:text-black transition">Find a Partner</Link>
+            <Link href="/signup" className="text-[#1d4ed8] font-bold hover:underline">Get Started Free</Link>
+          </div>
+        </div>
       </footer>
     </div>
   );

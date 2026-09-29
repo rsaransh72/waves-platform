@@ -166,6 +166,7 @@ h3 { font-size: 20px; line-height: 30px; }
 .zw-cta-main:hover {
   background-color: var(--brand-red-hover);
   box-shadow: 0 4px 14px rgba(228, 37, 37, 0.25);
+  transform: translateY(-2px);
 }
 
 /* ========================================================================= */

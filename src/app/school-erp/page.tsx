@@ -1,5 +1,7 @@
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
+import SchoolDashboardDemo from "@/components/SchoolDashboardDemo";
+import BookDemoForm from "@/components/BookDemoForm";
 import { CheckCircle2, ChevronRight, BookOpen, Clock, ShieldCheck, Users } from "lucide-react";
 
 export const metadata = {
@@ -17,7 +19,7 @@ export default function SchoolErpPage() {
         {/* ========================================================================= */}
         {/* 1. PRODUCT HERO SECTION — Clean Zoho Inner Page Pattern                  */}
         {/* ========================================================================= */}
-        <section className="w-full bg-white border-b border-[#e6e9f0]" style={{ padding: "100px 5% 80px" }}>
+        <section className="w-full bg-white border-b border-[#e6e9f0] px-6 py-12 lg:px-[5%] lg:pt-[100px] lg:pb-[80px]">
           <div className="max-w-[1280px] mx-auto">
             <div className="flex flex-col lg:flex-row gap-16 items-center">
               
@@ -50,14 +52,14 @@ export default function SchoolErpPage() {
                 </div>
               </div>
 
-              {/* Right Column: Clean UI Vector */}
-              <div className="lg:w-1/2 w-full">
-                <div className="w-full rounded-[12px] shadow-[0_12px_40px_rgba(0,0,0,0.08)] border border-[#e6e9f0] overflow-hidden bg-white p-2">
-                  <img 
-                    src="/school_ui_vector.jpg" 
-                    alt="School Management Dashboard UI" 
-                    className="w-full h-auto rounded-[8px]"
-                  />
+              {/* Right Column: Clean UI Vector (Pure CSS) */}
+              <div className="lg:w-1/2 w-full pt-8 lg:pt-0 overflow-hidden relative" style={{ minHeight: "300px" }}>
+                <div className="absolute inset-0 lg:static transform scale-[0.45] sm:scale-[0.6] lg:scale-100 origin-top-left lg:origin-center w-[800px] lg:w-full">
+                  <div className="transform lg:-rotate-y-12 lg:rotate-x-12 perspective-1000">
+                    <div className="shadow-2xl shadow-[#226eb4]/20 rounded-xl">
+                      <SchoolDashboardDemo />
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -68,7 +70,7 @@ export default function SchoolErpPage() {
         {/* ========================================================================= */}
         {/* 2. CORE FEATURES GRID                                                     */}
         {/* ========================================================================= */}
-        <section className="w-full bg-[#f8f9fa]" style={{ padding: "100px 5%" }}>
+        <section className="w-full bg-[#f8f9fa] px-6 py-16 lg:px-[5%] lg:py-[100px]">
           <div className="max-w-[1280px] mx-auto">
             
             <div className="text-center max-w-3xl mx-auto mb-16">
@@ -119,7 +121,64 @@ export default function SchoolErpPage() {
           </div>
         </section>
 
+        {/* ========================================================================= */}
+        {/* 3. LIVE ENTERPRISE DEMO BOOKING FORM                                       */}
+        {/* ========================================================================= */}
+        <section id="demo" className="w-full bg-[#f8f9fa] py-16 sm:py-24 border-t border-[#e6e9f0]">
+          <div className="w-full max-w-[1280px] mx-auto px-[5%]">
+            <div className="grid lg:grid-cols-12 gap-12 items-center">
+              <div className="lg:col-span-6 space-y-6">
+                <span className="waves-mono-tag">
+                  <span className="waves-mono-tag-dot" />
+                  ENTERPRISE CONSULTATION
+                </span>
+                <h2 className="text-3xl sm:text-4xl font-bold text-black tracking-tight leading-tight">
+                  Schedule an executive demo <br />
+                  built around your school.
+                </h2>
+                <div className="w-11 h-[2px] bg-[#226eb4]" />
+                <p className="text-base text-[#404040] leading-relaxed">
+                  Our education specialists will model your class structure, grading system, and fee collection workflows during a live 30-minute working session.
+                </p>
+                <div className="space-y-3 pt-2">
+                  <div className="flex items-center space-x-3 text-sm text-[#333333]">
+                    <CheckCircle2 className="w-4 h-4 text-[#226eb4] shrink-0" />
+                    <span>Free student data migration assistance</span>
+                  </div>
+                  <div className="flex items-center space-x-3 text-sm text-[#333333]">
+                    <CheckCircle2 className="w-4 h-4 text-[#226eb4] shrink-0" />
+                    <span>Dedicated account manager & on-site implementation</span>
+                  </div>
+                  <div className="flex items-center space-x-3 text-sm text-[#333333]">
+                    <CheckCircle2 className="w-4 h-4 text-[#226eb4] shrink-0" />
+                    <span>Custom API endpoints for biometric device integrations</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Booking Form */}
+              <div className="lg:col-span-6 bg-white border border-[#e2e8f0] rounded-xl p-6 sm:p-10 shadow-sm">
+                <BookDemoForm />
+              </div>
+            </div>
+          </div>
+        </section>
+
       </main>
+
+      {/* Footer */}
+      <footer className="w-full bg-white py-8 border-t border-[#e2e8f0]">
+        <div className="w-full max-w-[1280px] mx-auto px-[5%] flex flex-col lg:flex-row items-center justify-between text-xs text-[#7d7d7d] gap-6 lg:gap-4">
+          <p className="text-center lg:text-left">&copy; {new Date().getFullYear()} Waves Technologies. All rights reserved.</p>
+          <div className="flex flex-wrap justify-center lg:justify-end items-center gap-4 lg:gap-6">
+            <Link href="/school-erp" className="hover:text-black transition">School Suite</Link>
+            <Link href="/hospital-erp" className="hover:text-black transition">Health Suite</Link>
+            <Link href="/pharmacy-pos" className="hover:text-black transition">Pharmacy POS</Link>
+            <Link href="/pricing" className="hover:text-black transition">Pricing</Link>
+            <Link href="/signup" className="text-[#e42525] font-bold hover:underline">Get Started Free &gt;</Link>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

@@ -73,10 +73,10 @@ export default function SignUpPage() {
         </Link>
 
         <div className="text-[14px] text-[#333333]">
-          <span>Have a Waves Account? </span>
+          <span className="hidden sm:inline">Have a Waves Account? </span>
           <Link 
             href="/login" 
-            className="text-[#0066cc] font-bold hover:underline ml-1 uppercase text-[13px]"
+            className="text-[#0066cc] font-bold hover:underline ml-1 sm:ml-1 uppercase text-[13px]"
           >
             SIGN IN
           </Link>
