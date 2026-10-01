@@ -97,7 +97,7 @@ The job returns a count of reminders and suspensions plus per-subscription failu
 5. Apply `supabase/client_management.sql`. It adds invoice payment fields (method, UTR/reference, paid date), links invoices to subscriptions, allows voiding invoices, and issues sequential invoice numbers (`WAV-2026-00001`). Creating invoices from the client page fails until it is applied.
 6. Apply `supabase/lead_pipeline.sql`, `supabase/remove_placeholder_content.sql` and `supabase/school_erp_content.sql` (website content and lead pipeline).
 7. Apply `supabase/school_roles.sql`, `supabase/school_fee_receipts.sql` and `supabase/school_library.sql` (see **School Roles** below).
-8. Remove the `on_auth_user_created` trigger if it exists (`DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users; DROP FUNCTION IF EXISTS public.handle_new_user();`). It was created outside this repository and adds every new user to `team_members` as an active admin, which makes each invited school user a platform administrator.
+8. Apply `supabase/remove_auto_admin_trigger.sql`. It was created outside this repository and adds every new user to `team_members` as an active admin, which makes each invited school user a platform administrator.
 9. Do not use development policies that grant `anon` access to platform or school tables. Do not run the audit setup script as a routine migration; it drops `audit_logs` with `CASCADE`.
 
 The parent portal (`/portal/student/[id]`) and the parent payment endpoints (`/api/portal/payment`, `/api/portal/payment/stripe`) are disabled until parents have their own sign-in. Schools record fee payments from **Fees → Collection**.
