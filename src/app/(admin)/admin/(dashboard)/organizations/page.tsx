@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { OrganizationList } from "@/components/admin/OrganizationList";
 import Link from "next/link";
@@ -10,7 +11,8 @@ export default async function CustomersPage({
   searchParams: Promise<{ new?: string | string[] }>;
 }) {
   const query = await searchParams;
-  const openCreateOnLoad = query.new === "true";
+  // New clients are created on the onboarding page, which has the product and plan list.
+  if (query.new === "true") redirect("/admin/onboarding");
   const supabase = await createServerSupabaseClient();
   const { data: orgs, error } = await supabase
     .from("organizations")
@@ -26,5 +28,5 @@ export default async function CustomersPage({
     );
   }
 
-  return <OrganizationList key={openCreateOnLoad ? "create" : "list"} initialData={orgs || []} openCreateOnLoad={openCreateOnLoad} />;
+  return <OrganizationList initialData={orgs || []} />;
 }

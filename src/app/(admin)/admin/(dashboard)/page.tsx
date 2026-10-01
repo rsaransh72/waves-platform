@@ -1,135 +1,185 @@
-import { Package, Briefcase, FileText, Building, Users, PhoneCall, TrendingUp, ShieldAlert, Zap } from "lucide-react";
 import Link from "next/link";
+import { AlertTriangle, Building, CalendarClock, CheckCircle2, CircleDashed, IndianRupee, Package, PhoneCall, Rocket } from "lucide-react";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { DashboardAuditWidget } from "@/components/admin/DashboardAuditWidget";
+import { formatMoney } from "@/lib/money";
+import { formatAdminDate } from "@/lib/admin-format";
+import { schoolToday } from "@/lib/school-date";
+import { INQUIRY_LABELS, LEAD_STATUS_LABELS, OPEN_LEAD_STATUSES, type LeadStatus } from "@/lib/lead-pipeline";
 
-export const revalidate = 0; // Always fetch fresh data
+export const revalidate = 0;
+
+function isoFromNow(days: number) {
+  return new Date(Date.now() + days * 86_400_000).toISOString();
+}
 
 export default async function AdminDashboard() {
   const supabase = await createServerSupabaseClient();
-  // Fetch real metrics from Supabase
+  const today = schoolToday();
+  const now = isoFromNow(0);
+  const in30Days = isoFromNow(30);
+
   const [
-    { count: organizationsCount }, 
-    { count: activeOrganizationsCount }, 
-    { count: leadsCount }, 
-    { count: productsCount }, 
-    { count: suitesCount },
-    { count: auditCount },
-    { data: recentLogs }
+    { data: openLeads },
+    { count: activeClients },
+    { data: renewals },
+    { data: unpaidInvoices },
+    { data: settingsRow },
+    { data: schoolErp },
+    { data: pages },
+    { data: recentLogs },
   ] = await Promise.all([
-    supabase.from('organizations').select('*', { count: 'exact', head: true }),
-    supabase.from('organizations').select('*', { count: 'exact', head: true }).eq('status', 'active'),
-    supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'new'),
-    supabase.from('products').select('*', { count: 'exact', head: true }).eq('status', 'published'),
-    supabase.from('suites').select('*', { count: 'exact', head: true }),
-    supabase.from('audit_logs').select('*', { count: 'exact', head: true }),
-    supabase.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(5)
+    supabase.from("leads").select("id, name, organization_name, status, inquiry_type, next_follow_up, created_at").in("status", OPEN_LEAD_STATUSES).order("created_at", { ascending: false }),
+    supabase.from("organizations").select("id", { count: "exact", head: true }).in("status", ["active", "trial"]),
+    supabase.from("subscriptions").select("id, organization_id, organization_name, plan_name, amount, next_billing_date, status").in("status", ["active", "trialing", "past_due"]).lte("next_billing_date", in30Days).order("next_billing_date"),
+    supabase.from("invoices").select("amount").in("status", ["pending", "failed"]),
+    supabase.from("settings").select("value").eq("key", "site_general").maybeSingle(),
+    supabase.from("products").select("pricing, status").eq("slug", "school-erp").maybeSingle(),
+    supabase.from("pages").select("slug, blocks").eq("status", "published"),
+    supabase.from("audit_logs").select("*").order("created_at", { ascending: false }).limit(5),
   ]);
 
+  const leads = (openLeads ?? []) as Array<{ id: string; name: string; organization_name: string | null; status: LeadStatus; inquiry_type: string | null; next_follow_up: string | null; created_at: string }>;
+  const needsAction = leads.filter((lead) => lead.status === "new" || (lead.next_follow_up !== null && lead.next_follow_up <= today));
+  const newLeads = leads.filter((lead) => lead.status === "new").length;
+  const outstanding = (unpaidInvoices ?? []).reduce((total, invoice) => total + Number(invoice.amount ?? 0), 0);
+
+  const site = (settingsRow?.value ?? {}) as Record<string, string>;
+  const pagesWithContent = new Set((pages ?? []).filter((page) => Array.isArray(page.blocks) && page.blocks.length > 0).map((page) => page.slug));
+  // Each check reflects real configuration, so the list shows what is left before launch.
+  const checklist = [
+    { label: "Company phone and email on the website", done: Boolean(site.phone && site.sales_email), href: "/admin/settings" },
+    { label: "School ERP pricing plans entered", done: Array.isArray(schoolErp?.pricing) && schoolErp.pricing.length > 0, href: "/admin/products" },
+    { label: "About page written", done: pagesWithContent.has("about"), href: "/admin/pages" },
+    { label: "Terms and Privacy pages written", done: pagesWithContent.has("terms") && pagesWithContent.has("privacy"), href: "/admin/pages" },
+    { label: "Invitation emails can be sent (service-role key)", done: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY), href: null },
+    { label: "Lead and renewal emails (Resend)", done: Boolean(process.env.RESEND_API_KEY && process.env.RESEND_FROM_EMAIL), href: null },
+    { label: "Daily renewal job secret (CRON_SECRET)", done: Boolean(process.env.CRON_SECRET), href: null },
+  ];
+  const remaining = checklist.filter((item) => !item.done).length;
+
   const stats = [
-    { name: "Total Organizations", value: organizationsCount?.toString() || "0", change: "+2", icon: Building, color: "text-blue-600", bg: "bg-blue-50" },
-    { name: "Active Organizations", value: activeOrganizationsCount?.toString() || "0", change: "+1", icon: Zap, color: "text-emerald-600", bg: "bg-emerald-50" },
-    { name: "New Leads", value: leadsCount?.toString() || "0", change: "+5", icon: PhoneCall, color: "text-orange-600", bg: "bg-orange-50" },
-    { name: "Active Products", value: productsCount?.toString() || "0", change: "0", icon: Package, color: "text-indigo-600", bg: "bg-indigo-50" },
+    { name: "Leads waiting", value: String(needsAction.length), detail: `${newLeads} new, ${needsAction.length - newLeads} follow-ups due`, icon: PhoneCall, color: "text-orange-600", bg: "bg-orange-50", href: "/admin/leads" },
+    { name: "Active clients", value: String(activeClients ?? 0), detail: "Active or on trial", icon: Building, color: "text-blue-600", bg: "bg-blue-50", href: "/admin/organizations" },
+    { name: "Renewals in 30 days", value: String(renewals?.length ?? 0), detail: "Including expired, not yet renewed", icon: CalendarClock, color: "text-purple-600", bg: "bg-purple-50", href: "/admin/subscriptions" },
+    { name: "Unpaid invoices", value: formatMoney(outstanding), detail: `${unpaidInvoices?.length ?? 0} invoices`, icon: IndianRupee, color: "text-emerald-600", bg: "bg-emerald-50", href: "/admin/billing" },
   ];
 
   return (
-    <div className="space-y-6 animate-in fade-in zoom-in-95 duration-200">
+    <div className="space-y-6 animate-in fade-in duration-200">
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">Platform Overview</h1>
-        <p className="text-sm text-slate-500">Mission control for the Waves Platform.</p>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900">Today</h1>
+        <p className="text-sm text-slate-500">What needs attention across sales, clients and billing.</p>
       </div>
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <div key={stat.name} className="relative overflow-hidden rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:shadow-md hover:border-blue-200 group">
-              <div className="flex items-center justify-between">
-                <div className="flex flex-col">
-                  <span className="text-sm font-semibold text-slate-500">{stat.name}</span>
-                  <span className="mt-2 text-3xl font-bold text-slate-900 tracking-tight">{stat.value}</span>
-                </div>
-                <div className={`rounded-lg p-3 ${stat.bg}`}>
-                  <Icon className={`h-6 w-6 ${stat.color}`} />
-                </div>
+        {stats.map(({ name, value, detail, icon: Icon, color, bg, href }) => (
+          <Link key={name} href={href} className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:shadow-md hover:border-blue-200">
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col">
+                <span className="text-sm font-semibold text-slate-500">{name}</span>
+                <span className="mt-2 text-3xl font-bold text-slate-900 tracking-tight">{value}</span>
               </div>
-              <div className="mt-4 flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-emerald-600" />
-                <span className="text-sm font-bold text-emerald-600">{stat.change}</span>
-                <span className="text-xs text-slate-500 ml-1">from last month</span>
-              </div>
+              <div className={`rounded-lg p-3 ${bg}`}><Icon className={`h-6 w-6 ${color}`} /></div>
             </div>
-          );
-        })}
+            <p className="mt-3 text-xs text-slate-500">{detail}</p>
+          </Link>
+        ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column (Actions & Activity) */}
-        <div className="lg:col-span-2 space-y-6 flex flex-col h-full">
-          {/* Quick Actions */}
-          <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-6">
-            <h3 className="font-bold text-slate-800 mb-4">Quick Actions</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {[
-                { name: "Onboard Client", icon: Building, href: "/admin/onboarding" },
-                { name: "New User", icon: Users, href: "/admin/users?new=true" },
-                { name: "New Product", icon: Package, href: "/admin/products/new" },
-              ].map((action, i) => {
-                const Icon = action.icon;
-                return (
-                  <Link href={action.href} key={i} className="flex flex-col items-center justify-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-6 text-sm font-bold text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-all shadow-sm">
-                    <Icon className="h-6 w-6 mb-1" />
-                    {action.name}
-                  </Link>
-                )
-              })}
+        <div className="lg:col-span-2 space-y-6">
+          <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div className="flex items-center justify-between border-b border-slate-100 p-5">
+              <h2 className="font-bold text-slate-800">Leads to call</h2>
+              <Link href="/admin/leads" className="text-sm font-medium text-blue-600 hover:text-blue-700">All leads &rarr;</Link>
             </div>
-          </div>
-          
-          <div className="flex-1 min-h-[300px]">
+            {needsAction.length === 0 ? (
+              <p className="p-6 text-sm text-slate-500">Nothing waiting. New website enquiries appear here.</p>
+            ) : (
+              <ul className="divide-y divide-slate-100">
+                {needsAction.slice(0, 6).map((lead) => (
+                  <li key={lead.id}>
+                    <Link href="/admin/leads" className="flex flex-wrap items-center justify-between gap-2 px-5 py-3 hover:bg-slate-50">
+                      <span>
+                        <span className="block text-sm font-semibold text-slate-900">{lead.organization_name || lead.name}</span>
+                        <span className="block text-xs text-slate-500">{INQUIRY_LABELS[lead.inquiry_type ?? "demo"] ?? "Enquiry"} · {LEAD_STATUS_LABELS[lead.status]}</span>
+                      </span>
+                      <span className="text-xs font-semibold text-red-600">
+                        {lead.status === "new" ? `New since ${formatAdminDate(lead.created_at)}` : `Follow up ${formatAdminDate(`${lead.next_follow_up}T12:00:00Z`)}`}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div className="flex items-center justify-between border-b border-slate-100 p-5">
+              <h2 className="font-bold text-slate-800">Renewals coming up</h2>
+              <Link href="/admin/subscriptions" className="text-sm font-medium text-blue-600 hover:text-blue-700">All subscriptions &rarr;</Link>
+            </div>
+            {!renewals?.length ? (
+              <p className="p-6 text-sm text-slate-500">No subscription ends in the next 30 days.</p>
+            ) : (
+              <ul className="divide-y divide-slate-100">
+                {renewals.slice(0, 6).map((subscription) => {
+                  const expired = subscription.next_billing_date && subscription.next_billing_date < now;
+                  return (
+                    <li key={subscription.id}>
+                      <Link href={`/admin/organizations/${subscription.organization_id}`} className="flex flex-wrap items-center justify-between gap-2 px-5 py-3 hover:bg-slate-50">
+                        <span>
+                          <span className="block text-sm font-semibold text-slate-900">{subscription.organization_name}</span>
+                          <span className="block text-xs text-slate-500">{subscription.plan_name} · {formatMoney(subscription.amount)} / year</span>
+                        </span>
+                        <span className={`text-xs font-semibold ${expired ? "text-red-600" : "text-amber-700"}`}>
+                          {expired ? "Expired " : "Ends "}{formatAdminDate(subscription.next_billing_date)}
+                        </span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </section>
+
+          <div className="min-h-[300px]">
             <DashboardAuditWidget initialLogs={recentLogs || []} />
           </div>
         </div>
-        
-        {/* System Health / Status */}
-        <div className="lg:col-span-1 space-y-6">
-          <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-6 flex flex-col h-full">
-            <h3 className="font-bold text-slate-800 mb-4">System Health</h3>
-            
-            <div className="flex-1 space-y-4">
-              <div className="flex items-center justify-between p-3 rounded-lg border border-emerald-100 bg-emerald-50/50">
-                <div className="flex items-center gap-3">
-                  <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                  <span className="text-sm font-semibold text-slate-700">Database</span>
-                </div>
-                <span className="text-xs font-medium text-emerald-700 bg-emerald-100 px-2 py-1 rounded">Operational</span>
-              </div>
-              
-              <div className="flex items-center justify-between p-3 rounded-lg border border-emerald-100 bg-emerald-50/50">
-                <div className="flex items-center gap-3">
-                  <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                  <span className="text-sm font-semibold text-slate-700">Realtime</span>
-                </div>
-                <span className="text-xs font-medium text-emerald-700 bg-emerald-100 px-2 py-1 rounded">Operational</span>
-              </div>
-              
-              <div className="flex items-center justify-between p-3 rounded-lg border border-emerald-100 bg-emerald-50/50">
-                <div className="flex items-center gap-3">
-                  <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                  <span className="text-sm font-semibold text-slate-700">Audit Logs</span>
-                </div>
-                <span className="text-xs font-medium text-slate-600">{auditCount || 0} Events</span>
-              </div>
+
+        <div className="space-y-6">
+          <section className="rounded-xl border border-slate-200 bg-white shadow-sm p-6">
+            <h2 className="font-bold text-slate-800 mb-4">Quick actions</h2>
+            <div className="grid grid-cols-1 gap-3">
+              {[
+                { name: "Add a lead", icon: PhoneCall, href: "/admin/leads?new=1" },
+                { name: "Onboard a client", icon: Rocket, href: "/admin/onboarding" },
+                { name: "Edit products and pricing", icon: Package, href: "/admin/products" },
+              ].map(({ name, icon: Icon, href }) => (
+                <Link key={href} href={href} className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-all">
+                  <Icon className="h-4 w-4" /> {name}
+                </Link>
+              ))}
             </div>
-            
-            <div className="mt-4 pt-4 border-t border-slate-100">
-              <Link href="/admin/system" className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1">
-                View detailed metrics &rarr;
-              </Link>
-            </div>
-          </div>
+          </section>
+
+          <section className="rounded-xl border border-slate-200 bg-white shadow-sm p-6">
+            <h2 className="font-bold text-slate-800">Launch checklist</h2>
+            <p className="mt-1 mb-4 text-xs text-slate-500">{remaining === 0 ? "Everything is set up." : `${remaining} item${remaining === 1 ? "" : "s"} left.`}</p>
+            <ul className="space-y-3">
+              {checklist.map((item) => {
+                const content = (
+                  <span className="flex items-start gap-2 text-sm">
+                    {item.done ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /> : item.href ? <CircleDashed className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" /> : <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />}
+                    <span className={item.done ? "text-slate-500" : "text-slate-800"}>{item.label}{!item.done && !item.href && <span className="block text-xs text-slate-500">Set on the server (hosting environment).</span>}</span>
+                  </span>
+                );
+                return <li key={item.label}>{item.href && !item.done ? <Link href={item.href} className="hover:underline">{content}</Link> : content}</li>;
+              })}
+            </ul>
+          </section>
         </div>
       </div>
     </div>

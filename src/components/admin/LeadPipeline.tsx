@@ -65,11 +65,11 @@ function useAction() {
   return { run, isPending };
 }
 
-export function LeadPipeline({ leads, products, today }: { leads: Lead[]; products: Array<{ slug: string; title: string; status: string }>; today: string }) {
+export function LeadPipeline({ leads, products, today, openCreate = false }: { leads: Lead[]; products: Array<{ slug: string; title: string; status: string }>; today: string; openCreate?: boolean }) {
   const [filter, setFilter] = useState<"open" | "due" | LeadStatus | "all">("open");
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
+  const [isCreating, setIsCreating] = useState(openCreate);
   const productTitles = useMemo(() => new Map(products.map((product) => [product.slug, product.title])), [products]);
   const selected = leads.find((lead) => lead.id === selectedId) ?? null;
 

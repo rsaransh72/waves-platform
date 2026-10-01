@@ -1,29 +1,22 @@
-import { 
-  LayoutDashboard, 
-  Package, 
-  Briefcase, 
-  FileText, 
-  Navigation, 
-  Image as ImageIcon, 
-  Settings, 
-  Users, 
+import {
+  LayoutDashboard,
+  Package,
+  Briefcase,
+  FileText,
+  Navigation,
+  Settings,
+  Users,
   UserRoundCog,
   ShieldAlert,
-  Search,
   Building,
   CreditCard,
-  Activity,
   PhoneCall,
-  LifeBuoy,
-  Shield,
-  Zap,
-  Globe,
-  Database,
-  CheckSquare
+  CheckSquare,
+  Rocket,
 } from "lucide-react";
 import { LucideIcon } from "lucide-react";
 
-export type AdminPermission = 
+export type AdminPermission =
   | 'platform.users.read'
   | 'platform.users.manage'
   | 'platform.organizations.read'
@@ -40,6 +33,8 @@ export interface AdminNavigationItem {
   label: string;
   href: string;
   icon: LucideIcon;
+  section?: string;
+  description?: string;
   permission?: AdminPermission;
   children?: AdminNavigationItem[];
   badge?: number | string;
@@ -47,35 +42,25 @@ export interface AdminNavigationItem {
   isBottom?: boolean;
 }
 
+// Only screens that work end to end are listed. Pages still in the codebase but not
+// listed here (support, usage, automations, feature flags, ...) are not in use yet.
 export const adminNavigation: AdminNavigationItem[] = [
-  // Overview
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
-  
-  // Organizations & Users
-  { label: "Organizations", href: "/admin/organizations", icon: Building },
-  { label: "Onboard Client", href: "/admin/onboarding", icon: Building },
-  { label: "Users", href: "/admin/users", icon: Users },
-  { label: "Client Users", href: "/admin/client-users", icon: UserRoundCog },
-  
-  // Commercial
-  // { label: "Leads", href: "/admin/leads", icon: PhoneCall },
-  { label: "Products", href: "/admin/products", icon: Package },
-  // { label: "Billing", href: "/admin/billing", icon: CreditCard },
-  { label: "Subscriptions", href: "/admin/subscriptions", icon: CheckSquare },
-  // { label: "Usage", href: "/admin/usage", icon: Activity },
 
-  // Operations
-  // { label: "Support", href: "/admin/support", icon: LifeBuoy },
+  { section: "Sales", label: "Leads", href: "/admin/leads", icon: PhoneCall, description: "Website enquiries and follow-ups" },
+  { section: "Sales", label: "Onboard Client", href: "/admin/onboarding", icon: Rocket, description: "Create a client account and invite its administrator" },
 
-  // Content & Features
-  // { label: "CMS", href: "/admin/pages", icon: FileText },
-  // { label: "Feature Flags", href: "/admin/feature-flags", icon: Navigation },
+  { section: "Clients", label: "Clients", href: "/admin/organizations", icon: Building, description: "Client organizations and their access" },
+  { section: "Clients", label: "Subscriptions", href: "/admin/subscriptions", icon: CheckSquare, description: "Plans and renewal dates" },
+  { section: "Clients", label: "Billing", href: "/admin/billing", icon: CreditCard, description: "Invoices and payments" },
+  { section: "Clients", label: "Client Users", href: "/admin/client-users", icon: UserRoundCog, description: "Everyone who signs in to a client workspace" },
 
-  // System & Security
-  // { label: "Automations", href: "/admin/automations", icon: Zap, isBottom: true },
-  // { label: "Security", href: "/admin/security", icon: Shield, isBottom: true },
+  { section: "Website", label: "Products", href: "/admin/products", icon: Package, description: "Products, features and pricing shown on the website" },
+  { section: "Website", label: "Services", href: "/admin/services", icon: Briefcase, description: "Services shown on the website" },
+  { section: "Website", label: "Pages", href: "/admin/pages", icon: FileText, description: "About, Terms, Privacy and other pages" },
+  { section: "Website", label: "Navigation", href: "/admin/navigation", icon: Navigation, description: "Main menu of the website" },
+
+  { label: "Platform Team", href: "/admin/users", icon: Users, isBottom: true, description: "Your staff with admin console access" },
   { label: "Audit Logs", href: "/admin/audit", icon: ShieldAlert, isBottom: true },
-  // { label: "System", href: "/admin/system", icon: Database, isBottom: true },
-  // { label: "Analytics", href: "/admin/analytics", icon: Activity, isBottom: true },
-  { label: "Settings", href: "/admin/settings", icon: Settings, isBottom: true },
+  { label: "Settings", href: "/admin/settings", icon: Settings, isBottom: true, description: "Company details and contact information" },
 ];

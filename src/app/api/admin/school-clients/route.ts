@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
+import { organizationTypeForProduct } from "@/lib/product-workspaces";
 
 type SchoolClientInput = {
   name?: unknown;
@@ -12,7 +13,7 @@ type SchoolClientInput = {
   state?: unknown;
   pincode?: unknown;
   status?: unknown;
-  type?: unknown;
+  productSlug?: unknown;
   planName?: unknown;
   planAmount?: unknown;
   subscriptionStatus?: unknown;
@@ -47,11 +48,15 @@ export async function POST(request: Request) {
   const name = typeof body.name === "string" ? body.name.trim() : "";
   const slug = typeof body.slug === "string" ? body.slug.trim().toLowerCase() : "";
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
-  const supportedTypes = ["school", "hospital", "pharmacy", "other"];
-  if (body.type !== undefined && (typeof body.type !== "string" || !supportedTypes.includes(body.type))) {
-    return NextResponse.json({ error: "Choose a supported client product." }, { status: 400 });
+  // The client type follows from the product sold, which must be a published product.
+  const productSlug = typeof body.productSlug === "string" ? body.productSlug.trim() : "";
+  const { data: product } = productSlug
+    ? await sessionClient.from("products").select("slug").eq("slug", productSlug).eq("status", "published").maybeSingle()
+    : { data: null };
+  if (!product) {
+    return NextResponse.json({ error: "Choose a published product for this client." }, { status: 400 });
   }
-  const organizationType = typeof body.type === "string" ? body.type : "school";
+  const organizationType = organizationTypeForProduct(product.slug);
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!name || name.length > 200) {
     return NextResponse.json({ error: "School name is required and must be at most 200 characters." }, { status: 400 });

@@ -4,7 +4,8 @@ import { schoolToday } from "@/lib/school-date";
 
 export const revalidate = 0;
 
-export default async function LeadsPage() {
+export default async function LeadsPage({ searchParams }: { searchParams: Promise<{ new?: string }> }) {
+  const { new: openNew } = await searchParams;
   const supabase = await createServerSupabaseClient();
   const [{ data: leads, error }, { data: products }] = await Promise.all([
     supabase.from("leads").select("*").order("created_at", { ascending: false }),
@@ -12,5 +13,5 @@ export default async function LeadsPage() {
   ]);
   if (error) console.error("Error fetching leads:", error);
 
-  return <LeadPipeline leads={leads ?? []} products={products ?? []} today={schoolToday()} />;
+  return <LeadPipeline leads={leads ?? []} products={products ?? []} today={schoolToday()} openCreate={openNew === "1"} />;
 }

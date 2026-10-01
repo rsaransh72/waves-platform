@@ -159,6 +159,15 @@ export const getPublishedCatalogItem = cache(async (table: CatalogTable, slug: s
   };
 });
 
+// Feature lists are stored either as plain strings or as { title } objects.
+function readTextList(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => (typeof item === "string" ? item : typeof item?.title === "string" ? item.title : ""))
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 // Content written by older editors used other key names (description, plan, q/a).
 function readItems(value: unknown) {
   if (!Array.isArray(value)) return [];
@@ -177,7 +186,7 @@ function readPlans(value: unknown): PricingPlan[] {
       description: item?.description ?? undefined,
       features: Array.isArray(item?.features)
         ? item.features.filter((feature: unknown) => typeof feature === "string" && feature.trim())
-        : typeof item?.features === "string" ? item.features.split("\n").map((line: string) => line.trim()).filter(Boolean) : [],
+        : typeof item?.features === "string" ? item.features.split(/\n|,/).map((line: string) => line.trim()).filter(Boolean) : [],
       highlighted: Boolean(item?.highlighted),
     }))
     .filter((plan) => plan.name);
@@ -198,9 +207,9 @@ export const getPublishedServices = cache(async (): Promise<Service[]> => {
     .order("title");
   return (data ?? []).map((service) => ({
     ...service,
-    features: Array.isArray(service.features) ? service.features.filter((item: unknown) => typeof item === "string") : [],
-    benefits: Array.isArray(service.benefits) ? service.benefits.filter((item: unknown) => typeof item === "string") : [],
-    pricing: Array.isArray(service.pricing) ? service.pricing : [],
+    features: readTextList(service.features),
+    benefits: readTextList(service.benefits),
+    pricing: readPlans(service.pricing),
   }));
 });
 

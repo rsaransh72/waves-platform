@@ -25,11 +25,12 @@ export function ServiceEditor({ initialData, isNew }: { initialData: any, isNew:
     visibility: "public",
     seo_title: "",
     seo_description: "",
-    features: [],
     benefits: [],
     pricing: [],
     faqs: [],
     ...initialData,
+    // Older services stored features as plain text; the editor works with { title, description }.
+    features: (initialData?.features ?? []).map((feature: any) => typeof feature === "string" ? { title: feature, description: "" } : feature),
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {

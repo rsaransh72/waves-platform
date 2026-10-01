@@ -14,6 +14,14 @@ function slugify(value: string) {
 export default async function ClientOnboardingPage({ searchParams }: { searchParams: Promise<{ lead?: string }> }) {
   const { lead: leadId } = await searchParams;
   const supabase = await createServerSupabaseClient();
+  const { data: productRows } = await supabase.from("products").select("slug, title, pricing").eq("status", "published").order("title");
+  const products = (productRows ?? []).map((product) => ({
+    slug: product.slug,
+    title: product.title,
+    pricing: (Array.isArray(product.pricing) ? product.pricing : [])
+      .map((plan: { name?: string; plan?: string; price?: string | number | null; period?: string }) => ({ name: plan?.name ?? plan?.plan ?? "", price: plan?.price ?? null, period: plan?.period ?? "" }))
+      .filter((plan: { name: string }) => plan.name),
+  }));
   const { data: lead } = leadId
     ? await supabase.from("leads").select("id, name, email, phone, organization_name, city, product, status").eq("id", leadId).maybeSingle()
     : { data: null };
@@ -59,7 +67,7 @@ export default async function ClientOnboardingPage({ searchParams }: { searchPar
       )}
 
       <section className="border border-slate-200 bg-white p-5 sm:p-7">
-        <OnboardingForm initialData={initialData} leadId={lead && lead.status !== "converted" ? lead.id : undefined} />
+        <OnboardingForm initialData={initialData} products={products} leadId={lead && lead.status !== "converted" ? lead.id : undefined} />
       </section>
     </div>
   );
