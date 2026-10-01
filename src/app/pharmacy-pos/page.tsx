@@ -2,7 +2,7 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import PharmacyDashboardDemo from "@/components/PharmacyDashboardDemo";
 import BookDemoForm from "@/components/BookDemoForm";
-import { CheckCircle2, ChevronRight, Store, AlertTriangle, IndianRupee, Layers } from "lucide-react";
+import { CheckCircle2, ChevronRight, Store, AlertTriangle, Layers } from "lucide-react";
 
 export const metadata = {
   title: "Pharmacy POS | Waves",
@@ -26,7 +26,7 @@ export default function PharmacyPosPage() {
               {/* Left Column: Typography */}
               <div className="lg:w-1/2">
                 <div className="zw-label mb-6">
-                  <span className="!text-[#d88900]">WAVES PHARMACY POS</span>
+                  <span className="!text-[#226eb4]">WAVES PHARMACY POS</span>
                 </div>
                 
                 <h1 className="text-[46px] lg:text-[54px] font-medium text-black tracking-[-1.5px] leading-[1.1] mb-6">
@@ -38,10 +38,10 @@ export default function PharmacyPosPage() {
                 </p>
 
                 <div className="flex flex-wrap items-center gap-4">
-                  <Link href="/signup" className="zw-cta-main shadow-lg shadow-[#d88900]/20 !bg-[#d88900] hover:!bg-[#b87500]">
+                  <Link href="/signup" className="zw-cta-main shadow-lg shadow-[#226eb4]/20 !bg-[#226eb4] hover:!bg-[#1a5e9f]">
                     START 14-DAY FREE TRIAL
                   </Link>
-                  <Link href="#demo" className="zw-cta-outlined flex items-center gap-2 border-[#d88900] text-[#d88900] hover:bg-[#fff7e6]">
+                  <Link href="#demo" className="zw-cta-outlined flex items-center gap-2 border-[#226eb4] text-[#226eb4] hover:bg-[#edf5ff]">
                     BOOK A DEMO <ChevronRight className="w-4 h-4" />
                   </Link>
                 </div>
@@ -56,7 +56,7 @@ export default function PharmacyPosPage() {
               <div className="lg:w-1/2 w-full pt-8 lg:pt-0 overflow-hidden relative" style={{ minHeight: "300px" }}>
                 <div className="absolute inset-0 lg:static transform scale-[0.45] sm:scale-[0.6] lg:scale-100 origin-top-left lg:origin-center w-[800px] lg:w-full">
                   <div className="transform lg:-rotate-y-12 lg:rotate-x-12 perspective-1000">
-                    <div className="shadow-2xl shadow-[#d88900]/20 rounded-xl">
+                    <div className="shadow-2xl shadow-[#226eb4]/20 rounded-xl">
                       <PharmacyDashboardDemo />
                     </div>
                   </div>
@@ -86,7 +86,7 @@ export default function PharmacyPosPage() {
               
               {/* Feature 1 */}
               <div>
-                <div className="w-12 h-12 bg-[#fff7e6] text-[#d88900] flex items-center justify-center rounded-lg mb-6">
+                <div className="w-12 h-12 bg-[#edf5ff] text-[#226eb4] flex items-center justify-center rounded-lg mb-6">
                   <Store className="w-6 h-6" strokeWidth={1.5} />
                 </div>
                 <h3 className="text-[20px] font-medium text-black mb-3">3-Second Checkout</h3>
@@ -97,7 +97,7 @@ export default function PharmacyPosPage() {
 
               {/* Feature 2 */}
               <div>
-                <div className="w-12 h-12 bg-[#fff7e6] text-[#d88900] flex items-center justify-center rounded-lg mb-6">
+                <div className="w-12 h-12 bg-[#edf5ff] text-[#226eb4] flex items-center justify-center rounded-lg mb-6">
                   <AlertTriangle className="w-6 h-6" strokeWidth={1.5} />
                 </div>
                 <h3 className="text-[20px] font-medium text-black mb-3">Batch & Expiry Alerts</h3>
@@ -108,7 +108,7 @@ export default function PharmacyPosPage() {
 
               {/* Feature 3 */}
               <div>
-                <div className="w-12 h-12 bg-[#fff7e6] text-[#d88900] flex items-center justify-center rounded-lg mb-6">
+                <div className="w-12 h-12 bg-[#edf5ff] text-[#226eb4] flex items-center justify-center rounded-lg mb-6">
                   <Layers className="w-6 h-6" strokeWidth={1.5} />
                 </div>
                 <h3 className="text-[20px] font-medium text-black mb-3">Multi-Branch Sync</h3>
@@ -136,7 +136,7 @@ export default function PharmacyPosPage() {
                   Schedule an executive demo <br />
                   built around your pharmacy.
                 </h2>
-                <div className="w-11 h-[2px] bg-[#d88900]" />
+                <div className="w-11 h-[2px] bg-[#226eb4]" />
                 <p className="text-base text-[#404040] leading-relaxed">
                   Our retail specialists will model your high-volume billing flows, batch expiry alerts, and GST filing workflows during a live 30-minute working session.
                 </p>

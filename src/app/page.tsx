@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import BookDemoForm from "@/components/BookDemoForm";
 import { 
@@ -18,7 +19,8 @@ import {
   Sparkles,
   Layers,
   ArrowRight,
-  ChevronRight
+  ChevronRight,
+  Globe
 } from "lucide-react";
 
 export const metadata = {
@@ -41,150 +43,132 @@ export default function Home() {
             <div className="flex flex-col lg:flex-row gap-12 lg:gap-20 items-center lg:items-start">
               
               {/* Left Column: Typography + CTA */}
-              <div className="lg:w-[55%] pt-2 text-center lg:text-left flex flex-col items-center lg:items-start">
+              <div className="lg:w-[50%] pt-6 text-center lg:text-left flex flex-col items-center lg:items-start">
                 
-                <h1 className="text-[32px] sm:text-[44px] lg:text-[56px] font-medium text-[#111111] tracking-[-1.5px] leading-[1.1]">
-                  Your institutional
-                  <span className="block">operations, powered</span>
-                  <span className="block">by <span className="text-[#e42525]">Waves</span>.</span>
+                <h1 className="text-[36px] sm:text-[48px] lg:text-[54px] font-normal text-[#111111] tracking-tight leading-[1.15]">
+                  Your institutional<br/>
+                  operations,<br/>
+                  powered by <span className="font-medium text-[#e42525]">Waves</span>.
                 </h1>
 
                 {/* Zoho-style divider line */}
-                <div className="w-[50px] border-t-[3px] border-[#e42525] mt-7 mb-6 mx-auto lg:mx-0" />
+                <div className="w-[50px] border-t-[3px] border-[#e42525] mt-8 mb-6 mx-auto lg:mx-0" />
 
-                <p className="text-[15px] sm:text-[17px] text-[#404040] leading-[1.75] max-w-lg mb-8">
+                <p className="text-[17px] text-[#444] leading-[1.6] max-w-[480px] mb-10">
                   A unique and powerful cloud management software suite designed for schools, healthcare clinics, and retail pharmacies of all sizes, built by a company that{" "}
-                  <Link href="#values" className="zw-privacy-link">
+                  <Link href="#values" className="text-[#0066cc] hover:underline">
                     values your data privacy
                   </Link>
                   .
                 </p>
 
-                <Link href="/signup" className="zw-cta-main shadow-lg shadow-red-500/20 w-full sm:w-auto text-center">
-                  GET STARTED FOR FREE <ChevronRight className="w-4 h-4 inline-block ml-1" />
+                <Link href="/school-erp" className="bg-[#e42525] hover:bg-[#d11a1a] text-white px-8 py-4 text-[14px] font-bold uppercase tracking-wider rounded-[3px] transition-colors flex items-center justify-center w-full sm:w-auto">
+                  EXPLORE SCHOOL ERP <ChevronRight className="w-4 h-4 ml-2" strokeWidth={3} />
                 </Link>
               </div>
 
               {/* Right Column: Featured Apps Grid (Zoho Style) */}
-              <div className="lg:w-[45%] w-full mt-6 lg:mt-0">
-                
-                <div className="flex flex-col items-center lg:items-start mb-8">
-                  <h2 className="text-[13px] font-bold text-[#111111] uppercase tracking-[1px] mb-2 text-center lg:text-left">
-                    Featured apps
-                  </h2>
-                  <div className="w-[30px] border-t-2 border-[#e42525]" />
-                </div>
+              <div className="lg:w-[50%] w-full mt-10 lg:mt-0 relative z-10">
+                <div className="bg-white rounded-lg shadow-[0_15px_50px_rgba(0,0,0,0.08)] border border-[#f0f0f0] p-8 lg:p-12 w-full">
+                  <div className="flex flex-col items-center mb-8">
+                    <h2 className="text-[13px] font-bold text-[#111111] uppercase tracking-[1.5px] mb-3 text-center">
+                      Featured apps
+                    </h2>
+                    <div className="w-[30px] border-t-[3px] border-[#e42525]" />
+                  </div>
 
-                <div className="flex flex-col gap-0 lg:grid lg:grid-cols-2 lg:gap-x-10 lg:gap-y-10">
-                  
-                  <Link href="/school-erp" className="group flex items-center lg:items-start justify-between lg:justify-start gap-4 py-6 border-b border-[#e6e9f0] lg:border-none lg:p-0">
-                    <div className="flex gap-5 items-start">
-                      <div className="text-[#0066cc] flex items-center justify-center shrink-0">
-                        <GraduationCap className="w-10 h-10 lg:w-11 lg:h-11" strokeWidth={1.5} />
+                  <div className="flex flex-col gap-0 lg:grid lg:grid-cols-2 lg:gap-x-12 lg:gap-y-10">
+                    
+                    <Link href="/school-erp" className="group flex items-start gap-4 py-5 border-b border-[#f0f0f0] lg:border-none lg:p-0">
+                      <div className="text-[#0066cc] flex items-center justify-center shrink-0 mt-1">
+                        <GraduationCap className="w-8 h-8" strokeWidth={1.5} />
                       </div>
                       <div>
-                        <h3 className="text-[18px] lg:text-[20px] font-medium text-[#111111] leading-tight mb-2 group-hover:text-[#0066cc] transition-colors">
+                        <h3 className="text-[17px] font-medium text-[#111] leading-tight mb-2 group-hover:text-[#0066cc] transition-colors">
                           Classes
                         </h3>
-                        <p className="text-[14px] text-[#444444] leading-[1.6]">
-                          AI-powered academic LMS with smart gate attendance.
+                        <p className="text-[13px] text-[#666] leading-[1.6]">
+                          AI-powered academic LMS with smart attendance.
                         </p>
                       </div>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-[#ccc] lg:hidden shrink-0" />
-                  </Link>
+                    </Link>
 
-                  <Link href="/hospital-erp" className="group flex items-center lg:items-start justify-between lg:justify-start gap-4 py-6 border-b border-[#e6e9f0] lg:border-none lg:p-0">
-                    <div className="flex gap-5 items-start">
-                      <div className="text-[#008f52] flex items-center justify-center shrink-0">
-                        <Hospital className="w-10 h-10 lg:w-11 lg:h-11" strokeWidth={1.5} />
+                    <Link href="/hospital-erp" className="group flex items-start gap-4 py-5 border-b border-[#f0f0f0] lg:border-none lg:p-0">
+                      <div className="text-[#008f52] flex items-center justify-center shrink-0 mt-1">
+                        <Hospital className="w-8 h-8" strokeWidth={1.5} />
                       </div>
                       <div>
-                        <h3 className="text-[18px] lg:text-[20px] font-medium text-[#111111] leading-tight mb-2 group-hover:text-[#008f52] transition-colors">
+                        <h3 className="text-[17px] font-medium text-[#111] leading-tight mb-2 group-hover:text-[#008f52] transition-colors">
                           Health
                         </h3>
-                        <p className="text-[14px] text-[#444444] leading-[1.6]">
+                        <p className="text-[13px] text-[#666] leading-[1.6]">
                           OPD queue tokens on TV and digital Rx prescriptions.
                         </p>
                       </div>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-[#ccc] lg:hidden shrink-0" />
-                  </Link>
+                    </Link>
 
-                  <Link href="/pharmacy-pos" className="group flex items-center lg:items-start justify-between lg:justify-start gap-4 py-6 border-b border-[#e6e9f0] lg:border-none lg:p-0">
-                    <div className="flex gap-5 items-start">
-                      <div className="text-[#d88900] flex items-center justify-center shrink-0">
-                        <Store className="w-10 h-10 lg:w-11 lg:h-11" strokeWidth={1.5} />
+                    <Link href="/pharmacy-pos" className="group flex items-start gap-4 py-5 border-b border-[#f0f0f0] lg:border-none lg:p-0">
+                      <div className="text-[#d88900] flex items-center justify-center shrink-0 mt-1">
+                        <Store className="w-8 h-8" strokeWidth={1.5} />
                       </div>
                       <div>
-                        <h3 className="text-[18px] lg:text-[20px] font-medium text-[#111111] leading-tight mb-2 group-hover:text-[#d88900] transition-colors">
+                        <h3 className="text-[17px] font-medium text-[#111] leading-tight mb-2 group-hover:text-[#d88900] transition-colors">
                           Pharmacy
                         </h3>
-                        <p className="text-[14px] text-[#444444] leading-[1.6]">
-                          3-second barcode billing and batch expiry alerts.
+                        <p className="text-[13px] text-[#666] leading-[1.6]">
+                          3-second barcode billing & batch expiry alerts.
                         </p>
                       </div>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-[#ccc] lg:hidden shrink-0" />
-                  </Link>
+                    </Link>
 
-                  <Link href="/erp" className="group flex items-center lg:items-start justify-between lg:justify-start gap-4 py-6 border-b border-[#e6e9f0] lg:border-none lg:p-0">
-                    <div className="flex gap-5 items-start">
-                      <div className="text-[#8445e8] flex items-center justify-center shrink-0">
-                        <Layers className="w-10 h-10 lg:w-11 lg:h-11" strokeWidth={1.5} />
+                    <Link href="/erp" className="group flex items-start gap-4 py-5 border-b border-[#f0f0f0] lg:border-none lg:p-0">
+                      <div className="text-[#8445e8] flex items-center justify-center shrink-0 mt-1">
+                        <Layers className="w-8 h-8" strokeWidth={1.5} />
                       </div>
                       <div>
-                        <h3 className="text-[18px] lg:text-[20px] font-medium text-[#111111] leading-tight mb-2 group-hover:text-[#8445e8] transition-colors">
+                        <h3 className="text-[17px] font-medium text-[#111] leading-tight mb-2 group-hover:text-[#8445e8] transition-colors">
                           Waves ERP
                         </h3>
-                        <p className="text-[14px] text-[#444444] leading-[1.6]">
-                          Unified general ledger, supply chain & GST e-invoicing.
+                        <p className="text-[13px] text-[#666] leading-[1.6]">
+                          Unified general ledger, supply chain & e-invoicing.
                         </p>
                       </div>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-[#ccc] lg:hidden shrink-0" />
-                  </Link>
+                    </Link>
 
-                  <Link href="/pricing" className="group flex items-center lg:items-start justify-between lg:justify-start gap-4 py-6 border-b border-[#e6e9f0] lg:border-none lg:p-0">
-                    <div className="flex gap-5 items-start">
-                      <div className="text-[#00b3d8] flex items-center justify-center shrink-0">
-                        <Receipt className="w-10 h-10 lg:w-11 lg:h-11" strokeWidth={1.5} />
+                    <Link href="/pricing" className="group flex items-start gap-4 py-5 border-b border-[#f0f0f0] lg:border-none lg:p-0">
+                      <div className="text-[#00b3d8] flex items-center justify-center shrink-0 mt-1">
+                        <Receipt className="w-8 h-8" strokeWidth={1.5} />
                       </div>
                       <div>
-                        <h3 className="text-[18px] lg:text-[20px] font-medium text-[#111111] leading-tight mb-2 group-hover:text-[#00b3d8] transition-colors">
+                        <h3 className="text-[17px] font-medium text-[#111] leading-tight mb-2 group-hover:text-[#00b3d8] transition-colors">
                           Books
                         </h3>
-                        <p className="text-[14px] text-[#444444] leading-[1.6]">
+                        <p className="text-[13px] text-[#666] leading-[1.6]">
                           GST invoicing, multi-counter cash balancing & audits.
                         </p>
                       </div>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-[#ccc] lg:hidden shrink-0" />
-                  </Link>
+                    </Link>
 
-                  <Link href="/services" className="group flex items-center lg:items-start justify-between lg:justify-start gap-4 py-6 border-b border-[#e6e9f0] lg:border-none lg:p-0">
-                    <div className="flex gap-5 items-start">
-                      <div className="text-[#e42525] flex items-center justify-center shrink-0">
-                        <UserCheck className="w-10 h-10 lg:w-11 lg:h-11" strokeWidth={1.5} />
+                  <Link href="/services" className="group flex items-start gap-4 py-5 border-b border-[#f0f0f0] lg:border-none lg:p-0">
+                      <div className="text-[#e42525] flex items-center justify-center shrink-0 mt-1">
+                        <UserCheck className="w-8 h-8" strokeWidth={1.5} />
                       </div>
                       <div>
-                        <h3 className="text-[18px] lg:text-[20px] font-medium text-[#111111] leading-tight mb-2 group-hover:text-[#e42525] transition-colors">
+                        <h3 className="text-[17px] font-medium text-[#111] leading-tight mb-2 group-hover:text-[#e42525] transition-colors">
                           People
                         </h3>
-                        <p className="text-[14px] text-[#444444] leading-[1.6]">
+                        <p className="text-[13px] text-[#666] leading-[1.6]">
                           Biometric check-ins, nursing shifts & automated payroll.
                         </p>
                       </div>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-[#ccc] lg:hidden shrink-0" />
-                  </Link>
-
-                </div>
-
-                <div className="mt-8 lg:mt-12 text-center lg:text-left">
-                  <Link href="/pricing" className="text-[#0066cc] text-[14px] font-bold uppercase flex items-center gap-1.5 justify-center lg:justify-start hover:underline">
-                    Explore all products <ChevronRight className="w-4 h-4" />
-                  </Link>
+                    </Link>
+                  </div>
+                  
+                  <div className="mt-12 text-center">
+                    <Link href="/pricing" className="text-[#0066cc] text-[13px] font-bold uppercase tracking-wider hover:underline flex items-center justify-center gap-1">
+                      EXPLORE ALL PRODUCTS <ChevronRight className="w-4 h-4" />
+                    </Link>
+                  </div>
                 </div>
               </div>
 
@@ -195,63 +179,82 @@ export default function Home() {
         {/* ========================================================================= */}
         {/* 2. PROMO TRAY — Zoho Catalyst + Zia Style                               */}
         {/* ========================================================================= */}
-        <section className="w-full bg-[#f8f9fa] border-t border-[#e6e9f0] px-6 py-14 lg:px-[5%] lg:py-[80px]">
-          <div className="max-w-[1280px] mx-auto">
-            <div className="grid md:grid-cols-2 gap-6 lg:gap-8">
+        <section className="w-full mt-16 mb-20 px-6 lg:px-[2%]">
+          <div className="max-w-[1280px] mx-auto flex flex-col lg:flex-row gap-6">
+            
+            {/* Promo Card 1: App Builder (Catalyst Style) */}
+            <div className="flex-1 bg-gradient-to-br from-[#f4f7fb] to-[#e8f0fe] relative overflow-hidden flex flex-col justify-center py-16 px-8 lg:px-14 rounded-xl shadow-sm border border-[#e6e9f0]">
               
-              {/* Promo Card 1: Low-Code */}
-              <div className="bg-white rounded-xl p-7 sm:p-10 flex flex-col justify-between border border-[#e6e9f0] shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                <div>
-                  <div className="w-12 h-12 rounded-lg bg-blue-50 text-[#226eb4] flex items-center justify-center mb-6">
-                    <Sparkles className="w-6 h-6" />
-                  </div>
-                  <div className="zw-label mb-4">
-                    <span>Low-Code Workflows</span>
-                  </div>
-                  <h3 className="text-[22px] sm:text-[26px] font-medium text-black tracking-tight mb-3 leading-tight">
-                    Build custom institutional workflows without code
-                  </h3>
-                  <p className="text-[15px] text-[#555] leading-[1.75] mb-8">
-                    Craft student admission portals, outpatient intake forms, and automated WhatsApp alerts in minutes.
-                  </p>
-                </div>
-                <div>
-                  <Link 
-                    href="/services#custom-development"
-                    className="inline-flex items-center gap-2 px-6 py-3.5 bg-[#226eb4] hover:bg-[#1a5a96] text-white text-[13px] font-bold uppercase tracking-wider rounded-md transition-all duration-200 hover:-translate-y-0.5 w-full sm:w-auto justify-center sm:justify-start"
-                  >
-                    Build with Flow <ArrowRight className="w-4 h-4" />
-                  </Link>
-                </div>
-              </div>
+              {/* Abstract Yellow Swoosh Background */}
+              <div className="absolute -bottom-24 -right-10 w-[300px] h-[300px] bg-[#ffd900] rounded-full blur-[80px] opacity-40 mix-blend-multiply pointer-events-none"></div>
 
-              {/* Promo Card 2: AI */}
-              <div className="bg-white rounded-xl p-7 sm:p-10 flex flex-col justify-between border border-[#e6e9f0] shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                <div>
-                  <div className="w-12 h-12 rounded-lg bg-purple-50 text-[#7e22ce] flex items-center justify-center mb-6">
-                    <Sparkles className="w-6 h-6" />
-                  </div>
-                  <div className="zw-label mb-4">
-                    <span className="!text-[#7e22ce]">Autonomous AI</span>
-                  </div>
-                  <h3 className="text-[22px] sm:text-[26px] font-medium text-black tracking-tight mb-3 leading-tight">
-                    Deploy intelligent bots for parents & patients
-                  </h3>
-                  <p className="text-[15px] text-[#555] leading-[1.75] mb-8">
-                    Autonomous 24/7 AI assistants that answer fee inquiries, confirm appointments, and flag low inventory.
-                  </p>
+              <div className="relative z-10 flex flex-col items-center text-center">
+                <div className="text-[#8445e8] text-[11px] font-bold tracking-[1.5px] uppercase mb-8 self-start lg:self-auto w-full text-left">
+                  App Builder
                 </div>
-                <div>
+                
+                <div className="flex items-center justify-center gap-2 mb-6">
+                  <Cpu className="w-6 h-6 text-[#111]" />
+                  <span className="text-[20px] font-bold text-[#111] tracking-tight">Waves <span className="font-light">Flow</span></span>
+                </div>
+                
+                <h3 className="text-[24px] sm:text-[32px] font-normal text-[#226eb4] tracking-tight mb-4 leading-tight max-w-[400px]">
+                  Build production-ready apps <span className="text-[#e42525]">with AI</span>
+                </h3>
+                
+                <p className="text-[15px] text-[#555] mb-8">
+                  Waves Flow: Agent-ready. Full-stack.
+                </p>
+                
+                <Link 
+                  href="/services#custom-development"
+                  className="px-6 py-2.5 border border-[#226eb4] text-[#226eb4] hover:bg-[#226eb4] hover:text-white rounded-full text-[13px] font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-1 w-fit"
+                >
+                  BUILD WITH AGENTS <ChevronRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+
+            {/* Promo Card 2: Agent Builder (Zia Style) */}
+            <div className="flex-1 bg-gradient-to-br from-[#fbf6fc] to-[#f3e8f9] relative overflow-hidden flex flex-col justify-center py-16 px-8 lg:px-14 rounded-xl shadow-sm border border-[#e6e9f0]">
+              
+              {/* Abstract Pink Swoosh Background */}
+              <div className="absolute -top-24 -left-10 w-[300px] h-[300px] bg-[#d8b4fe] rounded-full blur-[80px] opacity-30 mix-blend-multiply pointer-events-none"></div>
+
+              <div className="relative z-10 flex flex-col items-center text-center">
+                <div className="text-[#7e22ce] text-[11px] font-bold tracking-[1.5px] uppercase mb-8 self-start lg:self-auto w-full text-left">
+                  Agent Builder
+                </div>
+                
+                <div className="flex items-center justify-center gap-2 mb-6">
+                  <div className="w-6 h-6 bg-[#008f52] rounded flex items-center justify-center">
+                    <Sparkles className="w-3.5 h-3.5 text-white" />
+                  </div>
+                  <span className="text-[20px] font-bold text-[#111] tracking-tight">Waves <span className="font-light">AI Agents</span></span>
+                </div>
+                
+                <h3 className="text-[24px] sm:text-[32px] font-normal text-[#111] tracking-tight mb-4 leading-tight max-w-[450px]">
+                  Waves Agent Studio—your digital workforce
+                </h3>
+                
+                <p className="text-[15px] text-[#555] mb-8 max-w-[400px]">
+                  Build autonomous agents that can qualify leads, resolve tickets, draft emails, and more.
+                </p>
+                
+                <div className="flex flex-wrap items-center justify-center gap-3">
+                  <div className="px-3 py-1.5 bg-[#333] text-white rounded text-[11px] font-medium flex items-center gap-1.5">
+                    <Globe className="w-3 h-3" /> Google Chrome
+                  </div>
                   <Link 
                     href="#demo"
-                    className="inline-flex items-center gap-2 px-6 py-3.5 bg-[#7e22ce] hover:bg-[#6b21a8] text-white text-[13px] font-bold uppercase tracking-wider rounded-md transition-all duration-200 hover:-translate-y-0.5 w-full sm:w-auto justify-center sm:justify-start"
+                    className="px-6 py-2.5 border border-[#7e22ce] text-[#7e22ce] hover:bg-[#7e22ce] hover:text-white rounded-full text-[13px] font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-1 w-fit"
                   >
-                    Explore AI Agents <ArrowRight className="w-4 h-4" />
+                    BUILD WITH AGENTS <ChevronRight className="w-4 h-4" />
                   </Link>
                 </div>
               </div>
-
             </div>
+
           </div>
         </section>
 
@@ -550,8 +553,8 @@ export default function Home() {
             <p className="text-[15px] sm:text-base text-[#555] mb-8 leading-[1.8]">
               Join 500+ institutions already running on Waves. Let&apos;s get you started.
             </p>
-            <Link href="/signup" className="zw-cta-main !bg-[#226eb4] hover:!bg-[#1a5a96] shadow-lg shadow-blue-500/20 w-full sm:w-auto text-center">
-              GET STARTED FOR FREE <ChevronRight className="w-4 h-4 inline-block ml-1" />
+            <Link href="#demo" className="zw-cta-main !bg-[#226eb4] hover:!bg-[#1a5a96] shadow-lg shadow-blue-500/20 w-full sm:w-auto text-center">
+              REQUEST A DEMO <ChevronRight className="w-4 h-4 inline-block ml-1" />
             </Link>
           </div>
         </section>
@@ -610,7 +613,7 @@ export default function Home() {
             <div>
               <p className="font-bold text-white text-xs uppercase tracking-wider mb-4">Platform</p>
               <ul className="space-y-2.5">
-                <li><Link href="/signup" className="hover:text-white transition font-medium text-[#f87171]">Create Free Account</Link></li>
+                <li><Link href="/book-demo" className="hover:text-white transition font-medium text-[#f87171]">Request a Demo</Link></li>
                 <li><Link href="/login" className="hover:text-white transition">Sign In</Link></li>
                 <li><Link href="/contact" className="hover:text-white transition">Contact Us</Link></li>
                 <li><Link href="/services#privacy" className="hover:text-white transition">Privacy</Link></li>

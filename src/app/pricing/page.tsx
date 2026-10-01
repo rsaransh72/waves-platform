@@ -106,10 +106,10 @@ export default function PricingPage() {
               </div>
 
               <Link 
-                href="/signup?plan=all-employee"
+                href="/book-demo"
                 className="w-full py-4 bg-[#1d4ed8] hover:bg-[#1e40af] text-white rounded-xl font-bold text-[16px] transition-colors flex justify-center items-center mb-8"
               >
-                Start your 30-day free trial
+                Request pricing consultation
               </Link>
 
               <div className="flex-1 bg-[#f9fafb] -mx-8 md:-mx-10 -mb-8 md:-mb-10 p-8 md:p-10 rounded-b-[14px]">
@@ -157,10 +157,10 @@ export default function PricingPage() {
               </div>
 
               <Link 
-                href="/signup?plan=flexible-user"
+                href="/book-demo"
                 className="w-full py-4 bg-white border-2 border-[#1d4ed8] text-[#1d4ed8] hover:bg-[#f8faff] rounded-xl font-bold text-[16px] transition-colors flex justify-center items-center mb-8"
               >
-                Start your 30-day free trial
+                Request pricing consultation
               </Link>
 
               <div className="flex-1 bg-[#f9fafb] -mx-8 md:-mx-10 -mb-8 md:-mb-10 p-8 md:p-10 rounded-b-[14px]">
@@ -239,11 +239,11 @@ export default function PricingPage() {
       {/* Footer */}
       <footer className="w-full bg-[#f8f9fa] py-8 border-t border-[#e6e9f0]">
         <div className="w-full max-w-[1280px] mx-auto px-[5%] flex flex-col lg:flex-row items-center justify-between text-xs text-[#7d7d7d] gap-6 lg:gap-4">
-          <p className="text-center lg:text-left">&copy; {new Date().getFullYear()} Waves Technologies. 30-day free trial. No credit card required.</p>
+          <p className="text-center lg:text-left">&copy; {new Date().getFullYear()} Waves Technologies. Contact our team for plan and onboarding details.</p>
           <div className="flex flex-wrap justify-center lg:justify-end items-center gap-4 lg:gap-6">
             <Link href="/contact" className="hover:text-black transition">Contact Sales</Link>
             <Link href="/services" className="hover:text-black transition">Find a Partner</Link>
-            <Link href="/signup" className="text-[#1d4ed8] font-bold hover:underline">Get Started Free</Link>
+            <Link href="/book-demo" className="text-[#1d4ed8] font-bold hover:underline">Request a Demo</Link>
           </div>
         </div>
       </footer>

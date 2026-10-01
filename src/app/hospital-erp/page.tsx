@@ -2,7 +2,7 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import HealthDashboardDemo from "@/components/HealthDashboardDemo";
 import BookDemoForm from "@/components/BookDemoForm";
-import { CheckCircle2, ChevronRight, Activity, Stethoscope, BedDouble, Users } from "lucide-react";
+import { CheckCircle2, ChevronRight, Stethoscope, BedDouble, Users } from "lucide-react";
 
 export const metadata = {
   title: "Health Suite | Waves",
@@ -26,7 +26,7 @@ export default function HospitalErpPage() {
               {/* Left Column: Typography */}
               <div className="lg:w-1/2">
                 <div className="zw-label mb-6">
-                  <span className="!text-[#008f52]">WAVES HEALTH SUITE</span>
+                  <span className="!text-[#226eb4]">WAVES HEALTH SUITE</span>
                 </div>
                 
                 <h1 className="text-[46px] lg:text-[54px] font-medium text-black tracking-[-1.5px] leading-[1.1] mb-6">
@@ -38,10 +38,10 @@ export default function HospitalErpPage() {
                 </p>
 
                 <div className="flex flex-wrap items-center gap-4">
-                  <Link href="/signup" className="zw-cta-main shadow-lg shadow-[#008f52]/20 !bg-[#008f52] hover:!bg-[#007342]">
+                  <Link href="/signup" className="zw-cta-main shadow-lg shadow-[#226eb4]/20 !bg-[#226eb4] hover:!bg-[#1a5e9f]">
                     START 14-DAY FREE TRIAL
                   </Link>
-                  <Link href="#demo" className="zw-cta-outlined flex items-center gap-2 border-[#008f52] text-[#008f52] hover:bg-[#e6f4ed]">
+                  <Link href="#demo" className="zw-cta-outlined flex items-center gap-2 border-[#226eb4] text-[#226eb4] hover:bg-[#edf5ff]">
                     BOOK A DEMO <ChevronRight className="w-4 h-4" />
                   </Link>
                 </div>
@@ -56,7 +56,7 @@ export default function HospitalErpPage() {
               <div className="lg:w-1/2 w-full pt-8 lg:pt-0 overflow-hidden relative" style={{ minHeight: "300px" }}>
                 <div className="absolute inset-0 lg:static transform scale-[0.45] sm:scale-[0.6] lg:scale-100 origin-top-left lg:origin-center w-[800px] lg:w-full">
                   <div className="transform lg:-rotate-y-12 lg:rotate-x-12 perspective-1000">
-                    <div className="shadow-2xl shadow-[#008f52]/20 rounded-xl">
+                    <div className="shadow-2xl shadow-[#226eb4]/20 rounded-xl">
                       <HealthDashboardDemo />
                     </div>
                   </div>
@@ -86,18 +86,18 @@ export default function HospitalErpPage() {
               
               {/* Feature 1 */}
               <div>
-                <div className="w-12 h-12 bg-[#e6f4ed] text-[#008f52] flex items-center justify-center rounded-lg mb-6">
+                <div className="w-12 h-12 bg-[#edf5ff] text-[#226eb4] flex items-center justify-center rounded-lg mb-6">
                   <Users className="w-6 h-6" strokeWidth={1.5} />
                 </div>
                 <h3 className="text-[20px] font-medium text-black mb-3">Smart OPD Queues</h3>
                 <p className="text-[15px] text-[#404040] leading-[1.7]">
-                  Generate patient tokens with 1-click and display live queue numbers on waiting room smart TVs, fully synced with the doctor's cabin.
+                  Generate patient tokens with 1-click and display live queue numbers on waiting room smart TVs, fully synced with the doctor&apos;s cabin.
                 </p>
               </div>
 
               {/* Feature 2 */}
               <div>
-                <div className="w-12 h-12 bg-[#e6f4ed] text-[#008f52] flex items-center justify-center rounded-lg mb-6">
+                <div className="w-12 h-12 bg-[#edf5ff] text-[#226eb4] flex items-center justify-center rounded-lg mb-6">
                   <Stethoscope className="w-6 h-6" strokeWidth={1.5} />
                 </div>
                 <h3 className="text-[20px] font-medium text-black mb-3">Digital Rx & EMR</h3>
@@ -108,7 +108,7 @@ export default function HospitalErpPage() {
 
               {/* Feature 3 */}
               <div>
-                <div className="w-12 h-12 bg-[#e6f4ed] text-[#008f52] flex items-center justify-center rounded-lg mb-6">
+                <div className="w-12 h-12 bg-[#edf5ff] text-[#226eb4] flex items-center justify-center rounded-lg mb-6">
                   <BedDouble className="w-6 h-6" strokeWidth={1.5} />
                 </div>
                 <h3 className="text-[20px] font-medium text-black mb-3">IPD Bed Matrix</h3>
@@ -136,14 +136,14 @@ export default function HospitalErpPage() {
                   Schedule an executive demo <br />
                   built around your hospital.
                 </h2>
-                <div className="w-11 h-[2px] bg-[#008f52]" />
+                <div className="w-11 h-[2px] bg-[#226eb4]" />
                 <p className="text-base text-[#404040] leading-relaxed">
                   Our healthcare specialists will model your OPD queues, pharmacy inventory, and IPD bed matrix during a live 30-minute working session.
                 </p>
                 <div className="space-y-3 pt-2">
                   <div className="flex items-center space-x-3 text-sm text-[#333333]">
                     <CheckCircle2 className="w-4 h-4 text-[#008f52] shrink-0" />
-                    <span>Free patient data & inventory migration assistance</span>
+                    <span>Free patient data &amp; inventory migration assistance</span>
                   </div>
                   <div className="flex items-center space-x-3 text-sm text-[#333333]">
                     <CheckCircle2 className="w-4 h-4 text-[#008f52] shrink-0" />

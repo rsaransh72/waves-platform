@@ -2,14 +2,16 @@
 @import "tailwindcss";
 
 :root {
-  --primary-color: #000;
+  --primary-color: #111111;
   --body-color: #404040;
-  --muted-color: #7d7d7d;
+  --muted-color: #707070;
   --brand-blue: #226eb4;
   --brand-blue-light: #4199ea;
+  --brand-blue-soft: #edf5ff;
   --brand-blue-gradient: linear-gradient(90deg, #226eb4 0%, #4199ea 50%, #226eb4 100%);
   --brand-red: #e42525;
   --brand-red-hover: #c91f1f;
+  --brand-red-soft: #fff1f1;
   --bg-light: #f8f9fa;
   --border-color: #e6e9f0;
   --card-shadow: 0 0 0 4px #f9fafc;
@@ -57,6 +59,12 @@ h1, h2, h3, h4, h5, h6 {
 h1 { font-size: 56px; line-height: 62px; }
 h2 { font-size: 36px; line-height: 46px; }
 h3 { font-size: 20px; line-height: 30px; }
+
+.admin-portal h1 {
+  font-size: 40px;
+  line-height: 50px;
+  letter-spacing: 0;
+}
 
 /* ========================================================================= */
 /* ZOHO SECTION LAYOUT                                                       */

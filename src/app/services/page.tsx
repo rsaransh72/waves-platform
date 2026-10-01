@@ -419,7 +419,7 @@ export default function ServicesPage() {
             <Link href="/pharmacy-pos" className="hover:text-black transition">Pharmacy POS</Link>
             <Link href="/erp" className="hover:text-black transition">Waves ERP</Link>
             <Link href="/pricing" className="hover:text-black transition">Pricing</Link>
-            <Link href="/signup" className="text-[#e42525] font-bold hover:underline">Get Started Free &gt;</Link>
+            <Link href="/book-demo" className="text-[#e42525] font-bold hover:underline">Request a Demo &gt;</Link>
           </div>
         </div>
       </footer>

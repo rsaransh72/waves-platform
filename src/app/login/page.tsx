@@ -2,9 +2,12 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { createBrowserClient } from "@supabase/ssr";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -12,17 +15,68 @@ export default function LoginPage() {
 
   const [loading, setLoading] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
+  const [workspacePath, setWorkspacePath] = useState("/school");
   const [errorMsg, setErrorMsg] = useState("");
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setErrorMsg("");
 
-    setTimeout(() => {
-      setLoading(false);
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      const { data: isPlatformAdmin, error: adminRoleError } = await supabase.rpc("is_platform_admin");
+      if (adminRoleError) {
+        await supabase.auth.signOut();
+        throw new Error("Workspace access is not configured yet. Contact your Waves administrator.");
+      }
+
+      let workspace = isPlatformAdmin ? "admin" : "school";
+      if (!isPlatformAdmin) {
+        const { data: organizationId, error: membershipError } = await supabase.rpc("get_auth_client_organization_id");
+        if (membershipError || !organizationId) {
+          await supabase.auth.signOut();
+          throw new Error("This account is not linked to an active client workspace. Contact your organization administrator.");
+        }
+        const { data: organization, error: organizationError } = await supabase
+          .from("organizations")
+          .select("type")
+          .eq("id", organizationId)
+          .single();
+        if (organizationError || !organization) {
+          await supabase.auth.signOut();
+          throw new Error("The linked client workspace could not be loaded. Contact your Waves administrator.");
+        }
+        workspace = organization.type === "school" ? "school" : "client";
+      }
+
+      const requestedPath = new URLSearchParams(window.location.search).get("next");
+      const allowedPrefix = workspace === "admin" ? "/admin" : workspace === "school" ? "/school" : "/client";
+      const isAllowedNextPath = requestedPath === allowedPrefix || requestedPath?.startsWith(`${allowedPrefix}/`);
+      const destination = isAllowedNextPath && requestedPath ? requestedPath : allowedPrefix;
+
+      setWorkspacePath(destination);
       setSignedIn(true);
-    }, 800);
+      router.replace(destination);
+      router.refresh();
+    } catch (err: unknown) {
+      setErrorMsg(err instanceof Error ? err.message : "Failed to sign in.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -42,12 +96,12 @@ export default function LoginPage() {
         </Link>
 
         <div className="text-[14px] text-[#333333]">
-          <span className="hidden sm:inline">Don&apos;t have a Waves Account? </span>
+          <span className="hidden sm:inline">Need a client workspace? </span>
           <Link 
-            href="/signup" 
+            href="/book-demo" 
             className="text-[#0066cc] font-bold hover:underline ml-1 sm:ml-1 uppercase text-[13px]"
           >
-            SIGN UP
+            REQUEST A DEMO
           </Link>
         </div>
       </header>
@@ -69,10 +123,10 @@ export default function LoginPage() {
               </p>
               <div className="mt-8 space-y-3">
                 <Link
-                  href="/"
+                  href={workspacePath}
                   className="w-full h-[52px] bg-[#e42525] hover:bg-[#d60012] text-white font-bold text-[14px] uppercase tracking-wider rounded-[4px] transition flex items-center justify-center cursor-pointer shadow-xs"
                 >
-                  GO TO PLATFORM &gt;
+                  OPEN WORKSPACE &gt;
                 </Link>
               </div>
             </div>
@@ -84,7 +138,7 @@ export default function LoginPage() {
                   Sign in
                 </h1>
                 <p className="text-[14px] text-[#404040] mt-1.5">
-                  to access Waves institutional management console
+                  for client teams and platform administrators
                 </p>
               </div>
 
@@ -99,11 +153,11 @@ export default function LoginPage() {
                 {/* Email / Mobile Field */}
                 <div>
                   <input
-                    type="text"
+                    type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Email address or mobile number *"
+                    placeholder="Email address *"
                     className="w-full h-[54px] px-4 rounded-[6px] border border-[#cccccc] focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] text-[15px] outline-none transition placeholder:text-[#888888] bg-white text-[#111111]"
                   />
                 </div>

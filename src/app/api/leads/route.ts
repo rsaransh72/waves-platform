@@ -52,12 +52,10 @@ export async function POST(request: NextRequest) {
       status: "new",
     };
 
-    // Attempt primary insert
-    let { data, error } = await supabase
+    // Visitors may insert leads but not read them back, so no .select() here.
+    let { error } = await supabase
       .from("leads")
-      .insert([leadPayload])
-      .select()
-      .single();
+      .insert([leadPayload]);
 
     // Fallback: if schema uses `full_name` instead of `name`
     if (error && (error.message?.includes("name") || error.code === "PGRST204")) {
@@ -73,28 +71,20 @@ export async function POST(request: NextRequest) {
 
       const retry = await supabase
         .from("leads")
-        .insert([fallbackPayload])
-        .select()
-        .single();
+        .insert([fallbackPayload]);
 
-      if (!retry.error) {
-        data = retry.data;
-        error = null;
-      }
+      error = retry.error;
     }
 
     if (error) {
-      console.warn("[Leads API - Supabase Schema Pending/Fallback]:", error.code, error.message);
-      console.log("[Received Lead Stored in Fallback Queue]:", JSON.stringify(leadPayload));
-
-      // Always return 201 success to the visitor so they receive confirmation
+      // Lead insertion is audited by the audit_trigger_leads database trigger on success.
+      console.error("[Leads API] Lead could not be saved:", error.code, error.message, JSON.stringify(leadPayload));
       return NextResponse.json(
         {
-          success: true,
-          message: "Your request has been received successfully! A Waves specialist will contact you shortly.",
-          lead: leadPayload,
+          success: false,
+          error: "We could not submit your request right now. Please try again or contact us directly.",
         },
-        { status: 201 }
+        { status: 500 }
       );
     }
 
@@ -102,7 +92,6 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         message: "Your demo request has been submitted successfully! A Waves specialist will contact you shortly.",
-        lead: data,
       },
       { status: 201 }
     );
