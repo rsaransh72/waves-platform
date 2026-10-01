@@ -50,7 +50,7 @@ GRANT EXECUTE ON FUNCTION public.get_auth_organization_id() TO authenticated;
 DO $$
 DECLARE
   policy_row RECORD;
-  table_name TEXT;
+  target_table TEXT;
 BEGIN
   IF to_regclass('public.team_members') IS NOT NULL THEN
     ALTER TABLE public.team_members ENABLE ROW LEVEL SECURITY;
@@ -103,7 +103,7 @@ BEGIN
       USING (user_id = auth.uid());
   END IF;
 
-  FOREACH table_name IN ARRAY ARRAY[
+  FOREACH target_table IN ARRAY ARRAY[
     'school_teachers', 'school_classes', 'school_students', 'school_attendance',
     'school_exams', 'school_exam_results', 'school_fee_structures',
     'school_student_fees', 'school_fee_payments', 'school_communications',
@@ -111,44 +111,44 @@ BEGIN
     'school_transport_routes', 'school_transport_stops', 'school_transport_students',
     'school_settings'
   ] LOOP
-    IF to_regclass(format('public.%I', table_name)) IS NOT NULL
+    IF to_regclass(format('public.%I', target_table)) IS NOT NULL
       AND EXISTS (
         SELECT 1 FROM information_schema.columns AS column_info
-        WHERE column_info.table_schema = 'public' AND column_info.table_name = table_name
+        WHERE column_info.table_schema = 'public' AND column_info.table_name = target_table
           AND column_info.column_name = 'organization_id'
       ) THEN
-      EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', table_name);
+      EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', target_table);
       EXECUTE format(
         'ALTER TABLE public.%I ALTER COLUMN organization_id SET DEFAULT public.get_auth_organization_id()',
-        table_name
+        target_table
       );
       FOR policy_row IN
         SELECT policyname FROM pg_policies AS existing_policy
-        WHERE existing_policy.schemaname = 'public' AND existing_policy.tablename = table_name
+        WHERE existing_policy.schemaname = 'public' AND existing_policy.tablename = target_table
       LOOP
-        EXECUTE format('DROP POLICY %I ON public.%I', policy_row.policyname, table_name);
+        EXECUTE format('DROP POLICY %I ON public.%I', policy_row.policyname, target_table);
       END LOOP;
       EXECUTE format(
         'CREATE POLICY school_tenant_access ON public.%I FOR ALL TO authenticated USING (organization_id = public.get_auth_organization_id()) WITH CHECK (organization_id = public.get_auth_organization_id())',
-        table_name
+        target_table
       );
     END IF;
   END LOOP;
 
-  FOREACH table_name IN ARRAY ARRAY[
+  FOREACH target_table IN ARRAY ARRAY[
     'subscriptions', 'invoices', 'support_tickets', 'feature_flags', 'audit_logs'
   ] LOOP
-    IF to_regclass(format('public.%I', table_name)) IS NOT NULL THEN
-      EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', table_name);
+    IF to_regclass(format('public.%I', target_table)) IS NOT NULL THEN
+      EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', target_table);
       FOR policy_row IN
         SELECT policyname FROM pg_policies AS existing_policy
-        WHERE existing_policy.schemaname = 'public' AND existing_policy.tablename = table_name
+        WHERE existing_policy.schemaname = 'public' AND existing_policy.tablename = target_table
       LOOP
-        EXECUTE format('DROP POLICY %I ON public.%I', policy_row.policyname, table_name);
+        EXECUTE format('DROP POLICY %I ON public.%I', policy_row.policyname, target_table);
       END LOOP;
       EXECUTE format(
         'CREATE POLICY platform_admin_access ON public.%I FOR ALL TO authenticated USING (public.is_platform_admin()) WITH CHECK (public.is_platform_admin())',
-        table_name
+        target_table
       );
     END IF;
   END LOOP;
