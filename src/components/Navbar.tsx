@@ -1,47 +1,41 @@
 import { supabase } from "@/lib/supabase";
+import { getPublishedPages, getPublishedProducts, getSiteSettings } from "@/lib/site-content";
+import { buildPublicMenuPathSet, sanitizeMenuItems } from "@/lib/public-menu";
 import ClientNavbar from "./ClientNavbar";
 
-export const revalidate = 0; // Ensure navbar always fetches fresh products
+export const revalidate = 0;
+
+const DEFAULT_MENU = [
+  { label: "Products", href: "/products" },
+  { label: "Services", href: "/services" },
+  { label: "Pricing", href: "/pricing" },
+  { label: "Contact", href: "/contact" },
+];
 
 export default async function Navbar({ requestDemoHref = "/book-demo" }: { requestDemoHref?: string }) {
-  // Fetch the main navigation links
-  const { data: menuData } = await supabase
-    .from("menus")
-    .select("*")
-    .eq("name", "Main Navbar")
-    .single();
+  const [{ data: menuData }, products, pages, { data: suites }, { data: marketplace }, settings] = await Promise.all([
+    supabase.from("menus").select("items").eq("name", "Main Navbar").maybeSingle(),
+    getPublishedProducts(),
+    getPublishedPages(),
+    supabase.from("suites").select("title, slug, subtitle").eq("status", "published"),
+    supabase.from("marketplaceitems").select("title, slug, subtitle").eq("status", "published"),
+    getSiteSettings(),
+  ]);
 
-  const menuItems = menuData?.items?.length
-    ? menuData.items
-    : [
-        { label: "School ERP", href: "/school-erp" },
-        { label: "Services", href: "/services" },
-        { label: "Pricing", href: "/pricing" },
-      ];
+  // Menu links are kept only when the page they point to exists and is published.
+  const validPaths = buildPublicMenuPathSet({ products, suites: suites ?? [], marketplace: marketplace ?? [], pages });
+  const configuredItems = Array.isArray(menuData?.items) ? menuData.items : [];
+  const menuItems = sanitizeMenuItems(configuredItems.length ? configuredItems : DEFAULT_MENU, validPaths)
+    .filter((item) => item.href !== "/products");
 
-  // Fetch published products to populate the mega menu
-  const { data: products } = await supabase
-    .from("products")
-    .select("title, slug, subtitle, category, color")
-    .eq("status", "published");
-
-  // Fetch published suites
-  const { data: suites } = await supabase
-    .from("suites")
-    .select("title, slug, subtitle, category, color, tagline")
-    .eq("status", "published");
-
-  // Fetch published marketplace items
-  const { data: marketplace } = await supabase
-    .from("marketplaceitems")
-    .select("title, slug, subtitle, category, color, tagline")
-    .eq("status", "published");
-
-  return <ClientNavbar
-    requestDemoHref={requestDemoHref}
-    dynamicMenuItems={menuItems} 
-    dynamicProducts={products || []} 
-    dynamicSuites={suites || []}
-    dynamicMarketplace={marketplace || []}
-  />;
+  return (
+    <ClientNavbar
+      requestDemoHref={requestDemoHref}
+      companyName={settings.company_name}
+      menuItems={menuItems}
+      products={products.map((product) => ({ slug: product.slug, title: product.title, subtitle: product.subtitle, category: product.category }))}
+      suites={suites ?? []}
+      marketplace={marketplace ?? []}
+    />
+  );
 }

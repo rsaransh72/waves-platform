@@ -17,6 +17,7 @@ type SchoolClientInput = {
   planAmount?: unknown;
   subscriptionStatus?: unknown;
   nextBillingDate?: unknown;
+  leadId?: unknown;
 };
 
 export async function POST(request: Request) {
@@ -134,6 +135,15 @@ export async function POST(request: Request) {
       role: "admin",
     });
     if (membershipError) throw membershipError;
+
+    // The client came from a website enquiry: close the lead and link it to the client.
+    if (typeof body.leadId === "string" && /^[0-9a-f-]{36}$/i.test(body.leadId)) {
+      const { error: leadError } = await adminClient
+        .from("leads")
+        .update({ status: "converted", organization_id: organization.id, next_follow_up: null, updated_at: new Date().toISOString() })
+        .eq("id", body.leadId);
+      if (leadError) console.error("Client created but the lead could not be marked converted:", leadError);
+    }
 
     return NextResponse.json({ organization, invitationSent: true, subscriptionCreated: true }, { status: 201 });
   } catch (error) {

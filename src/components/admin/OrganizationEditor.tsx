@@ -20,7 +20,7 @@ type OrganizationFormData = {
   status: string;
 };
 
-export function OrganizationEditor({ initialData, isNew, onClose }: { initialData: Partial<OrganizationFormData>, isNew: boolean, onClose: () => void }) {
+export function OrganizationEditor({ initialData, isNew, onClose, leadId }: { initialData: Partial<OrganizationFormData>, isNew: boolean, onClose: () => void, leadId?: string }) {
   const { addOrganization, updateOrganization, setIsSaving } = useAdminStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const defaultBillingDate = new Date();
@@ -88,6 +88,7 @@ export function OrganizationEditor({ initialData, isNew, onClose }: { initialDat
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             ...organization,
+            leadId,
             planName,
             planAmount: Number(planAmount),
             subscriptionStatus,

@@ -8,6 +8,24 @@
 - Optionally set `NEXT_PUBLIC_BILLING_CURRENCY` (ISO code, default `INR`). All platform amounts are displayed in this currency.
 - Rotate the PostgreSQL password that was previously embedded in repository scripts before using `DATABASE_URL` again.
 
+## Website And Leads
+
+The public website shows only what is published in the admin console, so nothing on it is invented:
+
+- **Company details** (name, tagline, phone, WhatsApp, emails, address, hours) come from **Admin → Settings**. Empty fields are hidden.
+- **Products** (menu, home page, product pages, pricing, every product dropdown) come from **Admin → Products**, published only. Features, use cases, pricing plans and FAQs are edited there. A product with no pricing plans shows "Pricing on request" and a quote form.
+- **Services** come from **Admin → Services**; **About, Terms, Privacy** and other pages from **Admin → Pages** (a published page with no sections is not linked).
+- Suites and marketplace entries appear only when published; the placeholder ones were set to draft.
+
+Every form on the website (demo, contact, services consultation, pricing quote, account request) creates a lead in **Admin → Leads**:
+
+1. **New**: arrives from the website (or added by hand for phone or walk-in enquiries). If `RESEND_API_KEY` and `RESEND_FROM_EMAIL` are set, an alert goes to the lead-alert email in Settings and the visitor gets a confirmation.
+2. **Contacted → Demo scheduled → Qualified**: set the stage and the next follow-up date; add notes after each conversation. The **Follow-up due** tab lists new leads and leads whose follow-up date has arrived.
+3. **Converted**: choose **Onboard as client** on the lead. The onboarding form is pre-filled from the enquiry; creating the client marks the lead converted and links it to the client.
+4. **Lost**: record the reason.
+
+There is no self-service sign-up: `/signup` collects an account request, and accounts are opened through onboarding.
+
 ## Client Onboarding
 
 1. Website demo and contact requests are captured as leads. Qualify the request, schedule and complete the demo, and agree the product and commercial terms before provisioning an account.
@@ -76,9 +94,10 @@ The job returns a count of reminders and suspensions plus per-subscription failu
 3. Apply `supabase/production_access_policies.sql` after all school tables are present. It replaces existing policies on platform-admin and school data tables; review against the deployed schema before applying.
 4. Apply `supabase/subscription_lifecycle.sql`, then `supabase/production_public_cms_policies.sql`. The latter replaces the development policies that gave the public anon key full read/write on `leads` and the website CMS tables (`products`, `services`, `pages`, `suites`, `marketplaceitems`, `menus`, `media`, `settings`, `automation_rules`). Visitors keep insert-only access to `leads` and read access to published CMS rows.
 5. Apply `supabase/client_management.sql`. It adds invoice payment fields (method, UTR/reference, paid date), links invoices to subscriptions, allows voiding invoices, and issues sequential invoice numbers (`WAV-2026-00001`). Creating invoices from the client page fails until it is applied.
-6. Apply `supabase/school_roles.sql`, `supabase/school_fee_receipts.sql` and `supabase/school_library.sql` (see **School Roles** below).
-7. Remove the `on_auth_user_created` trigger if it exists (`DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users; DROP FUNCTION IF EXISTS public.handle_new_user();`). It was created outside this repository and adds every new user to `team_members` as an active admin, which makes each invited school user a platform administrator.
-8. Do not use development policies that grant `anon` access to platform or school tables. Do not run the audit setup script as a routine migration; it drops `audit_logs` with `CASCADE`.
+6. Apply `supabase/lead_pipeline.sql`, `supabase/remove_placeholder_content.sql` and `supabase/school_erp_content.sql` (website content and lead pipeline).
+7. Apply `supabase/school_roles.sql`, `supabase/school_fee_receipts.sql` and `supabase/school_library.sql` (see **School Roles** below).
+8. Remove the `on_auth_user_created` trigger if it exists (`DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users; DROP FUNCTION IF EXISTS public.handle_new_user();`). It was created outside this repository and adds every new user to `team_members` as an active admin, which makes each invited school user a platform administrator.
+9. Do not use development policies that grant `anon` access to platform or school tables. Do not run the audit setup script as a routine migration; it drops `audit_logs` with `CASCADE`.
 
 The parent portal (`/portal/student/[id]`) and the parent payment endpoints (`/api/portal/payment`, `/api/portal/payment/stripe`) are disabled until parents have their own sign-in. Schools record fee payments from **Fees → Collection**.
 

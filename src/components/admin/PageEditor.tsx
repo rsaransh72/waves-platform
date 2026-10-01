@@ -32,6 +32,25 @@ export function PageEditor({ initialData, isNew = false }: PageEditorProps) {
 
   const [activeTab, setActiveTab] = useState<'content' | 'settings'>('content');
 
+  // Page content is a list of { heading, body } sections, rendered by the public site.
+  const sections: Array<{ heading: string; body: string }> = Array.isArray(formData.blocks)
+    ? formData.blocks.map((block: { heading?: unknown; body?: unknown }) => ({
+        heading: typeof block?.heading === "string" ? block.heading : "",
+        body: typeof block?.body === "string" ? block.body : "",
+      }))
+    : [];
+  const setSections = (next: Array<{ heading: string; body: string }>) => setFormData((prev) => ({ ...prev, blocks: next }));
+  const addSection = () => setSections([...sections, { heading: "", body: "" }]);
+  const updateSection = (index: number, field: "heading" | "body", value: string) =>
+    setSections(sections.map((section, i) => (i === index ? { ...section, [field]: value } : section)));
+  const removeSection = (index: number) => setSections(sections.filter((_, i) => i !== index));
+  const moveSection = (index: number, direction: -1 | 1) => {
+    const next = [...sections];
+    const target = index + direction;
+    [next[index], next[target]] = [next[target], next[index]];
+    setSections(next);
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -140,14 +159,32 @@ export function PageEditor({ initialData, isNew = false }: PageEditorProps) {
                 className="text-4xl font-bold text-slate-900 border-none outline-none focus:ring-0 p-0 placeholder-slate-300 w-full mb-8"
               />
               
-              <div className="flex-1 border-2 border-dashed border-slate-200 rounded-xl p-8 flex flex-col items-center justify-center text-slate-400 bg-slate-50/50">
-                 <p className="font-bold mb-2">JSON Block Editor</p>
-                 <p className="text-sm text-center max-w-sm">
-                   The rich-text block editor is currently in read-only mode for this advanced prototype. 
-                 </p>
-                 <div className="mt-6 w-full max-w-lg bg-slate-800 text-green-400 p-4 rounded-lg font-mono text-xs overflow-auto text-left shadow-inner">
-                    <pre>{JSON.stringify(formData.blocks, null, 2)}</pre>
-                 </div>
+              <div className="flex-1 space-y-4">
+                <p className="text-sm text-slate-500">Write the page as sections. Leave a blank line between paragraphs. A published page with no sections is not linked from the website.</p>
+                {sections.map((section, index) => (
+                  <div key={index} className="rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={section.heading}
+                        onChange={(e) => updateSection(index, "heading", e.target.value)}
+                        placeholder="Section heading (optional)"
+                        className="flex-1 rounded border border-slate-300 bg-white px-3 py-2 text-sm font-bold text-slate-900"
+                      />
+                      <button type="button" onClick={() => moveSection(index, -1)} disabled={index === 0} className="rounded border border-slate-300 bg-white px-2 py-1 text-xs disabled:opacity-30" aria-label="Move section up">↑</button>
+                      <button type="button" onClick={() => moveSection(index, 1)} disabled={index === sections.length - 1} className="rounded border border-slate-300 bg-white px-2 py-1 text-xs disabled:opacity-30" aria-label="Move section down">↓</button>
+                      <button type="button" onClick={() => removeSection(index)} className="rounded border border-red-200 bg-white px-2 py-1 text-xs text-red-600" aria-label="Remove section">Remove</button>
+                    </div>
+                    <textarea
+                      value={section.body}
+                      onChange={(e) => updateSection(index, "body", e.target.value)}
+                      rows={8}
+                      placeholder="Section text"
+                      className="w-full rounded border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 leading-relaxed"
+                    />
+                  </div>
+                ))}
+                <button type="button" onClick={addSection} className="rounded bg-blue-50 px-3 py-1.5 text-sm font-bold text-blue-700 hover:bg-blue-100">+ Add section</button>
               </div>
             </div>
           )}

@@ -1,30 +1,19 @@
+// Products with a dedicated marketing page instead of the generic /products/[slug].
 export const CORE_PRODUCT_ROUTES: Record<string, string> = {
   "school-erp": "/school-erp",
-  "hospital-erp": "/hospital-erp",
-  "pharmacy-pos": "/pharmacy-pos",
-  erp: "/erp",
 };
 
+// Public pages that always exist. Product, suite, marketplace and content pages are
+// added from what is published, so a menu can never link to a page that is not there.
 export const STATIC_PUBLIC_PATHS = [
   "/",
-  "/book-demo",
-  "/contact",
-  "/erp",
-  "/hospital-erp",
-  "/login",
-  "/pharmacy-pos",
-  "/pricing",
-  "/school-erp",
-  "/school/login",
-  "/school/signup",
+  "/products",
   "/services",
-  "/signin",
+  "/pricing",
+  "/contact",
+  "/book-demo",
   "/signup",
-  "/products/books",
-  "/products/campaigns",
-  "/products/crm",
-  "/products/desk",
-  "/products/people",
+  "/login",
 ] as const;
 
 export function canonicalizeMenuPath(href: string): string {
@@ -53,11 +42,13 @@ export function buildPublicMenuPathSet({
   products = [],
   suites = [],
   marketplace = [],
+  pages = [],
   extraPaths = [],
 }: {
   products?: Array<{ slug?: string | null }>;
   suites?: Array<{ slug?: string | null }>;
   marketplace?: Array<{ slug?: string | null }>;
+  pages?: Array<{ slug?: string | null }>;
   extraPaths?: Array<string | null | undefined>;
 } = {}) {
   const validPaths = new Set<string>([...STATIC_PUBLIC_PATHS]);
@@ -70,7 +61,13 @@ export function buildPublicMenuPathSet({
   for (const product of products) {
     const slug = typeof product?.slug === "string" ? product.slug.trim() : "";
     if (!slug) continue;
-    validPaths.add(`/products/${slug}`);
+    validPaths.add(CORE_PRODUCT_ROUTES[slug] ?? `/products/${slug}`);
+  }
+
+  for (const page of pages) {
+    const slug = typeof page?.slug === "string" ? page.slug.trim() : "";
+    if (!slug) continue;
+    validPaths.add(`/${slug}`);
   }
 
   for (const suite of suites) {

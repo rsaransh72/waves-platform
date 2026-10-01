@@ -10,8 +10,8 @@ const inter = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Waves | Cloud Software Suite for Institutions & Businesses",
-  description: "A unique and powerful cloud management software suite designed for schools, hospitals, and pharmacies of all sizes, built by a team that values your data privacy.",
+  title: "Waves",
+  description: "Cloud software for running your institution: students, attendance, exams, fees and staff in one place.",
   icons: {
     icon: "/favicon.ico",
   },

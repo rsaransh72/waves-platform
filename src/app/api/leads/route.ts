@@ -1,117 +1,130 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { getPublishedProducts, getSiteSettings } from "@/lib/site-content";
+
+// Every enquiry form on the website posts here. The lead lands in Admin → Leads,
+// where the sales team works it from "new" through to "converted" (onboarded) or "lost".
+
+const INQUIRY_TYPES = ["demo", "contact", "consultation", "pricing", "access"] as const;
+type InquiryType = typeof INQUIRY_TYPES[number];
+
+const INQUIRY_LABELS: Record<InquiryType, string> = {
+  demo: "Demo request",
+  contact: "General enquiry",
+  consultation: "Services consultation",
+  pricing: "Pricing quote",
+  access: "Account access request",
+};
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_PATTERN = /^\+?[0-9][0-9\s-]{6,18}$/;
+
+function text(value: unknown, max: number) {
+  return typeof value === "string" ? value.trim().slice(0, max) : "";
+}
+
+function escapeHtml(value: string) {
+  return value.replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character] ?? character);
+}
+
+async function sendEmail(to: string, subject: string, html: string, replyTo?: string) {
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.RESEND_FROM_EMAIL;
+  if (!apiKey || !from || !to) return false;
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify({ from, to, subject, html, ...(replyTo ? { reply_to: replyTo } : {}) }),
+  });
+  if (!response.ok) console.error("[Leads API] Email delivery failed:", response.status, await response.text());
+  return response.ok;
+}
 
 export async function POST(request: NextRequest) {
+  let body: Record<string, unknown>;
   try {
-    const body = await request.json();
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ success: false, error: "Invalid request." }, { status: 400 });
+  }
 
-    const name = (body.name || body.fullName || "").trim();
-    const email = (body.email || "").trim().toLowerCase();
-    const phone = (body.phone || body.mobile || "").trim();
-    const organizationName = (body.organizationName || body.organization_name || body.organization || "").trim();
-    const product = (body.product || "general").trim();
-    const city = (body.city || "").trim();
-    const teamSize = (body.teamSize || body.team_size || "").trim();
-    const message = (body.message || body.notes || "").trim();
-    const source = (body.source || "website_demo_form").trim();
+  // Bots fill every field, including this one, which people never see.
+  if (text(body.website, 200)) {
+    return NextResponse.json({ success: true }, { status: 201 });
+  }
 
-    // Validation
-    if (!name || !email || !phone) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Full name, email address, and phone number are required.",
-        },
-        { status: 400 }
-      );
-    }
+  const inquiryType = (INQUIRY_TYPES as readonly string[]).includes(body.inquiryType as string) ? body.inquiryType as InquiryType : "demo";
+  const name = text(body.name, 120);
+  const email = text(body.email, 200).toLowerCase();
+  const phone = text(body.phone, 30);
+  const organizationName = text(body.organizationName, 200);
+  const city = text(body.city, 100);
+  const teamSize = text(body.teamSize, 50);
+  const message = text(body.message, 2000);
+  const requestedProduct = text(body.product, 100);
 
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Please enter a valid email address.",
-        },
-        { status: 400 }
-      );
-    }
+  if (name.length < 2) return NextResponse.json({ success: false, error: "Please enter your full name." }, { status: 400 });
+  if (!EMAIL_PATTERN.test(email)) return NextResponse.json({ success: false, error: "Please enter a valid email address." }, { status: 400 });
+  if (!PHONE_PATTERN.test(phone)) return NextResponse.json({ success: false, error: "Please enter a valid phone number." }, { status: 400 });
+  if (inquiryType === "contact" && !message) return NextResponse.json({ success: false, error: "Please tell us how we can help." }, { status: 400 });
 
-    // Prepare payload for Supabase leads table
-    const leadPayload = {
-      name,
-      email,
-      phone,
-      organization_name: organizationName || null,
-      product,
-      city: city || null,
-      team_size: teamSize || null,
-      message: message || null,
-      source,
-      status: "new",
-    };
+  const products = await getPublishedProducts();
+  const product = products.find((item) => item.slug === requestedProduct);
 
-    // Visitors may insert leads but not read them back, so no .select() here.
-    let { error } = await supabase
-      .from("leads")
-      .insert([leadPayload]);
+  const { error } = await supabase.from("leads").insert([{
+    name,
+    email,
+    phone,
+    organization_name: organizationName || null,
+    product: product?.slug ?? "general",
+    city: city || null,
+    team_size: teamSize || null,
+    message: message || null,
+    inquiry_type: inquiryType,
+    source: text(body.source, 100) || "website",
+    status: "new",
+  }]);
 
-    // Fallback: if schema uses `full_name` instead of `name`
-    if (error && (error.message?.includes("name") || error.code === "PGRST204")) {
-      const fallbackPayload = {
-        full_name: name,
-        email,
-        phone,
-        organization_name: organizationName || null,
-        product,
-        city: city || null,
-        message: message || null,
-      };
-
-      const retry = await supabase
-        .from("leads")
-        .insert([fallbackPayload]);
-
-      error = retry.error;
-    }
-
-    if (error) {
-      // Lead insertion is audited by the audit_trigger_leads database trigger on success.
-      console.error("[Leads API] Lead could not be saved:", error.code, error.message, JSON.stringify(leadPayload));
-      return NextResponse.json(
-        {
-          success: false,
-          error: "We could not submit your request right now. Please try again or contact us directly.",
-        },
-        { status: 500 }
-      );
-    }
-
+  if (error) {
+    console.error("[Leads API] Lead could not be saved:", error.code, error.message);
     return NextResponse.json(
-      {
-        success: true,
-        message: "Your demo request has been submitted successfully! A Waves specialist will contact you shortly.",
-      },
-      { status: 201 }
-    );
-  } catch (err: unknown) {
-    const errorMessage = err instanceof Error ? err.message : "Internal server error";
-    console.error("[Leads API Unexpected Error]:", err);
-    return NextResponse.json(
-      {
-        success: false,
-        error: errorMessage,
-      },
+      { success: false, error: "We could not submit your request right now. Please try again in a moment." },
       { status: 500 }
     );
   }
-}
 
-export async function GET() {
-  return NextResponse.json({
-    status: "ok",
-    service: "Waves Lead Intake API",
-    methodsSupported: ["POST"],
-  });
+  const settings = await getSiteSettings();
+  const salesInbox = settings.lead_notification_email || settings.sales_email;
+  const productName = product?.title ?? "General";
+  const rows: Array<[string, string]> = [
+    ["Type", INQUIRY_LABELS[inquiryType]],
+    ["Product", productName],
+    ["Name", name],
+    ["Email", email],
+    ["Phone", phone],
+    ["Organization", organizationName],
+    ["City", city],
+    ["Size", teamSize],
+    ["Message", message],
+  ];
+  const [, confirmation] = await Promise.allSettled([
+    sendEmail(
+      salesInbox,
+      `New ${INQUIRY_LABELS[inquiryType].toLowerCase()}: ${organizationName || name}`,
+      `<p>A new enquiry arrived from the website. Open Admin → Leads to follow it up.</p><table>${rows
+        .filter(([, value]) => value)
+        .map(([label, value]) => `<tr><td><strong>${label}</strong></td><td>${escapeHtml(value)}</td></tr>`)
+        .join("")}</table>`,
+      email
+    ),
+    sendEmail(
+      email,
+      `We received your request – ${settings.company_name}`,
+      `<p>Hello ${escapeHtml(name)},</p><p>Thank you for contacting ${escapeHtml(settings.company_name)}. We have received your ${escapeHtml(INQUIRY_LABELS[inquiryType].toLowerCase())}${product ? ` for ${escapeHtml(product.title)}` : ""} and a member of our team will contact you at ${escapeHtml(phone)}.</p>${settings.phone ? `<p>If you need us sooner, call ${escapeHtml(settings.phone)}.</p>` : ""}`,
+      salesInbox || undefined
+    ),
+  ]);
+
+  const confirmationSent = confirmation.status === "fulfilled" && confirmation.value === true;
+  return NextResponse.json({ success: true, confirmationSent }, { status: 201 });
 }
