@@ -10,7 +10,7 @@ ALTER TABLE public.invoices
 
 ALTER TABLE public.invoices DROP CONSTRAINT IF EXISTS invoices_status_check;
 ALTER TABLE public.invoices
-  ADD CONSTRAINT invoices_status_check CHECK (status IN ('paid', 'pending', 'failed', 'refunded', 'void'));
+  ADD CONSTRAINT invoices_status_check CHECK (status IN ('paid', 'pending', 'failed', 'refunded', 'void')) NOT VALID;
 
 CREATE INDEX IF NOT EXISTS invoices_organization_idx ON public.invoices (organization_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS audit_logs_organization_idx ON public.audit_logs (organization_id, created_at DESC);
