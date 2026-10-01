@@ -1,4 +1,5 @@
 import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { formatMoney } from "@/lib/money";
 import { Activity, TrendingUp, Users, DollarSign } from "lucide-react";
 
 export const revalidate = 0;
@@ -35,7 +36,7 @@ export default async function AnalyticsPage() {
             <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><DollarSign className="w-5 h-5"/></div>
             <h3 className="font-semibold text-slate-700">MRR</h3>
           </div>
-          <p className="text-3xl font-bold text-slate-900">${mrr}</p>
+          <p className="text-3xl font-bold text-slate-900">{formatMoney(mrr)}</p>
         </div>
         
         <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">

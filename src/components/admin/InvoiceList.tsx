@@ -8,6 +8,7 @@ import { useAdminStore } from "@/store/adminStore";
 import { DataTable } from "./DataTable";
 import { ColumnDef } from "@tanstack/react-table";
 import jsPDF from "jspdf";
+import { formatMoney, formatMoneyCode } from "@/lib/money";
 import { Drawer } from "./Drawer";
 import { InvoiceEditor } from "./InvoiceEditor";
 import { useRouter } from "next/navigation";
@@ -56,7 +57,7 @@ export function InvoiceList({ initialData, initialInvoiceId }: { initialData: In
     {
       accessorKey: "amount",
       header: "Amount",
-      cell: ({ row }) => <span className="font-bold text-slate-900">${row.original.amount}</span>,
+      cell: ({ row }) => <span className="font-bold text-slate-900">{formatMoney(row.original.amount)}</span>,
     },
     {
       accessorKey: "status",
@@ -107,7 +108,7 @@ export function InvoiceList({ initialData, initialInvoiceId }: { initialData: In
           
           // Amount
           doc.setFontSize(16);
-          doc.text(`Total Amount Due: $${inv.amount.toFixed(2)}`, 20, 130);
+          doc.text(`Total Amount Due: ${formatMoneyCode(inv.amount)}`, 20, 130);
           
           doc.setFontSize(10);
           doc.text("Thank you for your business!", 105, 280, { align: "center" });

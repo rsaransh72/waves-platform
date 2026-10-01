@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { createBrowserClient } from "@supabase/ssr";
 import { useRouter } from "next/navigation";
+import { formatMoney } from "@/lib/money";
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 
@@ -346,7 +347,7 @@ export function FeeCollectionList({ initialInvoices, students, structures }: { i
                   </div>
                   <div className="flex justify-between items-center pt-2 mt-2 border-t border-[#cbd5e1]">
                     <span className="text-[14px] font-medium text-[#e42525]">Balance Due</span>
-                    <span className="text-[16px] font-bold text-[#e42525]">${(Number(selectedInvoice.amount_due) - Number(selectedInvoice.amount_paid)).toFixed(2)}</span>
+                    <span className="text-[16px] font-bold text-[#e42525]">{formatMoney(Number(selectedInvoice.amount_due) - Number(selectedInvoice.amount_paid))}</span>
                   </div>
                 </div>
 

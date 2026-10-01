@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { adminNavigation } from "@/lib/admin-navigation";
 import { createClient } from "@/lib/supabase-browser";
+import { formatMoney } from "@/lib/money";
 
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
@@ -210,7 +211,7 @@ export function CommandPalette() {
                           >
                             <Receipt className="h-4 w-4 mr-3 text-amber-500" />
                             <span>{i.invoice_number}</span>
-                            <span className="ml-auto font-bold text-slate-600">${i.amount}</span>
+                            <span className="ml-auto font-bold text-slate-600">{formatMoney(i.amount)}</span>
                           </Command.Item>
                         ))}
                       </Command.Group>

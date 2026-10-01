@@ -98,18 +98,17 @@ export function OrganizationEditor({ initialData, isNew, onClose }: { initialDat
         if (!response.ok) throw new Error(result.error || "School invitation failed.");
         addOrganization(result.organization);
       } else {
-        if (!formData.id) throw new Error("Cannot update a school without its organization ID.");
+        if (!formData.id) throw new Error("Cannot update a client without its organization ID.");
         const { data, error } = await supabase
           .from("organizations")
           .update(organization)
           .eq("id", formData.id)
-          .eq("type", "school")
           .select("*")
           .single();
         if (error) throw error;
         updateOrganization(formData.id, data);
       }
-      toast.success(isNew ? "School client created." : "School client updated.");
+      toast.success(isNew ? "Client created and invitation sent." : "Client updated.");
       onClose();
     } catch (err: unknown) {
       toast.error(`Save failed: ${err instanceof Error ? err.message : "Unexpected error"}`);

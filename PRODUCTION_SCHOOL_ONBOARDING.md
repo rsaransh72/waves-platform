@@ -4,6 +4,8 @@
 
 - Set `SUPABASE_SERVICE_ROLE_KEY` in the server runtime only. Never prefix it with `NEXT_PUBLIC_`.
 - Keep the Supabase Auth invitation redirect allowlist configured for the deployed `/school/accept-invite` URL.
+- Optionally set `NEXT_PUBLIC_SITE_URL` (for example `https://waves.example.com`) so invitation and password-reset emails link to the public domain rather than the request host.
+- Optionally set `NEXT_PUBLIC_BILLING_CURRENCY` (ISO code, default `INR`). All platform amounts are displayed in this currency.
 - Rotate the PostgreSQL password that was previously embedded in repository scripts before using `DATABASE_URL` again.
 
 ## Client Onboarding
@@ -15,6 +17,16 @@
 5. Platform administrators can review all client memberships in **Admin → Client Users**. School administrators manage school operational users in the School ERP.
 
 Public applications remain leads until the sales/demo process is complete. The current conversion step is an administrator creating the client from **Organizations**; this does not yet attach the lead record to the resulting organization.
+
+## Managing A Client
+
+Open **Admin → Organizations** and select the client. From that page a platform administrator can:
+
+- Edit the client's details, or suspend and reactivate it. Suspending blocks every user of that client immediately.
+- Create or edit the subscription (plan, annual amount, status, term end) and renew the term by 1–3 years. Renewing reactivates a suspended client, resets the renewal reminder, and can create a pending renewal invoice.
+- Create invoices and record payments with method, UTR/reference and payment date.
+- Add users with an Administrator, Teacher or Staff role, resend pending invitations, send password resets, change roles, and remove access. A client always keeps at least one administrator.
+- Review the client's activity: subscription, invoice and profile changes and every user-access action, with the administrator who made it.
 
 ## Subscription Lifecycle Automation
 
@@ -34,7 +46,8 @@ The job returns a count of reminders and suspensions plus per-subscription failu
 2. Apply `supabase/admin_role_check.sql` after `team_members` exists. It enables the shared `/login` page to verify active platform admins.
 3. Apply `supabase/production_access_policies.sql` after all school tables are present. It replaces existing policies on platform-admin and school data tables; review against the deployed schema before applying.
 4. Apply `supabase/subscription_lifecycle.sql`, then `supabase/production_public_cms_policies.sql`. The latter replaces the development policies that gave the public anon key full read/write on `leads` and the website CMS tables (`products`, `services`, `pages`, `suites`, `marketplaceitems`, `menus`, `media`, `settings`, `automation_rules`). Visitors keep insert-only access to `leads` and read access to published CMS rows.
-5. Do not use development policies that grant `anon` access to platform or school tables. Do not run the audit setup script as a routine migration; it drops `audit_logs` with `CASCADE`.
+5. Apply `supabase/client_management.sql`. It adds invoice payment fields (method, UTR/reference, paid date), links invoices to subscriptions, allows voiding invoices, and issues sequential invoice numbers (`WAV-2026-00001`). Creating invoices from the client page fails until it is applied.
+6. Do not use development policies that grant `anon` access to platform or school tables. Do not run the audit setup script as a routine migration; it drops `audit_logs` with `CASCADE`.
 
 The parent portal (`/portal/student/[id]`) and the parent payment endpoints (`/api/portal/payment`, `/api/portal/payment/stripe`) are disabled until parents have their own sign-in. Schools record fee payments from **Fees → Collection**.
 
