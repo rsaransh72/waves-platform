@@ -13,7 +13,8 @@
 The public website shows only what is published in the admin console, so nothing on it is invented:
 
 - **Company details** (name, tagline, phone, WhatsApp, emails, address, hours) come from **Admin → Settings**. Empty fields are hidden.
-- **Products** (menu, home page, product pages, pricing, every product dropdown) come from **Admin → Products**, published only. Features, use cases, pricing plans and FAQs are edited there. A product with no pricing plans shows "Pricing on request" and a quote form.
+- The website is the company site (home, products, services, pricing, about, contact). Each published product also gets its own mini-site at `/{slug}` with Overview, `/features`, `/pricing`, `/faq` and `/demo` pages and its own menu (e.g. `/school-erp`). Publishing a new product in **Admin → Products** creates its mini-site; no code change is needed.
+- **Products** (menu, home page, product mini-sites, pricing, every product dropdown) come from **Admin → Products**, published only. Features, use cases, pricing plans and FAQs are edited there. A product with no pricing plans shows "Pricing on request" and a quote form.
 - **Services** come from **Admin → Services**; **About, Terms, Privacy** and other pages from **Admin → Pages** (a published page with no sections is not linked).
 - Suites and marketplace entries appear only when published; the placeholder ones were set to draft.
 

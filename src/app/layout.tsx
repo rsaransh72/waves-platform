@@ -11,7 +11,7 @@ const inter = Plus_Jakarta_Sans({
 
 export const metadata: Metadata = {
   title: "Waves",
-  description: "Cloud software for running your institution: students, attendance, exams, fees and staff in one place.",
+  description: "Cloud software built, set up and supported by one team.",
   icons: {
     icon: "/favicon.ico",
   },

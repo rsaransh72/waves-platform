@@ -5,15 +5,15 @@ import { planPrice, type PricingPlan } from "@/lib/site-content";
 
 // A product's plans as entered in Admin → Products → Pricing. A plan without a numeric
 // price shows its text (e.g. "On request") and asks for a quote instead of a figure.
-export default function PricingPlans({ plans, productSlug, productTitle }: { plans: PricingPlan[]; productSlug: string; productTitle: string }) {
+export default function PricingPlans({ plans, productTitle, quoteHref, startHref }: { plans: PricingPlan[]; productTitle: string; quoteHref: string; startHref: string }) {
   if (plans.length === 0) {
     return (
       <div className="rounded-xl border border-[#e6e9f0] bg-white p-8 text-center">
         <p className="text-[18px] font-semibold text-[#111]">Pricing on request</p>
         <p className="mt-2 text-[15px] text-[#555] max-w-xl mx-auto">
-          The price for {productTitle} depends on the size of your institution and the modules you need. Ask for a quote and we will send one based on your details.
+          The price for {productTitle} depends on the size of your organization and what you need. Ask for a quote and we will send one based on your details.
         </p>
-        <Link href={`/pricing?product=${productSlug}#quote`} className="mt-5 inline-flex bg-[#e42525] hover:bg-[#d11a1a] text-white px-6 py-3 text-[13px] font-bold uppercase tracking-wider rounded-[3px]">
+        <Link href={quoteHref} className="mt-5 inline-flex bg-[#e42525] hover:bg-[#d11a1a] text-white px-6 py-3 text-[13px] font-bold uppercase tracking-wider rounded-[3px]">
           Request a quote
         </Link>
       </div>
@@ -54,7 +54,7 @@ export default function PricingPlans({ plans, productSlug, productTitle }: { pla
               </ul>
             )}
             <Link
-              href={numeric ? `/book-demo?product=${productSlug}` : `/pricing?product=${productSlug}#quote`}
+              href={numeric ? startHref : quoteHref}
               className={`mt-8 block text-center py-3 rounded-[3px] text-[13px] font-bold uppercase tracking-wider transition-colors ${plan.highlighted ? "bg-[#0066cc] hover:bg-[#005bb5] text-white" : "border border-[#0066cc] text-[#0066cc] hover:bg-blue-50"}`}
             >
               {numeric ? "Get started" : "Request a quote"}

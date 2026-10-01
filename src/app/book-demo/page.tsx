@@ -12,8 +12,8 @@ export async function generateMetadata() {
 }
 
 const STEPS = [
-  "We call you on the number you give us to understand your institution and agree a time.",
-  "We show you the product live, using examples that match how you run classes, fees and staff.",
+  "We call you on the number you give us to understand your needs and agree a time.",
+  "We show you the product live, using examples that match how your organization works.",
   "If it suits you, we send a quote and set up your account. Nothing is charged before you agree.",
 ];
 

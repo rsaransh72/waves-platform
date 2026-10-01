@@ -10,7 +10,7 @@ type ProductOption = { slug: string; title: string };
 const COPY: Record<LeadInquiryType, { title: string; description: string; submit: string; done: string }> = {
   demo: {
     title: "Request a demo",
-    description: "Tell us about your institution. We will call you to schedule a live walkthrough on your own data.",
+    description: "Tell us a little about your organization. We will call you to schedule a live walkthrough.",
     submit: "Request demo",
     done: "Your demo request has been received. Our team will call you to schedule a time that suits you.",
   },
@@ -28,13 +28,13 @@ const COPY: Record<LeadInquiryType, { title: string; description: string; submit
   },
   pricing: {
     title: "Get a quote",
-    description: "Pricing depends on the size of your institution and the modules you need. Share a few details and we will send you a quote.",
+    description: "Pricing depends on the size of your organization and what you need. Share a few details and we will send you a quote.",
     submit: "Request quote",
     done: "Your quote request has been received. We will send a quote based on your details.",
   },
   access: {
     title: "Request access",
-    description: "Accounts are set up by our team after a short onboarding call, so your data and users are configured correctly from day one.",
+    description: "Accounts are set up by our team after a short call, so your data and users are configured correctly from day one.",
     submit: "Request access",
     done: "Your request has been received. Our onboarding team will contact you to set up your account.",
   },
@@ -156,7 +156,7 @@ export default function LeadForm({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div>
             <label htmlFor={`${inquiryType}-org`} className={labelClass}>
-              {inquiryType === "contact" ? "Organization" : <>Institution / organization <Required /></>}
+              {inquiryType === "contact" ? "Organization" : <>Organization <Required /></>}
             </label>
             <input id={`${inquiryType}-org`} type="text" required={inquiryType !== "contact"} autoComplete="organization" value={form.organizationName} onChange={update("organizationName")} className={inputClass} />
           </div>
@@ -179,14 +179,7 @@ export default function LeadForm({
         {(inquiryType === "demo" || inquiryType === "pricing" || inquiryType === "access") && (
           <div>
             <label htmlFor={`${inquiryType}-size`} className={labelClass}>Size</label>
-            <select id={`${inquiryType}-size`} value={form.teamSize} onChange={update("teamSize")} className={inputClass}>
-              <option value="">Select approximate size</option>
-              <option value="Up to 300 students">Up to 300 students</option>
-              <option value="300–1,000 students">300–1,000 students</option>
-              <option value="1,000–3,000 students">1,000–3,000 students</option>
-              <option value="More than 3,000 students">More than 3,000 students</option>
-              <option value="Multiple branches">Multiple branches</option>
-            </select>
+            <input id={`${inquiryType}-size`} type="text" maxLength={50} value={form.teamSize} onChange={update("teamSize")} placeholder="e.g. 800 students, 40 staff, 2 branches" className={inputClass} />
           </div>
         )}
 

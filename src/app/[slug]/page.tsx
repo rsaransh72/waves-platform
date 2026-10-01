@@ -1,15 +1,20 @@
 import { notFound } from "next/navigation";
 import SitePage from "@/components/site/SitePage";
 import PageHero from "@/components/site/PageHero";
-import { getPublishedPage, getSiteSettings } from "@/lib/site-content";
+import { ProductOverview } from "@/components/site/product/ProductPages";
+import { getPublishedPage, getPublishedProduct, getSiteSettings } from "@/lib/site-content";
 
 export const revalidate = 0;
 
-// Content pages written in Admin → Pages (About, Terms, Privacy, ...). Fixed routes
-// such as /pricing take precedence over this one.
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const [page, settings] = await Promise.all([getPublishedPage(slug), getSiteSettings()]);
+  const [product, page, settings] = await Promise.all([getPublishedProduct(slug), getPublishedPage(slug), getSiteSettings()]);
+  if (product) {
+    return {
+      title: product.seo_title || `${product.title} | ${settings.company_name}`,
+      description: product.seo_description || product.subtitle || undefined,
+    };
+  }
   if (!page) return {};
   return {
     title: page.seo_title || `${page.title} | ${settings.company_name}`,
@@ -17,8 +22,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
-export default async function ContentPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function SlugPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+
+  // A published product: its overview (the layout adds the product menu).
+  const product = await getPublishedProduct(slug);
+  if (product) return <ProductOverview product={product} />;
+
+  // Otherwise a content page written in Admin → Pages.
   const page = await getPublishedPage(slug);
   if (!page) notFound();
 

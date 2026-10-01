@@ -230,10 +230,7 @@ export async function getPublishedPage(slug: string): Promise<ContentPage | null
   return pages.find((page) => page.slug === slug) ?? null;
 }
 
-// Where a product's marketing page lives. School ERP has a dedicated page.
-export function productHref(slug: string) {
-  return slug === "school-erp" ? "/school-erp" : `/products/${slug}`;
-}
+export { productHref } from "@/lib/product-routes";
 
 export function planPrice(plan: PricingPlan) {
   if (plan.price === undefined || plan.price === null || plan.price === "") return null;

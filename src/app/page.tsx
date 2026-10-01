@@ -23,31 +23,30 @@ export const revalidate = 0;
 export async function generateMetadata() {
   const settings = await getSiteSettings();
   return {
-    title: `${settings.company_name} | Software for schools and institutions`,
-    description: settings.tagline || "Cloud software for running your institution: students, attendance, exams, fees and staff in one place.",
+    title: `${settings.company_name} | Cloud software for organizations`,
+    description: settings.tagline || "Cloud software built, set up and supported by one team.",
   };
 }
 
 // How a new customer gets from the website to a working account. Each step is a real
 // stage in Admin → Leads and client onboarding.
 const PROCESS = [
-  { icon: CalendarCheck, title: "Request a demo", desc: "Send the form below. Your request reaches our team immediately and we call you back to fix a time." },
-  { icon: Presentation, title: "See it on your workflow", desc: "We walk you through the product live and answer questions about your fees, classes and staff." },
-  { icon: Wrench, title: "We set up your account", desc: "We create your institution's workspace, your administrator receives an email invitation, and we help you load your data." },
-  { icon: Rocket, title: "Go live", desc: "Your administrator invites teachers and office staff, each with access matched to their role." },
+  { icon: CalendarCheck, title: "Talk to us", desc: "Send an enquiry or request a demo. Our team calls you back to understand what you need." },
+  { icon: Presentation, title: "See it live", desc: "We walk you through the product on examples that match how your organization works." },
+  { icon: Wrench, title: "We set it up", desc: "Once you agree the quote, we create your account and your administrator receives an invitation by email." },
+  { icon: Rocket, title: "Go live with support", desc: "Your administrator invites the rest of your team, and you keep the same team for support." },
 ];
 
 // Statements about how the software works, not marketing claims.
 const PRINCIPLES = [
-  { icon: ShieldCheck, color: "text-[#e42525]", bg: "bg-red-50", title: "Your data stays yours", desc: "Each institution's records are kept separate at the database level. No other customer can see them." },
-  { icon: UserCog, color: "text-[#226eb4]", bg: "bg-blue-50", title: "The right access for every role", desc: "Administrators, teachers and office staff each see and change only what their role needs. Teachers never see fees." },
-  { icon: IndianRupee, color: "text-emerald-600", bg: "bg-emerald-50", title: "Made for Indian institutions", desc: "Amounts in rupees, UPI, cheque and NEFT payments, and numbered receipts with the amount in words." },
-  { icon: Headphones, color: "text-amber-600", bg: "bg-amber-50", title: "Set up with you, not left to you", desc: "Accounts are opened by our team after a call, so your setup is right from the first day." },
+  { icon: ShieldCheck, color: "text-[#e42525]", bg: "bg-red-50", title: "Your data stays yours", desc: "Every customer's records are kept separate at the database level. No other customer can see them." },
+  { icon: UserCog, color: "text-[#226eb4]", bg: "bg-blue-50", title: "Access by role", desc: "Each person in your organization sees and changes only what their role needs." },
+  { icon: IndianRupee, color: "text-emerald-600", bg: "bg-emerald-50", title: "Pricing agreed upfront", desc: "You receive a written quote before anything starts. No charge until you agree." },
+  { icon: Headphones, color: "text-amber-600", bg: "bg-amber-50", title: "Set up with you", desc: "Accounts are opened by our team after a call, so your setup is right from the first day." },
 ];
 
 export default async function Home() {
   const [settings, products, services] = await Promise.all([getSiteSettings(), getPublishedProducts(), getPublishedServices()]);
-  const primaryProduct = products[0];
 
   return (
     <SitePage>
@@ -57,20 +56,20 @@ export default async function Home() {
           <div className="flex flex-col lg:flex-row gap-12 lg:gap-20 items-center lg:items-start">
             <div className="lg:w-[50%] pt-6 text-center lg:text-left flex flex-col items-center lg:items-start">
               <h1 className="text-[36px] sm:text-[48px] lg:text-[54px] font-normal text-[#111111] tracking-tight leading-[1.15]">
-                Run your institution<br />
-                from one place, with <span className="font-medium text-[#e42525]">{settings.company_name}</span>.
+                Software that runs<br />
+                your organization, by <span className="font-medium text-[#e42525]">{settings.company_name}</span>.
               </h1>
               <div className="w-[50px] border-t-[3px] border-[#e42525] mt-8 mb-6 mx-auto lg:mx-0" />
               <p className="text-[17px] text-[#444] leading-[1.6] max-w-[480px] mb-10">
-                {settings.tagline || "Students, attendance, exams, fees and staff in one secure system, set up for you by our team."}
+                {settings.tagline || "Cloud software built, set up and supported by one team, so it works for you from the first day."}
               </p>
               <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                 <Link href="/book-demo" className="bg-[#e42525] hover:bg-[#d11a1a] text-white px-8 py-4 text-[14px] font-bold uppercase tracking-wider rounded-[3px] transition-colors flex items-center justify-center">
                   Request a demo <ChevronRight className="w-4 h-4 ml-2" strokeWidth={3} />
                 </Link>
-                {primaryProduct && (
-                  <Link href={productHref(primaryProduct.slug)} className="border border-[#cccccc] hover:border-[#0066cc] text-[#111] px-8 py-4 text-[14px] font-bold uppercase tracking-wider rounded-[3px] transition-colors flex items-center justify-center">
-                    Explore {primaryProduct.title}
+                {products.length > 0 && (
+                  <Link href="/products" className="border border-[#cccccc] hover:border-[#0066cc] text-[#111] px-8 py-4 text-[14px] font-bold uppercase tracking-wider rounded-[3px] transition-colors flex items-center justify-center">
+                    Explore products
                   </Link>
                 )}
               </div>
@@ -187,10 +186,10 @@ export default async function Home() {
           <div className="flex flex-col lg:flex-row gap-10 lg:gap-16 items-start">
             <div className="lg:w-5/12 space-y-5 lg:sticky lg:top-[80px]">
               <div className="zw-label"><span>Demo</span></div>
-              <h2 className="text-[28px] sm:text-[36px] font-medium text-black tracking-[-1px] leading-tight">See it working for your institution</h2>
+              <h2 className="text-[28px] sm:text-[36px] font-medium text-black tracking-[-1px] leading-tight">See our products working for you</h2>
               <div className="w-14 border-t border-black" />
               <p className="text-base text-[#404040] leading-[1.8]">
-                Tell us a little about your institution. We will call you, show you the product live and answer your questions before you decide anything.
+                Tell us a little about your organization. We will call you, show you the product live and answer your questions before you decide anything.
               </p>
               <ContactDetails settings={settings} />
               {!settings.phone && !settings.sales_email && (

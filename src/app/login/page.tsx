@@ -133,7 +133,7 @@ export default function LoginPage() {
                 Authentication Successful
               </h1>
               <p className="text-[14px] text-[#404040] mt-3 leading-relaxed">
-                Signed in as <strong className="text-[#111111]">{email}</strong>. Launching your institutional dashboard...
+                Signed in as <strong className="text-[#111111]">{email}</strong>. Opening your workspace...
               </p>
               <div className="mt-8 space-y-3">
                 <Link

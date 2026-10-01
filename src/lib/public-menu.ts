@@ -1,8 +1,3 @@
-// Products with a dedicated marketing page instead of the generic /products/[slug].
-export const CORE_PRODUCT_ROUTES: Record<string, string> = {
-  "school-erp": "/school-erp",
-};
-
 // Public pages that always exist. Product, suite, marketplace and content pages are
 // added from what is published, so a menu can never link to a page that is not there.
 export const STATIC_PUBLIC_PATHS = [
@@ -23,8 +18,8 @@ export function canonicalizeMenuPath(href: string): string {
   const productPath = normalized.match(/^\/products\/([^/?#]+)(.*)$/);
   if (!productPath) return normalized.split(/[?#]/)[0] || "/";
 
-  const coreRoute = CORE_PRODUCT_ROUTES[productPath[1]];
-  return coreRoute ? `${coreRoute}${productPath[2]}` : normalized.split(/[?#]/)[0] || "/";
+  // Products live at /{slug}; old /products/{slug} links are treated the same way.
+  return `/${productPath[1]}${productPath[2]}`.split(/[?#]/)[0] || "/";
 }
 
 export function normalizePublicMenuPath(href: unknown): string | null {
@@ -61,7 +56,7 @@ export function buildPublicMenuPathSet({
   for (const product of products) {
     const slug = typeof product?.slug === "string" ? product.slug.trim() : "";
     if (!slug) continue;
-    validPaths.add(CORE_PRODUCT_ROUTES[slug] ?? `/products/${slug}`);
+    validPaths.add(`/${slug}`);
   }
 
   for (const page of pages) {

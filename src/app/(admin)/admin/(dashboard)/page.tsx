@@ -25,7 +25,7 @@ export default async function AdminDashboard() {
     { data: renewals },
     { data: unpaidInvoices },
     { data: settingsRow },
-    { data: schoolErp },
+    { data: publishedProducts },
     { data: pages },
     { data: recentLogs },
   ] = await Promise.all([
@@ -34,7 +34,7 @@ export default async function AdminDashboard() {
     supabase.from("subscriptions").select("id, organization_id, organization_name, plan_name, amount, next_billing_date, status").in("status", ["active", "trialing", "past_due"]).lte("next_billing_date", in30Days).order("next_billing_date"),
     supabase.from("invoices").select("amount").in("status", ["pending", "failed"]),
     supabase.from("settings").select("value").eq("key", "site_general").maybeSingle(),
-    supabase.from("products").select("pricing, status").eq("slug", "school-erp").maybeSingle(),
+    supabase.from("products").select("title, pricing").eq("status", "published"),
     supabase.from("pages").select("slug, blocks").eq("status", "published"),
     supabase.from("audit_logs").select("*").order("created_at", { ascending: false }).limit(5),
   ]);
@@ -45,11 +45,16 @@ export default async function AdminDashboard() {
   const outstanding = (unpaidInvoices ?? []).reduce((total, invoice) => total + Number(invoice.amount ?? 0), 0);
 
   const site = (settingsRow?.value ?? {}) as Record<string, string>;
+  const unpricedProducts = (publishedProducts ?? []).filter((product) => !Array.isArray(product.pricing) || product.pricing.length === 0).map((product) => product.title);
   const pagesWithContent = new Set((pages ?? []).filter((page) => Array.isArray(page.blocks) && page.blocks.length > 0).map((page) => page.slug));
   // Each check reflects real configuration, so the list shows what is left before launch.
   const checklist = [
     { label: "Company phone and email on the website", done: Boolean(site.phone && site.sales_email), href: "/admin/settings" },
-    { label: "School ERP pricing plans entered", done: Array.isArray(schoolErp?.pricing) && schoolErp.pricing.length > 0, href: "/admin/products" },
+    {
+      label: unpricedProducts.length ? `Pricing plans for ${unpricedProducts.join(", ")}` : "Pricing plans for every published product",
+      done: (publishedProducts?.length ?? 0) > 0 && unpricedProducts.length === 0,
+      href: "/admin/products",
+    },
     { label: "About page written", done: pagesWithContent.has("about"), href: "/admin/pages" },
     { label: "Terms and Privacy pages written", done: pagesWithContent.has("terms") && pagesWithContent.has("privacy"), href: "/admin/pages" },
     { label: "Invitation emails can be sent (service-role key)", done: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY), href: null },

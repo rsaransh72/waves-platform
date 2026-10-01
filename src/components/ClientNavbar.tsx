@@ -3,15 +3,11 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ChevronDown, ChevronRight, GraduationCap, Layers, Menu, X } from "lucide-react";
-import { CORE_PRODUCT_ROUTES } from "@/lib/public-menu";
+import { productHref } from "@/lib/product-routes";
 
 type NavProduct = { slug: string; title: string; subtitle: string | null; category: string | null };
 type NavCatalogItem = { slug: string; title: string; subtitle: string | null };
 type NavLink = { label: string; href: string };
-
-function productHref(slug: string) {
-  return CORE_PRODUCT_ROUTES[slug] ?? `/products/${slug}`;
-}
 
 function productIcon(slug: string) {
   return slug === "school-erp" ? GraduationCap : Layers;

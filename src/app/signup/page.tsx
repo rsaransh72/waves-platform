@@ -20,8 +20,8 @@ export default async function SignUpPage() {
     <SitePage>
       <PageHero
         label="Get started"
-        title="Open an account for your institution"
-        intro="We set up every account with you, so your classes, fees and staff are configured correctly from the first day. Send this request and we will contact you to begin."
+        title="Open an account"
+        intro="We set up every account with you, so your data and users are configured correctly from the first day. Send this request and we will contact you to begin."
       >
         <p className="text-[14px] text-[#555]">
           Already received an invitation email? <Link href="/login" className="text-[#0066cc] font-semibold hover:underline">Sign in here</Link>.

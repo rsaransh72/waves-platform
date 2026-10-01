@@ -21,7 +21,7 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
       <PageHero
         label="Pricing"
         title="Simple pricing, agreed before you start"
-        intro="Every plan below is what we actually charge. Where a price depends on your institution, ask for a quote and we will send one in writing."
+        intro="Every plan below is what we actually charge. Where a price depends on your organization, ask for a quote and we will send one in writing."
       />
 
       {products.map((product) => (
@@ -32,9 +32,9 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
                 <h2 className="text-[26px] sm:text-[32px] font-medium text-black tracking-[-1px]">{product.title}</h2>
                 {product.subtitle && <p className="mt-2 text-[15px] text-[#555] max-w-2xl">{product.subtitle}</p>}
               </div>
-              <Link href={productHref(product.slug)} className="text-[#0066cc] text-[13px] font-bold uppercase tracking-wider hover:underline">Product details</Link>
+              <Link href={productHref(product.slug)} className="text-[#0066cc] text-[13px] font-bold uppercase tracking-wider hover:underline">About {product.title}</Link>
             </div>
-            <PricingPlans plans={product.pricing} productSlug={product.slug} productTitle={product.title} />
+            <PricingPlans plans={product.pricing} productTitle={product.title} quoteHref={`/pricing?product=${product.slug}#quote`} startHref={productHref(product.slug, "demo")} />
           </div>
         </section>
       ))}

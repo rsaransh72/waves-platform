@@ -82,7 +82,7 @@ export default async function CatalogDetailPage({ table, slug }: { table: Catalo
       <section id="pricing" className="scroll-mt-20 w-full bg-[#f9fafb] border-t border-[#e6e9f0] px-6 py-14 lg:px-[5%] lg:py-[72px]">
         <div className="max-w-[1280px] mx-auto">
           <h2 className="text-[26px] sm:text-[32px] font-medium text-black tracking-[-1px] mb-10 text-center">Pricing</h2>
-          <PricingPlans plans={item.pricing} productSlug={item.slug} productTitle={item.title} />
+          <PricingPlans plans={item.pricing} productTitle={item.title} quoteHref="#demo" startHref="#demo" />
         </div>
       </section>
 

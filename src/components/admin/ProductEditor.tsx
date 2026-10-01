@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase-browser";
 import { useAdminStore } from "@/store/adminStore";
 import { toast } from "sonner";
 import { describeError } from "@/lib/error-message";
+import { RESERVED_SLUGS } from "@/lib/product-routes";
 
 const tabs = ["General", "Features", "Use cases", "Pricing", "FAQs", "SEO", "Publishing"];
 
@@ -71,6 +72,10 @@ export function ProductEditor({ initialData, isNew, onClose }: { initialData: an
     }
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
       toast.error("Use lowercase letters, numbers and single hyphens in the slug.");
+      return;
+    }
+    if (RESERVED_SLUGS.has(slug)) {
+      toast.error(`"${slug}" is used by a company page. Choose another slug, e.g. "${slug}-app".`);
       return;
     }
 
@@ -166,8 +171,9 @@ export function ProductEditor({ initialData, isNew, onClose }: { initialData: an
               <input type="text" name="title" value={general.title} onChange={handleChange} className={inputClass} placeholder="e.g. School ERP" />
             </div>
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1.5">URL slug *</label>
+              <label className="block text-sm font-bold text-slate-700 mb-1.5">Web address *</label>
               <input type="text" name="slug" value={general.slug} onChange={handleChange} className={inputClass} placeholder="school-erp" />
+              <p className="mt-1 text-xs text-slate-500">The product's website is at /{general.slug || "slug"}, with /features, /pricing, /faq and /demo pages.</p>
             </div>
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-1.5">One-line summary</label>
