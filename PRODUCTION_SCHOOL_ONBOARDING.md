@@ -33,7 +33,10 @@ The job returns a count of reminders and suspensions plus per-subscription failu
 1. Apply the reviewed core, platform, and school schema files so `organizations`, `organization_members`, `team_members`, school tables, and `school_settings` exist.
 2. Apply `supabase/admin_role_check.sql` after `team_members` exists. It enables the shared `/login` page to verify active platform admins.
 3. Apply `supabase/production_access_policies.sql` after all school tables are present. It replaces existing policies on platform-admin and school data tables; review against the deployed schema before applying.
-4. Do not use development policies that grant `anon` access to platform or school tables. Do not run the audit setup script as a routine migration; it drops `audit_logs` with `CASCADE`.
+4. Apply `supabase/subscription_lifecycle.sql`, then `supabase/production_public_cms_policies.sql`. The latter replaces the development policies that gave the public anon key full read/write on `leads` and the website CMS tables (`products`, `services`, `pages`, `suites`, `marketplaceitems`, `menus`, `media`, `settings`, `automation_rules`). Visitors keep insert-only access to `leads` and read access to published CMS rows.
+5. Do not use development policies that grant `anon` access to platform or school tables. Do not run the audit setup script as a routine migration; it drops `audit_logs` with `CASCADE`.
+
+The parent portal (`/portal/student/[id]`) and the parent payment endpoints (`/api/portal/payment`, `/api/portal/payment/stripe`) are disabled until parents have their own sign-in. Schools record fee payments from **Fees → Collection**.
 
 ## Bootstrap The First Platform Administrator
 
