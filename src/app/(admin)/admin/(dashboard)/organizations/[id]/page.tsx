@@ -1,5 +1,5 @@
 import { createServerSupabaseClient } from "@/lib/supabase-server";
-import { createSupabaseAdminClient } from "@/lib/supabase-admin";
+import { listMembers } from "@/lib/client-members";
 import { notFound } from "next/navigation";
 import { Activity, ArrowLeft, Building2, CreditCard, Users } from "lucide-react";
 import Link from "next/link";
@@ -68,32 +68,16 @@ function safeParse(value: string) {
   try { return JSON.parse(value); } catch { return null; }
 }
 
-async function loadMembers(organizationId: string, memberships: Array<{ user_id: string; role: string }>) {
-  let authAdmin;
+async function loadMembers(organizationId: string) {
   try {
-    authAdmin = createSupabaseAdminClient();
-  } catch {
+    return { members: await listMembers(organizationId), directoryError: null };
+  } catch (error) {
+    console.error("Could not load client users:", error);
     return {
-      members: memberships.map((membership): ClientMember => ({ userId: membership.user_id, role: membership.role, email: null, name: null, accountStatus: "unknown", lastSignInAt: null })),
-      directoryError: "User emails are unavailable because SUPABASE_SERVICE_ROLE_KEY is not configured on the server. Invitations and resets will also fail.",
+      members: [] as ClientMember[],
+      directoryError: "Users could not be loaded. Check that SUPABASE_SERVICE_ROLE_KEY is configured on the server; invitations and resets also need it.",
     };
   }
-
-  const members = await Promise.all(memberships.map(async (membership): Promise<ClientMember> => {
-    const { data } = await authAdmin.auth.admin.getUserById(membership.user_id);
-    const user = data.user;
-    const metadata = (user?.user_metadata ?? {}) as Record<string, unknown>;
-    const name = [metadata.full_name, metadata.name].find((value) => typeof value === "string" && value.trim()) as string | undefined;
-    return {
-      userId: membership.user_id,
-      role: membership.role,
-      email: user?.email ?? null,
-      name: name ?? null,
-      accountStatus: !user ? "unknown" : user.email_confirmed_at ? "active" : "invited",
-      lastSignInAt: user?.last_sign_in_at ?? null,
-    };
-  }));
-  return { members, directoryError: null };
 }
 
 export default async function OrganizationDetailsPage({ params }: { params: Promise<{ id: string }> }) {
@@ -109,10 +93,9 @@ export default async function OrganizationDetailsPage({ params }: { params: Prom
     return notFound();
   }
 
-  const [subscriptionsResult, invoicesResult, membershipsResult, activityResult] = await Promise.all([
+  const [subscriptionsResult, invoicesResult, activityResult] = await Promise.all([
     supabase.from("subscriptions").select("*").eq("organization_id", org.id).order("created_at", { ascending: false }),
     supabase.from("invoices").select("*").eq("organization_id", org.id).order("created_at", { ascending: false }),
-    supabase.from("organization_members").select("user_id, role, created_at").eq("organization_id", org.id).order("created_at", { ascending: true }),
     supabase
       .from("audit_logs")
       .select("id, action, resource_type, actor_email, details, created_at")
@@ -122,7 +105,7 @@ export default async function OrganizationDetailsPage({ params }: { params: Prom
   ]);
 
   const subscription = subscriptionsResult.data?.[0] ?? null;
-  const { members, directoryError } = await loadMembers(org.id, membershipsResult.data ?? []);
+  const { members, directoryError } = await loadMembers(org.id);
   const activity = (activityResult.data ?? []) as AuditLog[];
 
   return (

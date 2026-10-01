@@ -6,16 +6,34 @@ import {
   Search, 
   CreditCard, 
   FileText,
-  DollarSign,
+  IndianRupee,
   X,
   User,
   Calendar,
   CheckCircle2,
   Clock
 } from "lucide-react";
-import { createBrowserClient } from "@supabase/ssr";
+import { createClient } from "@/lib/supabase-browser";
+import { toast } from "sonner";
+import { describeError } from "@/lib/error-message";
 import { useRouter } from "next/navigation";
 import { formatMoney } from "@/lib/money";
+import { schoolToday } from "@/lib/school-date";
+
+const INVOICE_SELECT = "*, school_students(id, first_name, last_name, roll_number), school_fee_structures(id, name, amount), school_fee_payments(id, receipt_number, amount_paid, payment_date, payment_method)";
+
+const PAYMENT_METHODS = [
+  { value: "cash", label: "Cash" },
+  { value: "upi", label: "UPI" },
+  { value: "bank_transfer", label: "Bank transfer / NEFT" },
+  { value: "cheque", label: "Cheque" },
+  { value: "card", label: "Card" },
+  { value: "other", label: "Other" },
+];
+
+function openReceipt(paymentId: string) {
+  window.open(`/school/fees/receipts/${paymentId}`, "_blank", "noopener");
+}
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 
@@ -33,12 +51,9 @@ export function FeeCollectionList({ initialInvoices, students, structures }: { i
   // Form states
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [invoiceForm, setInvoiceForm] = useState({ student_id: "", fee_structure_id: "", due_date: "" });
-  const [paymentForm, setPaymentForm] = useState({ amount_paid: 0, payment_method: "cash", transaction_id: "" });
+  const [paymentForm, setPaymentForm] = useState({ amount_paid: 0, payment_method: "cash", transaction_id: "", paid_on: schoolToday() });
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = createClient();
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value.toLowerCase();
@@ -70,11 +85,12 @@ export function FeeCollectionList({ initialInvoices, students, structures }: { i
           amount_paid: 0,
           status: 'pending'
         }])
-        .select(`*, school_students(id, first_name, last_name, roll_number), school_fee_structures(id, name, amount)`)
+        .select(INVOICE_SELECT)
         .single();
 
       if (error) throw error;
       if (data) {
+        toast.success("Invoice generated.");
         const newData = [data, ...invoices];
         setInvoices(newData);
         setFilteredInvoices(newData);
@@ -83,7 +99,7 @@ export function FeeCollectionList({ initialInvoices, students, structures }: { i
       }
     } catch (err) {
       console.error(err);
-      alert("Failed to generate invoice.");
+      toast.error(`Failed to generate invoice: ${describeError(err)}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -94,41 +110,39 @@ export function FeeCollectionList({ initialInvoices, students, structures }: { i
     setIsSubmitting(true);
 
     try {
-      // 1. Insert Payment Record
-      const { error: paymentError } = await supabase
-        .from('school_fee_payments')
-        .insert([{
-          student_fee_id: selectedInvoice.id,
-          amount_paid: paymentForm.amount_paid,
-          payment_method: paymentForm.payment_method,
-          transaction_id: paymentForm.transaction_id || null
-        }]);
-
+      // One database call records the payment, issues the receipt number and updates
+      // the invoice together, so concurrent collections cannot double-count.
+      const { data: payment, error: paymentError } = await supabase
+        .rpc("record_fee_payment", {
+          p_student_fee_id: selectedInvoice.id,
+          p_amount: paymentForm.amount_paid,
+          p_method: paymentForm.payment_method,
+          p_reference: paymentForm.transaction_id || null,
+          p_paid_on: paymentForm.paid_on || null,
+        })
+        .single<{ payment_id: string; receipt_number: string }>();
       if (paymentError) throw paymentError;
 
-      // 2. Update Invoice Status & Amount
-      const newAmountPaid = Number(selectedInvoice.amount_paid) + Number(paymentForm.amount_paid);
-      const newStatus = newAmountPaid >= Number(selectedInvoice.amount_due) ? 'paid' : 'partial';
-
       const { data: updatedInvoice, error: updateError } = await supabase
-        .from('school_student_fees')
-        .update({ amount_paid: newAmountPaid, status: newStatus })
-        .eq('id', selectedInvoice.id)
-        .select(`*, school_students(id, first_name, last_name, roll_number), school_fee_structures(id, name, amount)`)
+        .from("school_student_fees")
+        .select(INVOICE_SELECT)
+        .eq("id", selectedInvoice.id)
         .single();
-
       if (updateError) throw updateError;
 
-      if (updatedInvoice) {
-        const newData = invoices.map(inv => inv.id === updatedInvoice.id ? updatedInvoice : inv);
-        setInvoices(newData);
-        setFilteredInvoices(newData);
-        setIsPaymentDrawerOpen(false);
-        setPaymentForm({ amount_paid: 0, payment_method: "cash", transaction_id: "" });
-      }
+      const newData = invoices.map(inv => inv.id === updatedInvoice.id ? updatedInvoice : inv);
+      setInvoices(newData);
+      setFilteredInvoices(newData);
+      setIsPaymentDrawerOpen(false);
+      setPaymentForm({ amount_paid: 0, payment_method: "cash", transaction_id: "", paid_on: schoolToday() });
+      toast.success(`Payment recorded. Receipt ${payment.receipt_number}.`, {
+        action: { label: "Print receipt", onClick: () => openReceipt(payment.payment_id) },
+        duration: 10000,
+      });
+      router.refresh();
     } catch (err) {
       console.error(err);
-      alert("Failed to record payment.");
+      toast.error(`Failed to record payment: ${describeError(err)}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -202,10 +216,19 @@ export function FeeCollectionList({ initialInvoices, students, structures }: { i
                         <div className="text-[12px] text-[#888888]">Due: {inv.due_date}</div>
                       </td>
                       <td className="py-3 px-4 text-[14px] text-[#111111] font-medium">
-                        ${Number(inv.amount_due).toFixed(2)}
+                        {formatMoney(inv.amount_due)}
                       </td>
                       <td className="py-3 px-4 text-[14px] text-[#e42525] font-semibold">
-                        ${balance.toFixed(2)}
+                        {formatMoney(balance)}
+                        {(inv.school_fee_payments ?? []).filter((payment: any) => payment.receipt_number).length > 0 && (
+                          <div className="mt-1 flex flex-wrap gap-x-2 text-[11px] font-normal">
+                            {(inv.school_fee_payments ?? []).filter((payment: any) => payment.receipt_number).map((payment: any) => (
+                              <button key={payment.id} type="button" onClick={() => openReceipt(payment.id)} className="text-[#0066cc] hover:underline" title={`${formatMoney(payment.amount_paid)} on ${new Date(payment.payment_date).toLocaleDateString("en-IN")}`}>
+                                {payment.receipt_number}
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </td>
                       <td className="py-3 px-4">
                         <span className={
@@ -225,7 +248,7 @@ export function FeeCollectionList({ initialInvoices, students, structures }: { i
                             onClick={() => openPaymentDrawer(inv)}
                             className="h-8 px-3 bg-[#e42525] hover:bg-[#d60012] text-white text-[12px] font-medium rounded transition-colors shadow-sm inline-flex items-center gap-1.5"
                           >
-                            <DollarSign className="w-3.5 h-3.5" />
+                            <IndianRupee className="w-3.5 h-3.5" />
                             Pay Now
                           </button>
                         ) : (
@@ -267,7 +290,7 @@ export function FeeCollectionList({ initialInvoices, students, structures }: { i
                     >
                       <option value="">Select Student...</option>
                       {students.map(s => (
-                        <option key={s.id} value={s.id}>{s.first_name} {s.last_name}</option>
+                        <option key={s.id} value={s.id}>{s.first_name} {s.last_name}{s.roll_number ? ` (${s.roll_number})` : ""}</option>
                       ))}
                     </select>
                   </div>
@@ -285,7 +308,7 @@ export function FeeCollectionList({ initialInvoices, students, structures }: { i
                     >
                       <option value="">Select Fee Template...</option>
                       {structures.map(s => (
-                        <option key={s.id} value={s.id}>{s.name} (${s.amount})</option>
+                        <option key={s.id} value={s.id}>{s.name} ({formatMoney(s.amount)})</option>
                       ))}
                     </select>
                   </div>
@@ -359,17 +382,14 @@ export function FeeCollectionList({ initialInvoices, students, structures }: { i
                     onChange={e => setPaymentForm({...paymentForm, payment_method: e.target.value})}
                     className="w-full h-11 px-3 rounded-md border border-[#cccccc] bg-white text-[14px] focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] outline-none transition-shadow"
                   >
-                    <option value="cash">Cash 💵</option>
-                    <option value="credit_card">Credit/Debit Card 💳</option>
-                    <option value="bank_transfer">Bank Transfer 🏦</option>
-                    <option value="online_stripe">Online Payment (Stripe) 🌐</option>
+                    {PAYMENT_METHODS.map((method) => <option key={method.value} value={method.value}>{method.label}</option>)}
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-[13px] font-medium text-[#333333] mb-1.5">Amount to Pay ($) *</label>
+                  <label className="block text-[13px] font-medium text-[#333333] mb-1.5">Amount received *</label>
                   <div className="relative">
-                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#888888]" />
+                    <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#888888]" />
                     <input
                       type="number"
                       required
@@ -383,14 +403,26 @@ export function FeeCollectionList({ initialInvoices, students, structures }: { i
                   </div>
                 </div>
 
-                {(paymentForm.payment_method === 'online_stripe' || paymentForm.payment_method === 'bank_transfer') && (
+                <div>
+                  <label className="block text-[13px] font-medium text-[#333333] mb-1.5">Paid on *</label>
+                  <input
+                    type="date"
+                    required
+                    max={schoolToday()}
+                    value={paymentForm.paid_on}
+                    onChange={e => setPaymentForm({...paymentForm, paid_on: e.target.value})}
+                    className="w-full h-11 px-3 rounded-md border border-[#cccccc] bg-white text-[14px] focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] outline-none transition-shadow"
+                  />
+                </div>
+
+                {paymentForm.payment_method !== "cash" && (
                   <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                    <label className="block text-[13px] font-medium text-[#333333] mb-1.5">Transaction ID / Reference (Optional)</label>
+                    <label className="block text-[13px] font-medium text-[#333333] mb-1.5">{paymentForm.payment_method === "cheque" ? "Cheque number" : "UTR / transaction reference"} (optional)</label>
                     <input
                       type="text"
                       value={paymentForm.transaction_id}
                       onChange={e => setPaymentForm({...paymentForm, transaction_id: e.target.value})}
-                      placeholder="e.g. TXN-123456"
+                      placeholder={paymentForm.payment_method === "cheque" ? "e.g. 004512" : "e.g. 412345678901"}
                       className="w-full h-11 px-3 rounded-md border border-[#cccccc] bg-white text-[14px] focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] outline-none transition-shadow"
                     />
                   </div>
@@ -404,7 +436,7 @@ export function FeeCollectionList({ initialInvoices, students, structures }: { i
                   className="w-full h-12 bg-[#10b981] hover:bg-[#059669] text-white text-[15px] font-bold rounded-md flex items-center justify-center gap-2 transition-colors shadow-sm disabled:opacity-70"
                 >
                   <CheckCircle2 className="w-5 h-5" />
-                  {isSubmitting ? 'Processing...' : `Confirm Payment of $${paymentForm.amount_paid.toFixed(2)}`}
+                  {isSubmitting ? 'Processing...' : `Confirm payment of ${formatMoney(Number.isFinite(paymentForm.amount_paid) ? paymentForm.amount_paid : 0)}`}
                 </button>
               </div>
             </form>

@@ -1,28 +1,16 @@
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { canManageSchoolArea, normalizeSchoolRole } from "@/lib/school-permissions";
+import { schoolToday } from "@/lib/school-date";
 import Link from "next/link";
-import { BookOpen, GraduationCap, Users, UserCheck } from "lucide-react";
+import { BookOpen, CreditCard, GraduationCap, Users, UserCheck } from "lucide-react";
 
-export default async function SchoolDashboardPage() {
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll: () => cookieStore.getAll(),
-        setAll: (cookiesToSet) => {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
-          } catch {
-            // Server Components can read cookies but cannot refresh them during rendering.
-          }
-        },
-      },
-    }
-  );
+export default async function SchoolDashboardPage({ searchParams }: { searchParams: Promise<{ denied?: string }> }) {
+  const { denied } = await searchParams;
+  const supabase = await createServerSupabaseClient();
+  const { data: roleValue } = await supabase.rpc("get_auth_school_role");
+  const role = normalizeSchoolRole(roleValue);
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = schoolToday();
   const [studentsResult, teachersResult, classesResult, attendanceResult] = await Promise.all([
     supabase.from("school_students").select("id", { count: "exact", head: true }).eq("status", "active"),
     supabase.from("school_teachers").select("id", { count: "exact", head: true }).eq("status", "active"),
@@ -52,10 +40,11 @@ export default async function SchoolDashboardPage() {
   ];
 
   const quickLinks = [
-    { label: "Enroll a student", href: "/school/students", icon: GraduationCap },
-    { label: "Take attendance", href: "/school/attendance", icon: UserCheck },
-    { label: "Manage classes", href: "/school/classes", icon: BookOpen },
-  ];
+    { label: "Enroll a student", href: "/school/students", icon: GraduationCap, allowed: canManageSchoolArea(role, "students") },
+    { label: "Take attendance", href: "/school/attendance", icon: UserCheck, allowed: canManageSchoolArea(role, "attendance") },
+    { label: "Record a fee payment", href: "/school/fees/collection", icon: CreditCard, allowed: canManageSchoolArea(role, "fees") },
+    { label: "Manage classes", href: "/school/classes", icon: BookOpen, allowed: canManageSchoolArea(role, "classes") },
+  ].filter((link) => link.allowed);
 
   return (
     <div className="space-y-7 animate-in fade-in duration-200">
@@ -63,6 +52,12 @@ export default async function SchoolDashboardPage() {
         <h1 className="text-2xl font-bold tracking-tight text-slate-900">School Dashboard</h1>
         <p className="text-sm text-slate-500">A live overview of your school operations.</p>
       </div>
+
+      {denied && (
+        <div role="alert" className="border-l-4 border-blue-500 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+          Your role does not include access to that page. Ask your school administrator if you need it.
+        </div>
+      )}
 
       {hasQueryError && (
         <div role="alert" className="border-l-4 border-amber-500 bg-amber-50 px-4 py-3 text-sm text-amber-900">
@@ -114,7 +109,7 @@ export default async function SchoolDashboardPage() {
           </div>
         </section>
 
-        <section className="border-t-2 border-slate-900 pt-4">
+        {quickLinks.length > 0 && <section className="border-t-2 border-slate-900 pt-4">
           <h2 className="text-lg font-bold text-slate-900">School operations</h2>
           <div className="mt-3 divide-y divide-slate-200 border-y border-slate-200">
             {quickLinks.map(({ label, href, icon: Icon }) => (
@@ -124,7 +119,7 @@ export default async function SchoolDashboardPage() {
               </Link>
             ))}
           </div>
-        </section>
+        </section>}
       </div>
     </div>
   );

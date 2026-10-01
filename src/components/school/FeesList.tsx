@@ -11,7 +11,11 @@ import {
   CreditCard,
   Calendar
 } from "lucide-react";
-import { createBrowserClient } from "@supabase/ssr";
+import { createClient } from "@/lib/supabase-browser";
+import { toast } from "sonner";
+import { describeError } from "@/lib/error-message";
+import { useCanManage } from "@/components/school/SchoolSessionContext";
+import { formatMoney } from "@/lib/money";
 import { useRouter } from "next/navigation";
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
@@ -25,6 +29,7 @@ export interface FeeStructure {
 
 export function FeesList({ initialData }: { initialData: FeeStructure[] }) {
   const router = useRouter();
+  const canManage = useCanManage("feeStructures");
   const [fees, setFees] = useState<FeeStructure[]>(initialData);
   const [filteredFees, setFilteredFees] = useState<FeeStructure[]>(initialData);
   const [searchQuery, setSearchQuery] = useState("");
@@ -37,10 +42,7 @@ export function FeesList({ initialData }: { initialData: FeeStructure[] }) {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = createClient();
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value.toLowerCase();
@@ -79,7 +81,7 @@ export function FeesList({ initialData }: { initialData: FeeStructure[] }) {
       }
     } catch (error) {
       console.error("Error creating fee structure:", error);
-      alert("Failed to create fee structure. Please ensure you have permission.");
+      toast.error(`Could not create fee structure: ${describeError(error)}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -101,13 +103,13 @@ export function FeesList({ initialData }: { initialData: FeeStructure[] }) {
             />
           </div>
           
-          <button
+          {canManage && <button
             onClick={() => setIsDrawerOpen(true)}
             className="h-9 px-4 bg-[#0066cc] hover:bg-[#0055bb] text-white text-[13px] font-medium rounded-md flex items-center justify-center gap-2 transition-colors shadow-sm whitespace-nowrap"
           >
             <Plus className="w-4 h-4" />
             <span>Create Structure</span>
-          </button>
+          </button>}
         </div>
 
         {/* Table */}
@@ -135,7 +137,7 @@ export function FeesList({ initialData }: { initialData: FeeStructure[] }) {
                       {fee.name}
                     </td>
                     <td className="py-3 px-4 text-[14px] text-[#111111]">
-                      ${Number(fee.amount).toFixed(2)}
+                      {formatMoney(fee.amount)}
                     </td>
                     <td className="py-3 px-4">
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-[12px] font-medium bg-[#f0f9ff] text-[#0284c7] border border-[#e0f2fe] capitalize">
@@ -182,7 +184,7 @@ export function FeesList({ initialData }: { initialData: FeeStructure[] }) {
                 </div>
 
                 <div>
-                  <label className="block text-[13px] font-medium text-[#333333] mb-1.5">Amount ($) *</label>
+                  <label className="block text-[13px] font-medium text-[#333333] mb-1.5">Amount *</label>
                   <div className="relative">
                     <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#888888]" />
                     <input

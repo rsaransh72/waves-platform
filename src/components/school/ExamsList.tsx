@@ -12,7 +12,9 @@ import {
   Calendar,
   Layers
 } from "lucide-react";
-import { createBrowserClient } from "@supabase/ssr";
+import { createClient } from "@/lib/supabase-browser";
+import { toast } from "sonner";
+import { describeError } from "@/lib/error-message";
 import { useRouter } from "next/navigation";
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
@@ -46,10 +48,7 @@ export function ExamsList({ initialData, classesList }: { initialData: Exam[], c
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = createClient();
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value.toLowerCase();
@@ -63,6 +62,10 @@ export function ExamsList({ initialData, classesList }: { initialData: Exam[], c
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if ((formData.end_date ?? "") < (formData.start_date ?? "")) {
+      toast.error("The end date must be on or after the start date.");
+      return;
+    }
     setIsSubmitting(true);
 
     try {
@@ -86,11 +89,12 @@ export function ExamsList({ initialData, classesList }: { initialData: Exam[], c
         setFilteredExams(newData);
         setIsDrawerOpen(false);
         setFormData({ name: "", class_id: "", start_date: "", end_date: "" });
+        toast.success("Exam scheduled.");
         router.refresh();
       }
     } catch (error) {
       console.error("Error creating exam:", error);
-      alert("Failed to create exam. Please ensure you have permission.");
+      toast.error(`Could not create exam: ${describeError(error)}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -247,6 +251,7 @@ export function ExamsList({ initialData, classesList }: { initialData: Exam[], c
                       <input
                         type="date"
                         required
+                        min={formData.start_date || undefined}
                         value={formData.end_date}
                         onChange={e => setFormData({...formData, end_date: e.target.value})}
                         className="w-full h-9 pl-9 pr-3 rounded-md border border-[#cccccc] bg-white text-[14px] focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] outline-none transition-shadow"

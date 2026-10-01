@@ -9,9 +9,12 @@ import { DataTable } from "@/components/admin/DataTable";
 import { Drawer } from "@/components/admin/Drawer";
 import { createClient } from "@/lib/supabase-browser";
 import { toast } from "sonner";
+import { useCanManage } from "@/components/school/SchoolSessionContext";
+import { describeError } from "@/lib/error-message";
 
 export function ClassesList({ initialData, teachers }: { initialData: any[], teachers: any[] }) {
   const router = useRouter();
+  const canManage = useCanManage("classes");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedClass, setSelectedClass] = useState<any | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -36,7 +39,7 @@ export function ClassesList({ initialData, teachers }: { initialData: any[], tea
 
     const { error } = await supabase.from("school_classes").delete().eq("id", classId);
     if (error) {
-      toast.error(`Could not delete class: ${error.message}`);
+      toast.error(`Could not delete class: ${describeError(error)}`);
       return;
     }
 
@@ -78,7 +81,7 @@ export function ClassesList({ initialData, teachers }: { initialData: any[], tea
         </div>
       )
     },
-    {
+    ...(!canManage ? [] : [{
       id: "actions",
       header: () => <div className="text-right">Actions</div>,
       cell: ({ row }) => (
@@ -99,7 +102,7 @@ export function ClassesList({ initialData, teachers }: { initialData: any[], tea
           </button>
         </div>
       ),
-    },
+    } as ColumnDef<any>]),
   ];
 
   return (
@@ -109,12 +112,12 @@ export function ClassesList({ initialData, teachers }: { initialData: any[], tea
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">Classes & Sections</h1>
           <p className="text-sm font-medium text-slate-500">Manage academic structure and class assignments</p>
         </div>
-        <button
+        {canManage && <button
           onClick={() => { setSelectedClass(null); setIsDrawerOpen(true); }}
           className="inline-flex items-center gap-2 rounded bg-blue-600 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-blue-700 shadow-sm"
         >
           <Plus className="h-4 w-4" /> Add Class
-        </button>
+        </button>}
       </div>
 
       <div className="flex-1 min-h-0 w-full">
@@ -158,7 +161,7 @@ export function ClassesList({ initialData, teachers }: { initialData: any[], tea
               setSelectedClass(null);
               router.refresh();
             } catch (error) {
-              toast.error(`Could not save class: ${error instanceof Error ? error.message : "Unexpected error"}`);
+              toast.error(`Could not save class: ${describeError(error, "A class with that name and section already exists.")}`);
             } finally {
               setIsSaving(false);
             }

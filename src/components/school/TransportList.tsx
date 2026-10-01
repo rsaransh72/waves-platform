@@ -12,7 +12,9 @@ import {
   User,
   ChevronRight
 } from "lucide-react";
-import { createBrowserClient } from "@supabase/ssr";
+import { createClient } from "@/lib/supabase-browser";
+import { toast } from "sonner";
+import { describeError } from "@/lib/error-message";
 import { useRouter } from "next/navigation";
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
@@ -30,10 +32,7 @@ export function TransportList({ initialRoutes }: { initialRoutes: any[] }) {
   const [stopForm, setStopForm] = useState({ stop_name: "", pickup_time: "", drop_time: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = createClient();
 
   const filteredRoutes = routes.filter(r => 
     r.route_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -63,7 +62,7 @@ export function TransportList({ initialRoutes }: { initialRoutes: any[] }) {
       }
     } catch (error) {
       console.error("Error creating route:", error);
-      alert("Failed to add route.");
+      toast.error(`Failed to add route: ${describeError(error)}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -98,7 +97,7 @@ export function TransportList({ initialRoutes }: { initialRoutes: any[] }) {
       }
     } catch (err) {
       console.error("Error adding stop:", err);
-      alert("Failed to add stop.");
+      toast.error(`Failed to add stop: ${describeError(err)}`);
     } finally {
       setIsSubmitting(false);
     }

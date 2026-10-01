@@ -1,6 +1,4 @@
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
-import { SchoolHeader } from "@/components/school/SchoolHeader";
+import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { LibraryList } from "@/components/school/LibraryList";
 
 export const metadata = {
@@ -8,19 +6,7 @@ export const metadata = {
 };
 
 export default async function LibraryPage() {
-  const cookieStore = await cookies();
-  
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
-        },
-      },
-    }
-  );
+  const supabase = await createServerSupabaseClient();
 
   const { data: books } = await supabase
     .from("school_library_books")
@@ -30,12 +16,18 @@ export default async function LibraryPage() {
   const { data: students } = await supabase
     .from("school_students")
     .select("id, first_name, last_name, roll_number")
+    .eq("status", "active")
     .order("first_name", { ascending: true });
 
+  const { data: issues } = await supabase
+    .from("school_library_issues")
+    .select("id, issue_date, due_date, book_id, school_library_books(title), school_students(first_name, last_name, roll_number)")
+    .eq("status", "issued")
+    .order("due_date", { ascending: true });
+
   return (
-    <div className="flex-1 flex flex-col bg-[#f9f9fa] h-[100dvh] overflow-hidden">
-      <SchoolHeader title="Library" />
-      <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+    <div className="flex-1 flex flex-col">
+      <main className="flex-1">
         <div className="max-w-7xl mx-auto space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
@@ -46,7 +38,7 @@ export default async function LibraryPage() {
             </div>
           </div>
           
-          <LibraryList initialBooks={books || []} students={students || []} />
+          <LibraryList initialBooks={books || []} students={students || []} initialIssues={issues || []} />
         </div>
       </main>
     </div>

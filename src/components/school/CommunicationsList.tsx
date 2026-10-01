@@ -10,13 +10,17 @@ import {
   MessageSquare,
   Users
 } from "lucide-react";
-import { createBrowserClient } from "@supabase/ssr";
+import { createClient } from "@/lib/supabase-browser";
+import { toast } from "sonner";
+import { describeError } from "@/lib/error-message";
+import { useCanManage } from "@/components/school/SchoolSessionContext";
 import { useRouter } from "next/navigation";
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 
 export function CommunicationsList({ initialData }: { initialData: any[] }) {
   const router = useRouter();
+  const canManage = useCanManage("communications");
   const [messages, setMessages] = useState<any[]>(initialData);
   const [filteredMessages, setFilteredMessages] = useState<any[]>(initialData);
   const [searchQuery, setSearchQuery] = useState("");
@@ -30,10 +34,7 @@ export function CommunicationsList({ initialData }: { initialData: any[] }) {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = createClient();
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value.toLowerCase();
@@ -68,7 +69,7 @@ export function CommunicationsList({ initialData }: { initialData: any[] }) {
       }
     } catch (error) {
       console.error("Error creating communication:", error);
-      alert("Failed to send message.");
+      toast.error(`Failed to send message: ${describeError(error)}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -98,13 +99,13 @@ export function CommunicationsList({ initialData }: { initialData: any[] }) {
             />
           </div>
           
-          <button
+          {canManage && <button
             onClick={() => setIsDrawerOpen(true)}
             className="h-9 px-4 bg-[#0066cc] hover:bg-[#0055bb] text-white text-[13px] font-medium rounded-md flex items-center justify-center gap-2 transition-colors shadow-sm whitespace-nowrap"
           >
             <Plus className="w-4 h-4" />
             <span>New Announcement</span>
-          </button>
+          </button>}
         </div>
 
         {/* List */}

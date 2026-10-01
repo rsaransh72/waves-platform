@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { Check, CircleAlert, CircleX, Save } from "lucide-react";
 import { createClient } from "@/lib/supabase-browser";
 import { toast } from "sonner";
+import { useCanManage } from "@/components/school/SchoolSessionContext";
+import { describeError } from "@/lib/error-message";
 
 type SchoolClass = { id: string; name: string; section: string };
 type Student = { id: string; first_name: string; last_name: string; roll_number: string; class_id: string };
@@ -22,6 +24,7 @@ export function AttendanceRegister({
   today: string;
 }) {
   const router = useRouter();
+  const canManage = useCanManage("attendance");
   const [classId, setClassId] = useState(classes[0]?.id ?? "");
   const [date, setDate] = useState(today);
   const [marks, setMarks] = useState<Record<string, Attendance["status"]>>(
@@ -44,7 +47,7 @@ export function AttendanceRegister({
       .eq("date", nextDate);
 
     if (error) {
-      toast.error(`Could not load attendance: ${error.message}`);
+      toast.error(`Could not load attendance: ${describeError(error)}`);
       return;
     }
     setMarks(Object.fromEntries((data ?? []).map(({ student_id, status }) => [student_id, status])));
@@ -67,7 +70,7 @@ export function AttendanceRegister({
 
     setIsSaving(false);
     if (error) {
-      toast.error(`Could not save register: ${error.message}`);
+      toast.error(`Could not save register: ${describeError(error)}`);
       return;
     }
 
@@ -80,7 +83,7 @@ export function AttendanceRegister({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">Daily Attendance</h1>
-          <p className="mt-1 text-sm text-slate-500">Mark each active student, then save the register.</p>
+          <p className="mt-1 text-sm text-slate-500">{canManage ? "Mark each active student, then save the register." : "View-only: attendance is marked by teachers and administrators."}</p>
         </div>
         <div className="flex flex-wrap items-end gap-3">
           <label className="grid gap-1 text-xs font-semibold text-slate-600">
@@ -94,9 +97,9 @@ export function AttendanceRegister({
             Date
             <input type="date" value={date} max={today} onChange={(event) => loadRegister(classId, event.target.value)} className="h-10 rounded border border-slate-300 bg-white px-3 text-sm text-slate-900" />
           </label>
-          <button type="button" onClick={saveRegister} disabled={!classId || classStudents.length === 0 || markedCount !== classStudents.length || isSaving} className="inline-flex h-10 items-center gap-2 rounded bg-slate-900 px-4 text-sm font-bold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50">
+          {canManage && <button type="button" onClick={saveRegister} disabled={!classId || classStudents.length === 0 || markedCount !== classStudents.length || isSaving} className="inline-flex h-10 items-center gap-2 rounded bg-slate-900 px-4 text-sm font-bold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50">
             <Save className="h-4 w-4" />{isSaving ? "Saving..." : "Save Register"}
-          </button>
+          </button>}
         </div>
       </div>
 
@@ -130,7 +133,7 @@ export function AttendanceRegister({
                         ["late", "Late", CircleAlert, "text-amber-700 border-amber-300 bg-amber-50"],
                         ["absent", "Absent", CircleX, "text-red-700 border-red-300 bg-red-50"],
                       ] as const).map(([status, label, Icon, activeClass]) => (
-                        <button key={status} type="button" aria-pressed={marks[student.id] === status} onClick={() => setMarks((current) => ({ ...current, [student.id]: status }))} className={`inline-flex h-9 items-center gap-1.5 rounded border px-2.5 text-xs font-semibold ${marks[student.id] === status ? activeClass : "border-slate-200 text-slate-500 hover:bg-slate-50"}`}>
+                        <button key={status} type="button" disabled={!canManage} aria-pressed={marks[student.id] === status} onClick={() => setMarks((current) => ({ ...current, [student.id]: status }))} className={`inline-flex h-9 items-center gap-1.5 rounded border px-2.5 text-xs font-semibold ${marks[student.id] === status ? activeClass : "border-slate-200 text-slate-500 hover:bg-slate-50"} disabled:cursor-default disabled:hover:bg-transparent`}>
                           <Icon className="h-3.5 w-3.5" /><span>{label}</span>
                         </button>
                       ))}

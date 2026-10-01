@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { Save, UploadCloud, Building2, MapPin, Mail, Phone, CreditCard, Building } from "lucide-react";
-import { createBrowserClient } from "@supabase/ssr";
+import { createClient } from "@/lib/supabase-browser";
+import { toast } from "sonner";
+import { describeError } from "@/lib/error-message";
 import { useRouter } from "next/navigation";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -15,17 +17,12 @@ export function SchoolSettingsForm({ initialSettings }: { initialSettings: any }
     address: initialSettings?.address || "",
     contact_email: initialSettings?.contact_email || "",
     contact_phone: initialSettings?.contact_phone || "",
-    currency: initialSettings?.currency || "USD",
-    stripe_account_id: initialSettings?.stripe_account_id || ""
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = createClient();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,7 +48,7 @@ export function SchoolSettingsForm({ initialSettings }: { initialSettings: any }
       setTimeout(() => setSaveMessage(""), 3000);
     } catch (error: any) {
       console.error("Error saving settings:", error);
-      alert("Failed to save settings: " + error.message);
+      toast.error(`Could not save settings: ${describeError(error)}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -155,33 +152,6 @@ export function SchoolSettingsForm({ initialSettings }: { initialSettings: any }
             <h3 className="text-[16px] font-semibold text-[#111111]">Payments & Currency</h3>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-[13px] font-medium text-[#333333] mb-1.5">Base Currency</label>
-              <select
-                value={formData.currency}
-                onChange={e => setFormData({...formData, currency: e.target.value})}
-                className="w-full h-10 px-3 rounded-md border border-[#cccccc] bg-white text-[14px] focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] outline-none"
-              >
-                <option value="USD">USD ($)</option>
-                <option value="EUR">EUR (€)</option>
-                <option value="GBP">GBP (£)</option>
-                <option value="INR">INR (₹)</option>
-              </select>
-            </div>
-            
-            <div>
-              <label className="block text-[13px] font-medium text-[#333333] mb-1.5">Stripe Connected Account ID</label>
-              <input
-                type="text"
-                value={formData.stripe_account_id}
-                onChange={e => setFormData({...formData, stripe_account_id: e.target.value})}
-                placeholder="acct_1Ou..."
-                className="w-full h-10 px-3 rounded-md border border-[#cccccc] bg-white text-[14px] focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] outline-none"
-              />
-              <p className="text-[12px] text-[#888888] mt-1.5">Required to receive online fee payments directly to your bank.</p>
-            </div>
-          </div>
         </div>
         
         {/* Footer Actions */}

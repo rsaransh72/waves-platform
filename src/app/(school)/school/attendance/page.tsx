@@ -1,6 +1,7 @@
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { AttendanceRegister } from "@/components/school/AttendanceRegister";
 import Link from "next/link";
+import { schoolToday } from "@/lib/school-date";
 
 export const revalidate = 0;
 
@@ -10,7 +11,7 @@ export const metadata = {
 
 export default async function AttendancePage() {
   const supabase = await createServerSupabaseClient();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = schoolToday();
   const [classesResult, studentsResult, attendanceResult] = await Promise.all([
     supabase
       .from("school_classes")
@@ -22,7 +23,7 @@ export default async function AttendancePage() {
       .eq("status", "active")
       .order("roll_number", { ascending: true }),
     supabase
-    .from("school_attendance")
+      .from("school_attendance")
       .select("student_id, status")
       .eq("date", today),
   ]);

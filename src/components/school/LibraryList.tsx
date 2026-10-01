@@ -11,13 +11,23 @@ import {
   CheckCircle2,
   BookOpen
 } from "lucide-react";
-import { createBrowserClient } from "@supabase/ssr";
+import { createClient } from "@/lib/supabase-browser";
+import { toast } from "sonner";
+import { describeError } from "@/lib/error-message";
+import { useCanManage } from "@/components/school/SchoolSessionContext";
+import { schoolToday } from "@/lib/school-date";
 import { useRouter } from "next/navigation";
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 
-export function LibraryList({ initialBooks, students }: { initialBooks: any[], students: any[] }) {
+const ISSUE_SELECT = "id, issue_date, due_date, book_id, school_library_books(title), school_students(first_name, last_name, roll_number)";
+
+export function LibraryList({ initialBooks, students, initialIssues }: { initialBooks: any[], students: any[], initialIssues: any[] }) {
   const router = useRouter();
+  const canManage = useCanManage("library");
+  const [issues, setIssues] = useState<any[]>(initialIssues);
+  const [returningId, setReturningId] = useState<string | null>(null);
+  const today = schoolToday();
   const [books, setBooks] = useState<any[]>(initialBooks);
   const [filteredBooks, setFilteredBooks] = useState<any[]>(initialBooks);
   const [searchQuery, setSearchQuery] = useState("");
@@ -32,10 +42,28 @@ export function LibraryList({ initialBooks, students }: { initialBooks: any[], s
   
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = createClient();
+
+  const loadIssues = async () => {
+    const { data } = await supabase.from("school_library_issues").select(ISSUE_SELECT).eq("status", "issued").order("due_date", { ascending: true });
+    if (data) setIssues(data);
+  };
+
+  const handleReturn = async (issue: any) => {
+    setReturningId(issue.id);
+    const { error } = await supabase.rpc("return_library_book", { p_issue_id: issue.id, p_fine: 0 });
+    setReturningId(null);
+    if (error) {
+      toast.error(`Could not return book: ${describeError(error)}`);
+      return;
+    }
+    const updatedBooks = books.map(b => b.id === issue.book_id ? { ...b, available: Math.min(b.available + 1, b.quantity) } : b);
+    setBooks(updatedBooks);
+    setFilteredBooks(updatedBooks.filter(b => filteredBooks.some(f => f.id === b.id)));
+    setIssues(issues.filter(i => i.id !== issue.id));
+    toast.success(`"${issue.school_library_books?.title ?? "Book"}" returned.`);
+    router.refresh();
+  };
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value.toLowerCase();
@@ -76,7 +104,7 @@ export function LibraryList({ initialBooks, students }: { initialBooks: any[], s
       }
     } catch (error) {
       console.error("Error creating book:", error);
-      alert("Failed to add book.");
+      toast.error(`Failed to add book: ${describeError(error)}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -87,37 +115,26 @@ export function LibraryList({ initialBooks, students }: { initialBooks: any[], s
     setIsSubmitting(true);
 
     try {
-      // Create issue record
-      const { error: issueError } = await supabase
-        .from('school_library_issues')
-        .insert([{
-          book_id: selectedBook.id,
-          student_id: issueForm.student_id,
-          due_date: issueForm.due_date,
-          status: 'issued'
-        }]);
-
+      // Issues the book and decrements available copies in one database call.
+      const { error: issueError } = await supabase.rpc("issue_library_book", {
+        p_book_id: selectedBook.id,
+        p_student_id: issueForm.student_id,
+        p_due_date: issueForm.due_date,
+      });
       if (issueError) throw issueError;
 
-      // Decrement available count
       const newAvailable = selectedBook.available - 1;
-      const { error: updateError } = await supabase
-        .from('school_library_books')
-        .update({ available: newAvailable })
-        .eq('id', selectedBook.id);
-
-      if (updateError) throw updateError;
-
+      await loadIssues();
       const updatedBooks = books.map(b => b.id === selectedBook.id ? { ...b, available: newAvailable } : b);
       setBooks(updatedBooks);
       setFilteredBooks(updatedBooks);
       
       setIsIssueDrawerOpen(false);
       setIssueForm({ student_id: "", due_date: "" });
-      alert("Book Issued Successfully!");
+      toast.success("Book issued.");
     } catch (err) {
       console.error("Error issuing book:", err);
-      alert("Failed to issue book.");
+      toast.error(`Failed to issue book: ${describeError(err)}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -139,13 +156,13 @@ export function LibraryList({ initialBooks, students }: { initialBooks: any[], s
             />
           </div>
           
-          <button
+          {canManage && <button
             onClick={() => setIsBookDrawerOpen(true)}
             className="h-9 px-4 bg-[#0066cc] hover:bg-[#0055bb] text-white text-[13px] font-medium rounded-md flex items-center justify-center gap-2 transition-colors shadow-sm whitespace-nowrap"
           >
             <Plus className="w-4 h-4" />
             <span>Add Book</span>
-          </button>
+          </button>}
         </div>
 
         {/* Table */}
@@ -190,7 +207,7 @@ export function LibraryList({ initialBooks, students }: { initialBooks: any[], s
                       </span>
                     </td>
                     <td className="py-3 px-4 text-right">
-                      {book.available > 0 ? (
+                      {!canManage ? null : book.available > 0 ? (
                         <button 
                           onClick={() => { setSelectedBook(book); setIsIssueDrawerOpen(true); }}
                           className="h-8 px-3 bg-white border border-[#0066cc] hover:bg-[#eff6ff] text-[#0066cc] text-[12px] font-medium rounded transition-colors shadow-sm inline-flex items-center gap-1.5"
@@ -207,6 +224,46 @@ export function LibraryList({ initialBooks, students }: { initialBooks: any[], s
             </tbody>
           </table>
         </div>
+      </div>
+
+      <div className="mt-6 bg-white rounded-lg border border-[#e5e5e5] shadow-sm overflow-hidden">
+        <div className="px-4 py-3 border-b border-[#e5e5e5] bg-[#fafafa] flex items-center justify-between">
+          <h3 className="text-[14px] font-semibold text-[#111111]">Books currently issued ({issues.length})</h3>
+          {issues.some(i => i.due_date < today) && (
+            <span className="text-[12px] font-medium text-[#b91c1c]">{issues.filter(i => i.due_date < today).length} overdue</span>
+          )}
+        </div>
+        {issues.length === 0 ? (
+          <div className="py-8 text-center text-[13px] text-[#555555]">No books are out right now.</div>
+        ) : (
+          <ul className="divide-y divide-[#e5e5e5]">
+            {issues.map((issue) => {
+              const overdue = issue.due_date < today;
+              return (
+                <li key={issue.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+                  <div className="min-w-0">
+                    <div className="text-[14px] font-medium text-[#111111]">{issue.school_library_books?.title ?? "Book"}</div>
+                    <div className="text-[12px] text-[#555555]">
+                      {issue.school_students ? `${issue.school_students.first_name} ${issue.school_students.last_name} (${issue.school_students.roll_number})` : "Student"}
+                      {" · "}Due {new Date(`${issue.due_date}T00:00:00`).toLocaleDateString("en-IN")}
+                      {overdue && <span className="ml-2 rounded bg-[#fef2f2] px-1.5 py-0.5 text-[11px] font-semibold text-[#b91c1c]">Overdue</span>}
+                    </div>
+                  </div>
+                  {canManage && (
+                    <button
+                      type="button"
+                      onClick={() => handleReturn(issue)}
+                      disabled={returningId === issue.id}
+                      className="h-8 px-3 border border-[#cccccc] bg-white hover:bg-[#f4f4f5] text-[#111111] text-[12px] font-medium rounded disabled:opacity-50"
+                    >
+                      {returningId === issue.id ? "Returning..." : "Mark returned"}
+                    </button>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </div>
 
       {/* Add Book Drawer */}
@@ -318,6 +375,7 @@ export function LibraryList({ initialBooks, students }: { initialBooks: any[], s
                   <input
                     type="date"
                     required
+                    min={today}
                     value={issueForm.due_date}
                     onChange={e => setIssueForm({...issueForm, due_date: e.target.value})}
                     className="w-full h-10 px-3 rounded-md border border-[#cccccc] bg-white text-[14px] focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] outline-none"

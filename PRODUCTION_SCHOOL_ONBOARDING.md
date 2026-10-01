@@ -28,6 +28,35 @@ Open **Admin → Organizations** and select the client. From that page a platfor
 - Add users with an Administrator, Teacher or Staff role, resend pending invitations, send password resets, change roles, and remove access. A client always keeps at least one administrator.
 - Review the client's activity: subscription, invoice and profile changes and every user-access action, with the administrator who made it.
 
+## School Roles
+
+Every school user has one role. The database enforces it (`supabase/school_roles.sql`); the School ERP hides pages and buttons to match (`src/lib/school-permissions.ts`). Keep the two in step.
+
+| Area | Administrator | Teacher | Office staff |
+|---|---|---|---|
+| Students | manage | view | manage |
+| Teachers (staff profiles), classes, timetable | manage | view classes and timetable | view |
+| Attendance | manage | manage | view |
+| Exams and grades | manage | manage | — |
+| Fee structures | manage | — | view |
+| Fee collection and receipts | manage | — | manage |
+| Library, transport | manage | view library | manage |
+| Notices | manage | manage | manage |
+| Settings, Users & Access | manage | — | — |
+
+School administrators invite their own teachers and office staff from **Users & Access**. Platform administrators can do the same from the client page in the admin console.
+
+Fee payments are recorded by `record_fee_payment()`, which checks the balance, issues the school's next receipt number (`R-000001`, `R-000002`, ...) and updates the invoice in one transaction. Each receipt has a printable page with the amount in words. Library books are issued and returned with `issue_library_book()` and `return_library_book()`, which keep available copies correct.
+
+### Verifying the database
+
+These scripts run against `DATABASE_URL` from `.env.local`. The verify scripts create test data inside a transaction that is always rolled back.
+
+- `node scripts/db/inspect.mjs`: tables without row level security, policies open to the public, applied migrations.
+- `node scripts/db/verify-access.mjs`: anonymous visitors, platform admin and an unrelated signed-in user.
+- `node scripts/db/verify-tenancy.mjs`: two schools cannot see each other's data; suspension blocks access.
+- `node scripts/db/verify-school-roles.mjs [migration.sql ...]`: the role matrix, fee receipts and library circulation. Pass a migration to rehearse it before applying it with `node scripts/db/run-sql.mjs`.
+
 ## Subscription Lifecycle Automation
 
 Apply `supabase/subscription_lifecycle.sql` after the base organizations and subscriptions schemas. Configure these server-only environment variables:
@@ -47,7 +76,9 @@ The job returns a count of reminders and suspensions plus per-subscription failu
 3. Apply `supabase/production_access_policies.sql` after all school tables are present. It replaces existing policies on platform-admin and school data tables; review against the deployed schema before applying.
 4. Apply `supabase/subscription_lifecycle.sql`, then `supabase/production_public_cms_policies.sql`. The latter replaces the development policies that gave the public anon key full read/write on `leads` and the website CMS tables (`products`, `services`, `pages`, `suites`, `marketplaceitems`, `menus`, `media`, `settings`, `automation_rules`). Visitors keep insert-only access to `leads` and read access to published CMS rows.
 5. Apply `supabase/client_management.sql`. It adds invoice payment fields (method, UTR/reference, paid date), links invoices to subscriptions, allows voiding invoices, and issues sequential invoice numbers (`WAV-2026-00001`). Creating invoices from the client page fails until it is applied.
-6. Do not use development policies that grant `anon` access to platform or school tables. Do not run the audit setup script as a routine migration; it drops `audit_logs` with `CASCADE`.
+6. Apply `supabase/school_roles.sql`, `supabase/school_fee_receipts.sql` and `supabase/school_library.sql` (see **School Roles** below).
+7. Remove the `on_auth_user_created` trigger if it exists (`DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users; DROP FUNCTION IF EXISTS public.handle_new_user();`). It was created outside this repository and adds every new user to `team_members` as an active admin, which makes each invited school user a platform administrator.
+8. Do not use development policies that grant `anon` access to platform or school tables. Do not run the audit setup script as a routine migration; it drops `audit_logs` with `CASCADE`.
 
 The parent portal (`/portal/student/[id]`) and the parent payment endpoints (`/api/portal/payment`, `/api/portal/payment/stripe`) are disabled until parents have their own sign-in. Schools record fee payments from **Fees → Collection**.
 
@@ -71,5 +102,9 @@ The platform-admin policies use the authenticated email to match this row. Do no
 3. For both schools, create a class, enroll a student, save attendance, and verify the records persist after sign-out and sign-in.
 4. With two separate school accounts, verify neither can read or mutate the other school's rows.
 5. Verify ordinary authenticated users and anonymous requests cannot access admin data or school records.
+6. As the school administrator, open **Users & Access** and invite one teacher and one office staff member. Sign in as each: the teacher should not see Fees, Settings or Users & Access; office staff should not be able to mark attendance or create fee structures.
+7. As office staff, create a fee invoice, record a part payment by UPI with a UTR, then the balance by cash. Open both receipts, check the receipt numbers are consecutive and the amounts in words are right, and print one.
+8. Issue a library book with one copy, confirm it shows as unavailable, mark it returned and confirm it is available again.
+9. As a teacher, schedule an exam, enter grades for a student, edit one subject and confirm the other subjects were kept.
 
 The access migration must be applied before deploying the fail-closed `/admin` and `/school` route checks.

@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { canViewSchoolArea, normalizeSchoolRole, schoolAreaForPath } from '@/lib/school-permissions'
 
 export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
@@ -48,6 +49,17 @@ export async function proxy(request: NextRequest) {
       url.pathname = '/access-denied'
       url.search = '?area=school'
       return NextResponse.redirect(url)
+    }
+
+    const area = schoolAreaForPath(pathname)
+    if (area && area !== 'dashboard') {
+      const { data: role } = await supabase.rpc('get_auth_school_role')
+      if (!canViewSchoolArea(normalizeSchoolRole(role), area)) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/school'
+        url.search = '?denied=1'
+        return NextResponse.redirect(url)
+      }
     }
   }
 

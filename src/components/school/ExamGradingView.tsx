@@ -10,7 +10,9 @@ import {
   CheckCircle2,
   Award
 } from "lucide-react";
-import { createBrowserClient } from "@supabase/ssr";
+import { toast } from "sonner";
+import { createClient } from "@/lib/supabase-browser";
+import { describeError } from "@/lib/error-message";
 import { useRouter } from "next/navigation";
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
@@ -29,10 +31,7 @@ export function ExamGradingView({ examId, students, initialResults }: { examId: 
   // We'll manage an array of subjects in the form
   const [studentMarks, setStudentMarks] = useState<Array<{id?: string, subject: string, marks_obtained: number, max_marks: number, remarks: string}>>([]);
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = createClient();
 
   const filteredStudents = students.filter(s => 
     s.first_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -77,52 +76,56 @@ export function ExamGradingView({ examId, students, initialResults }: { examId: 
 
   const handleSaveGrades = async (e: React.FormEvent) => {
     e.preventDefault();
+    const marks = studentMarks
+      .map((mark) => ({ ...mark, subject: mark.subject.trim() }))
+      .filter((mark) => mark.subject !== "");
+
+    const seen = new Set<string>();
+    for (const mark of marks) {
+      const key = mark.subject.toLowerCase();
+      if (seen.has(key)) return toast.error(`"${mark.subject}" is listed more than once.`);
+      seen.add(key);
+      if (!Number.isFinite(mark.max_marks) || mark.max_marks <= 0) return toast.error(`Enter the maximum marks for ${mark.subject}.`);
+      if (!Number.isFinite(mark.marks_obtained) || mark.marks_obtained < 0 || mark.marks_obtained > mark.max_marks) {
+        return toast.error(`Marks for ${mark.subject} must be between 0 and ${mark.max_marks}.`);
+      }
+    }
+
     setIsSubmitting(true);
-
     try {
-      // First, delete existing results for this student for this exam 
-      // (a simple way to handle updates without complex upserts since we are replacing all subjects)
-      await supabase
-        .from('school_exam_results')
-        .delete()
-        .eq('exam_id', examId)
-        .eq('student_id', selectedStudent.id);
-
-      // Filter out empty subjects
-      const validMarks = studentMarks.filter(m => m.subject.trim() !== "");
-
-      if (validMarks.length > 0) {
-        const insertPayload = validMarks.map(m => ({
-          exam_id: examId,
-          student_id: selectedStudent.id,
-          subject: m.subject,
-          marks_obtained: m.marks_obtained,
-          max_marks: m.max_marks,
-          remarks: m.remarks
-        }));
-
+      // Save first, then remove dropped subjects, so a failed save never loses existing grades.
+      let saved: any[] = [];
+      if (marks.length > 0) {
         const { data, error } = await supabase
-          .from('school_exam_results')
-          .insert(insertPayload)
+          .from("school_exam_results")
+          .upsert(marks.map((mark) => ({
+            exam_id: examId,
+            student_id: selectedStudent.id,
+            subject: mark.subject,
+            marks_obtained: mark.marks_obtained,
+            max_marks: mark.max_marks,
+            remarks: mark.remarks || null,
+          })), { onConflict: "exam_id,student_id,subject" })
           .select();
-
         if (error) throw error;
-
-        // Update local state
-        const otherResults = results.filter(r => r.student_id !== selectedStudent.id);
-        if (data) {
-          setResults([...otherResults, ...data]);
-        }
-      } else {
-        // Just removed all marks
-        setResults(results.filter(r => r.student_id !== selectedStudent.id));
+        saved = data ?? [];
       }
 
+      const keptSubjects = new Set(marks.map((mark) => mark.subject));
+      const removedIds = results
+        .filter((result) => result.student_id === selectedStudent.id && !keptSubjects.has(result.subject))
+        .map((result) => result.id);
+      if (removedIds.length > 0) {
+        const { error } = await supabase.from("school_exam_results").delete().in("id", removedIds);
+        if (error) throw error;
+      }
+
+      setResults([...results.filter((result) => result.student_id !== selectedStudent.id), ...saved]);
+      toast.success(`Grades saved for ${selectedStudent.first_name} ${selectedStudent.last_name}.`);
       setIsDrawerOpen(false);
       router.refresh();
     } catch (err) {
-      console.error(err);
-      alert("Failed to save grades.");
+      toast.error(`Could not save grades: ${describeError(err)}`);
     } finally {
       setIsSubmitting(false);
     }

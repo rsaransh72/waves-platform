@@ -11,7 +11,10 @@ import {
   User,
   MapPin
 } from "lucide-react";
-import { createBrowserClient } from "@supabase/ssr";
+import { createClient } from "@/lib/supabase-browser";
+import { toast } from "sonner";
+import { describeError } from "@/lib/error-message";
+import { useCanManage } from "@/components/school/SchoolSessionContext";
 import { useRouter } from "next/navigation";
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
@@ -20,6 +23,7 @@ const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
 
 export function TimetableList({ initialTimetables, classes, teachers }: { initialTimetables: any[], classes: any[], teachers: any[] }) {
   const router = useRouter();
+  const canManage = useCanManage("timetable");
   const [timetables, setTimetables] = useState<any[]>(initialTimetables);
   
   const [selectedClass, setSelectedClass] = useState<string>(classes[0]?.id || "");
@@ -37,10 +41,7 @@ export function TimetableList({ initialTimetables, classes, teachers }: { initia
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = createClient();
 
   const filteredTimetables = timetables.filter(t => 
     t.class_id === selectedClass && t.day_of_week === selectedDay
@@ -76,7 +77,7 @@ export function TimetableList({ initialTimetables, classes, teachers }: { initia
       }
     } catch (error) {
       console.error("Error creating schedule:", error);
-      alert("Failed to create schedule.");
+      toast.error(`Failed to create schedule: ${describeError(error)}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -111,13 +112,13 @@ export function TimetableList({ initialTimetables, classes, teachers }: { initia
             </div>
           </div>
           
-          <button
+          {canManage && <button
             onClick={() => setIsDrawerOpen(true)}
             className="h-9 px-4 bg-[#0066cc] hover:bg-[#0055bb] text-white text-[13px] font-medium rounded-md flex items-center justify-center gap-2 transition-colors shadow-sm whitespace-nowrap shrink-0"
           >
             <Plus className="w-4 h-4" />
             <span>Add Period</span>
-          </button>
+          </button>}
         </div>
 
         {/* Schedule List */}
