@@ -28,9 +28,15 @@ function nationalDigits(value: string | null | undefined): string {
   return digits;
 }
 
-// What the phone box shows while typing: the national digits, at most 10.
+// What the phone box shows while typing: the national digits, at most 10. The box
+// re-reads its own value on every key, so "+91 98765 43210" typed key by key reaches
+// here as "919876543210" one digit at a time; once it runs past 10 digits, a leading
+// 91 or 0 is the prefix and is dropped, instead of cutting off the end of the number.
 export function phoneDigits(value: string | null | undefined): string {
-  return nationalDigits(value).slice(0, PHONE_DIGITS);
+  const digits = String(value ?? "").replace(/\D/g, "");
+  if (digits.length > PHONE_DIGITS && digits.startsWith("91")) return digits.slice(2, 2 + PHONE_DIGITS);
+  if (digits.length > PHONE_DIGITS && digits.startsWith("0")) return digits.slice(1, 1 + PHONE_DIGITS);
+  return digits.slice(0, PHONE_DIGITS);
 }
 
 export function isValidPhone(value: string | null | undefined, kind: PhoneKind = "mobile") {

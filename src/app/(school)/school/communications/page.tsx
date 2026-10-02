@@ -19,9 +19,9 @@ export default async function CommunicationsPage() {
         <div className="max-w-7xl mx-auto space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-[20px] font-semibold text-[#111111] tracking-tight">Notice Board & Alerts</h2>
+              <h1 className="text-[20px] font-semibold text-[#111111] tracking-tight">Notice Board</h1>
               <p className="text-[14px] text-[#555555] mt-1">
-                Send SMS, Email, and Portal notices to students, parents, and staff.
+                Notices for your school, kept here for staff to read. They are not sent to phones or email.
               </p>
             </div>
           </div>

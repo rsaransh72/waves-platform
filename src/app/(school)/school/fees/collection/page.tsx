@@ -22,9 +22,15 @@ export default async function FeeCollectionPage() {
   // Fetch Students for dropdown
   const { data: students } = await supabase
     .from("school_students")
-    .select("id, first_name, last_name, roll_number")
+    .select("id, first_name, last_name, roll_number, class_id")
     .eq("status", "active")
     .order("first_name");
+
+  const { data: classes } = await supabase
+    .from("school_classes")
+    .select("id, name, section")
+    .order("name")
+    .order("section");
 
   // Fetch Fee Structures for dropdown
   const { data: structures } = await supabase
@@ -49,6 +55,7 @@ export default async function FeeCollectionPage() {
             initialInvoices={invoices || []} 
             students={students || []} 
             structures={structures || []} 
+            classes={classes || []}
           />
         </div>
       </main>

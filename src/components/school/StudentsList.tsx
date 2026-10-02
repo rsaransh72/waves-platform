@@ -3,7 +3,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Edit2, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { Plus, Edit2, Trash2, FileSpreadsheet } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/admin/DataTable";
 import { Drawer } from "@/components/admin/Drawer";
@@ -114,12 +115,17 @@ export function StudentsList({ initialData, classes }: { initialData: any[], cla
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">Students</h1>
           <p className="text-sm font-medium text-slate-500">Manage student enrollments and records</p>
         </div>
-        {canManage && <button
-          onClick={() => { setSelectedStudent(null); setIsDrawerOpen(true); }}
-          className="inline-flex items-center gap-2 rounded bg-blue-600 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-blue-700 shadow-sm"
-        >
-          <Plus className="h-4 w-4" /> Admit Student
-        </button>}
+        {canManage && <div className="flex flex-wrap gap-2">
+          <Link href="/school/students/import" className="inline-flex items-center gap-2 rounded border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-800 transition-all hover:bg-slate-50 shadow-sm">
+            <FileSpreadsheet className="h-4 w-4" /> Import from Excel
+          </Link>
+          <button
+            onClick={() => { setSelectedStudent(null); setIsDrawerOpen(true); }}
+            className="inline-flex items-center gap-2 rounded bg-blue-600 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-blue-700 shadow-sm"
+          >
+            <Plus className="h-4 w-4" /> Admit Student
+          </button>
+        </div>}
       </div>
 
       <div className="flex-1 min-h-0 w-full">
@@ -193,7 +199,7 @@ export function StudentsList({ initialData, classes }: { initialData: any[], cla
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Roll Number</label>
-              <input name="rollNumber" type="text" defaultValue={selectedStudent?.roll_number || ""} className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" placeholder="e.g. R-101" required maxLength={20} pattern="[A-Za-z0-9/-]+" title="Letters, digits, / and - only" />
+              <input name="rollNumber" type="text" defaultValue={selectedStudent?.roll_number || ""} className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" placeholder="e.g. R-101" required maxLength={20} pattern="[A-Za-z0-9\/\-]+" title="Letters, digits, / and - only" />
             </div>
 
             <div className="space-y-2">

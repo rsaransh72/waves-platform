@@ -5,7 +5,7 @@
 import puppeteer from "puppeteer";
 
 const baseUrl = process.argv[2] ?? "http://localhost:3000";
-const browser = await puppeteer.launch({ headless: true, args: ["--no-sandbox"] });
+const browser = await puppeteer.launch({ headless: true, executablePath: process.env.PUPPETEER_EXECUTABLE_PATH, args: ["--no-sandbox"] });
 const page = await browser.newPage();
 await page.setViewport({ width: 1280, height: 900 });
 const results = [];
@@ -23,6 +23,17 @@ let value = await page.$eval(phone, (input) => input.value);
 check("Only digits kept, at most 10", value === "9876543210", value);
 let counter = await page.$eval(phone, (input) => input.parentElement.textContent);
 check("Counter shows 10/10", counter.includes("10/10"), counter);
+
+// People type the prefix too; key by key it must not become part of the number.
+for (const [typed, expected] of [["+91 90000 30005", "9000030005"], ["098765 43210", "9876543210"]]) {
+  await page.$eval(phone, (input) => {
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set.call(input, "");
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  await page.type(phone, typed);
+  value = await page.$eval(phone, (input) => input.value);
+  check(`Typing "${typed}" keeps the number`, value === expected, value);
+}
 
 await page.$eval(phone, (input) => {
   Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set.call(input, "");

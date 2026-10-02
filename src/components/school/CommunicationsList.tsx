@@ -17,7 +17,7 @@ import { useCanManage } from "@/components/school/SchoolSessionContext";
 import { useRouter } from "next/navigation";
 import { formatDateTime } from "@/lib/india";
 
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export function CommunicationsList({ initialData }: { initialData: any[] }) {
   const router = useRouter();
@@ -66,11 +66,12 @@ export function CommunicationsList({ initialData }: { initialData: any[] }) {
         setFilteredMessages(newData);
         setIsDrawerOpen(false);
         setFormData({ type: "notice", audience: "all", title: "", message: "" });
+        toast.success("Notice posted.");
         router.refresh();
       }
     } catch (error) {
       console.error("Error creating communication:", error);
-      toast.error(`Failed to send message: ${describeError(error)}`);
+      toast.error(`Could not post the notice: ${describeError(error)}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -93,7 +94,7 @@ export function CommunicationsList({ initialData }: { initialData: any[] }) {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#888888]" />
             <input
               type="text"
-              placeholder="Search announcements..."
+              placeholder="Search notices..."
               value={searchQuery}
               onChange={handleSearch}
               className="w-full h-9 pl-9 pr-4 rounded-md border border-[#cccccc] bg-white text-[13px] text-[#111111] focus:outline-none focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] transition-shadow placeholder:text-[#888888]"
@@ -105,7 +106,7 @@ export function CommunicationsList({ initialData }: { initialData: any[] }) {
             className="h-9 px-4 bg-[#0066cc] hover:bg-[#0055bb] text-white text-[13px] font-medium rounded-md flex items-center justify-center gap-2 transition-colors shadow-sm whitespace-nowrap"
           >
             <Plus className="w-4 h-4" />
-            <span>New Announcement</span>
+            <span>Post a notice</span>
           </button>}
         </div>
 
@@ -113,7 +114,7 @@ export function CommunicationsList({ initialData }: { initialData: any[] }) {
         <div className="overflow-x-auto min-h-[400px]">
           {filteredMessages.length === 0 ? (
             <div className="py-12 text-center text-[#555555] text-[14px]">
-              No communications found.
+              No notices yet.
             </div>
           ) : (
             <div className="divide-y divide-[#e5e5e5]">
@@ -151,7 +152,7 @@ export function CommunicationsList({ initialData }: { initialData: any[] }) {
           <div className="absolute inset-0 bg-black/30 backdrop-blur-sm transition-opacity" onClick={() => setIsDrawerOpen(false)} />
           <div className="relative w-full max-w-md bg-white h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
             <div className="flex items-center justify-between px-6 py-5 border-b border-[#e5e5e5]">
-              <h3 className="text-[18px] font-semibold text-[#111111]">Send Message</h3>
+              <h3 className="text-[18px] font-semibold text-[#111111]">Post a notice</h3>
               <button onClick={() => setIsDrawerOpen(false)} className="text-[#888888] hover:text-[#111111] p-1 rounded-md hover:bg-[#f4f4f5] transition-colors">
                 <X className="w-5 h-5" />
               </button>
@@ -159,22 +160,13 @@ export function CommunicationsList({ initialData }: { initialData: any[] }) {
             
             <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-y-auto">
               <div className="p-6 space-y-5">
-                <div>
-                  <label className="block text-[13px] font-medium text-[#333333] mb-1.5">Message Type *</label>
-                  <select
-                    required
-                    value={formData.type}
-                    onChange={e => setFormData({...formData, type: e.target.value})}
-                    className="w-full h-9 px-3 rounded-md border border-[#cccccc] bg-white text-[14px] focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] outline-none transition-shadow"
-                  >
-                    <option value="notice">Notice Board Alert 📢</option>
-                    <option value="sms">SMS Text Message 📱</option>
-                    <option value="email">Email Blast ✉️</option>
-                  </select>
-                </div>
+                {/* Delivery by SMS, WhatsApp and email is not built yet; say so plainly. */}
+                <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2.5 text-[13px] leading-relaxed text-amber-900">
+                  The notice is posted on this page for your staff. It is not sent to parents by SMS, WhatsApp or email.
+                </p>
 
                 <div>
-                  <label className="block text-[13px] font-medium text-[#333333] mb-1.5">Target Audience *</label>
+                  <label className="block text-[13px] font-medium text-[#333333] mb-1.5">Who it is for *</label>
                   <select
                     required
                     value={formData.audience}
@@ -217,7 +209,7 @@ export function CommunicationsList({ initialData }: { initialData: any[] }) {
                 <div className="flex gap-3">
                   <button type="button" onClick={() => setIsDrawerOpen(false)} className="flex-1 h-10 border rounded-md font-medium text-[14px]">Cancel</button>
                   <button type="submit" disabled={isSubmitting} className="flex-1 h-10 bg-[#0066cc] text-white rounded-md font-medium text-[14px] flex items-center justify-center gap-2">
-                    {isSubmitting ? 'Sending...' : 'Send Now'}
+                    {isSubmitting ? 'Posting...' : 'Post notice'}
                   </button>
                 </div>
               </div>
