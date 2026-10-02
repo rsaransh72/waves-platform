@@ -3,7 +3,7 @@ import SitePage from "@/components/site/SitePage";
 import PageHero from "@/components/site/PageHero";
 import PricingPlans from "@/components/site/PricingPlans";
 import LeadForm from "@/components/site/LeadForm";
-import { getPublishedProduct, getPublishedProducts, getSiteSettings, productHref } from "@/lib/site-content";
+import { getPublishedProduct, getPublishedProducts, getSiteSettings, planPrice, productHref } from "@/lib/site-content";
 
 export const revalidate = 0;
 
@@ -15,13 +15,17 @@ export async function generateMetadata() {
 export default async function PricingPage({ searchParams }: { searchParams: Promise<{ product?: string }> }) {
   const [{ product: requestedProduct }, summaries] = await Promise.all([searchParams, getPublishedProducts()]);
   const products = (await Promise.all(summaries.map((summary) => getPublishedProduct(summary.slug)))).filter((product) => product !== null);
+  // Promise published figures only when at least one plan actually has a ₹ price.
+  const hasPrices = products.some((product) => product.pricing.some((plan) => planPrice(plan) !== null));
 
   return (
     <SitePage>
       <PageHero
         label="Pricing"
         title="Simple pricing, agreed before you start"
-        intro="Every plan below is what we actually charge. Where a price depends on your organization, ask for a quote and we will send one in writing."
+        intro={hasPrices
+          ? "Every plan below is what we actually charge. Where a price depends on your organization, ask for a quote and we will send one in writing."
+          : "The price depends on the number of students and the modules you use. Tell us about your school and we will send you a written quote."}
       />
 
       {products.map((product) => (
