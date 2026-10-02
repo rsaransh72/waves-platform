@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { Building2 } from "lucide-react";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { formatAdminDateTime } from "@/lib/admin-format";
 import { auditActor, auditArea, describeAuditLog, type AuditLogRow } from "@/lib/audit-format";
+import { Avatar, FormSection, PageHeader, PageSheet, button } from "@/components/admin/ui";
 
 export const revalidate = 0;
 
@@ -37,58 +38,86 @@ export default async function AuditLogDetailsPage({ params }: { params: Promise<
     .sort((left, right) => Number(right.changed) - Number(left.changed));
   const otherDetails = isRowChange ? [] : Object.entries(details);
 
+  const changedCount = fields.filter((field) => field.changed).length;
+  const meta: [string, React.ReactNode][] = [
+    ["Area", auditArea(log.resource_type)],
+    ["Changed by", <span key="who" className="inline-flex items-center gap-2"><Avatar size="sm" name={auditActor(log)} />{auditActor(log)}</span>],
+    ["When", formatAdminDateTime(log.created_at)],
+    ["Action", log.action.replaceAll("_", " ").toLowerCase()],
+    ...(log.ip_address ? [["IP address", <span key="ip" className="font-mono text-[13px]">{log.ip_address}</span>] as [string, React.ReactNode]] : []),
+  ];
+
   return (
-    <div className="mx-auto max-w-5xl space-y-6 pb-12">
-      <div className="flex items-start gap-4">
-        <Link href="/admin/audit" aria-label="Back to audit log" className="rounded-lg border border-slate-200 bg-white p-2 hover:bg-slate-50">
-          <ArrowLeft className="h-5 w-5 text-slate-600" />
-        </Link>
-        <div>
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-400">{auditArea(log.resource_type)}</p>
-          <h1 className="text-xl font-bold text-slate-900">{describeAuditLog(log)}</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            {auditActor(log)} · {formatAdminDateTime(log.created_at)}{log.ip_address ? ` · ${log.ip_address}` : ""}
-          </p>
-          {log.organization_id && (
-            <Link href={`/admin/organizations/${log.organization_id}`} className="mt-2 inline-block text-sm font-semibold text-blue-600 hover:underline">Open client</Link>
+    <PageSheet>
+      <PageHeader
+        backHref="/admin/audit"
+        title={describeAuditLog(log)}
+        description={`${auditArea(log.resource_type)} · ${formatAdminDateTime(log.created_at)}`}
+        actions={log.organization_id ? <Link href={`/admin/organizations/${log.organization_id}`} className={button.secondary}><Building2 className="h-4 w-4" /> <span className="hidden sm:inline">Open client</span></Link> : undefined}
+      />
+
+      <div className="px-4 pb-12 md:px-8 xl:px-10">
+        <div className="mx-auto max-w-[1180px]">
+          <FormSection id="entry" title="Entry" columns="xl:grid-cols-2">
+            {meta.map(([label, value]) => (
+              <div key={label} className="grid gap-1 md:grid-cols-[160px_minmax(0,1fr)] md:gap-6">
+                <p className="text-[13px] font-medium text-slate-500 md:text-right">{label}</p>
+                <div className="text-sm font-medium text-slate-900">{value}</div>
+              </div>
+            ))}
+          </FormSection>
+
+          {isRowChange && (
+            <section aria-labelledby="changes-title" className="py-8">
+              <div className="mb-4 flex flex-wrap items-baseline gap-x-3">
+                <h2 id="changes-title" className="!text-[15px] font-semibold text-slate-900">Changes</h2>
+                <span className="text-xs text-slate-500">
+                  {before && after ? `${changedCount} field${changedCount === 1 ? "" : "s"} changed, shown first` : before ? "Record deleted: its last values" : "Record created: its first values"}
+                </span>
+              </div>
+              <div className="overflow-x-auto rounded border border-slate-200">
+                <table className="w-full min-w-[640px] text-sm">
+                  <thead className="bg-slate-50 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                    <tr>
+                      <th className="w-52 border-b border-slate-200 px-4 py-2.5">Field</th>
+                      {before && <th className="border-b border-slate-200 px-4 py-2.5">Before</th>}
+                      {after && <th className="border-b border-slate-200 px-4 py-2.5">After</th>}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {fields.map((field) => {
+                      const highlight = field.changed && before && after;
+                      return (
+                        <tr key={field.key} className={highlight ? "bg-amber-50/70" : ""}>
+                          <td className="px-4 py-2.5 align-top text-[13px] font-medium text-slate-700">
+                            <span className="flex items-center gap-2">
+                              {highlight && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" aria-label="Changed" />}
+                              {field.key.replaceAll("_", " ")}
+                            </span>
+                          </td>
+                          {before && <td className={`break-all px-4 py-2.5 align-top text-[13px] ${highlight ? "text-red-700 line-through decoration-red-300" : "text-slate-500"}`}>{display(field.before)}</td>}
+                          {after && <td className={`break-all px-4 py-2.5 align-top text-[13px] ${highlight ? "font-medium text-emerald-800" : "text-slate-600"}`}>{display(field.after)}</td>}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
+
+          {otherDetails.length > 0 && (
+            <FormSection id="details" title="Details" columns="xl:grid-cols-2">
+              {otherDetails.map(([key, value]) => (
+                <div key={key} className="grid gap-1 md:grid-cols-[160px_minmax(0,1fr)] md:gap-6">
+                  <p className="text-[13px] font-medium capitalize text-slate-500 md:text-right">{key.replaceAll("_", " ")}</p>
+                  <p className="break-all text-sm text-slate-900">{display(value)}</p>
+                </div>
+              ))}
+            </FormSection>
           )}
         </div>
       </div>
-
-      {isRowChange && (
-        <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
-          <table className="w-full text-left text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold uppercase text-slate-500">
-              <tr>
-                <th className="px-4 py-3 w-48">Field</th>
-                <th className="px-4 py-3">Before</th>
-                <th className="px-4 py-3">After</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {fields.map((field) => (
-                <tr key={field.key} className={field.changed ? "bg-amber-50/60" : ""}>
-                  <td className="px-4 py-2.5 font-medium text-slate-700">{field.key.replaceAll("_", " ")}</td>
-                  <td className="px-4 py-2.5 break-all text-slate-500">{display(field.before)}</td>
-                  <td className={`px-4 py-2.5 break-all ${field.changed ? "font-semibold text-slate-900" : "text-slate-500"}`}>{display(field.after)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <p className="border-t border-slate-100 px-4 py-2 text-xs text-slate-500">Highlighted rows changed.</p>
-        </div>
-      )}
-
-      {otherDetails.length > 0 && (
-        <dl className="grid grid-cols-1 gap-3 rounded-lg border border-slate-200 bg-white p-5 sm:grid-cols-2">
-          {otherDetails.map(([key, value]) => (
-            <div key={key}>
-              <dt className="text-xs font-bold uppercase text-slate-400">{key.replaceAll("_", " ")}</dt>
-              <dd className="break-all text-sm text-slate-800">{display(value)}</dd>
-            </div>
-          ))}
-        </dl>
-      )}
-    </div>
+    </PageSheet>
   );
 }

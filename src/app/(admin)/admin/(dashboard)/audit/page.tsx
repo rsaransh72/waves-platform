@@ -1,13 +1,17 @@
 import Link from "next/link";
+import { ChevronLeft, ChevronRight, History, Search } from "lucide-react";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
-import { formatAdminDateTime } from "@/lib/admin-format";
+import { formatAdminDateTime, formatRelative } from "@/lib/admin-format";
+import { schoolToday } from "@/lib/school-date";
 import { auditActor, auditArea, describeAuditLog, type AuditLogRow } from "@/lib/audit-format";
 import { AuditExportButton } from "@/components/admin/AuditExportButton";
+import { Avatar, Badge, Banner, EmptyState, PageHeader, PageSheet, adminInput, button, td, th } from "@/components/admin/ui";
 
 export const metadata = { title: "Audit Logs | Waves Admin" };
 export const revalidate = 0;
 
 const PAGE_SIZE = 50;
+const DAY_MS = 86_400_000;
 const AREA_FILTERS = [
   { value: "", label: "All areas" },
   { value: "organizations", label: "Clients" },
@@ -19,93 +23,175 @@ const AREA_FILTERS = [
   { value: "services", label: "Services" },
   { value: "pages", label: "Pages" },
   { value: "team_members", label: "Platform team" },
+  { value: "settings", label: "Settings" },
 ];
 
-// Every change made in the admin console or by the database, newest first.
-export default async function AuditLogsPage({ searchParams }: { searchParams: Promise<{ area?: string; actor?: string; page?: string }> }) {
-  const { area = "", actor = "", page = "1" } = await searchParams;
-  const pageNumber = Math.max(1, Number.parseInt(page, 10) || 1);
-  const supabase = await createServerSupabaseClient();
+// Colour by what kind of record changed, so the list can be scanned.
+const AREA_TONES: Record<string, "blue" | "amber" | "violet" | "red" | "green" | "slate"> = {
+  organizations: "blue", organization_members: "blue", subscriptions: "green", invoices: "green",
+  leads: "amber", lead_notes: "amber",
+  products: "violet", services: "violet", pages: "violet", menus: "violet", suites: "violet", marketplaceitems: "violet",
+  team_members: "red", settings: "slate",
+};
 
+const isDate = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(new Date(`${value}T00:00:00Z`).getTime());
+// Dates are Indian calendar days: from 00:00 IST on `from` to the end of `to`.
+const istStart = (date: string) => new Date(`${date}T00:00:00+05:30`);
+
+type AuditSearch = { area?: string; actor?: string; from?: string; to?: string; page?: string };
+
+// Every change made in the admin console or by the database, newest first.
+export default async function AuditLogsPage({ searchParams }: { searchParams: Promise<AuditSearch> }) {
+  const { area = "", actor = "", from = "", to = "", page = "1" } = await searchParams;
+  const pageNumber = Math.max(1, Number.parseInt(page, 10) || 1);
+  const today = schoolToday();
+  const person = actor.trim().slice(0, 100);
+
+  // Filters arrive in the URL, so they are checked here; a bad range is reported, not run.
+  const filterErrors = [
+    from && !isDate(from) ? "The From date is not a valid date." : null,
+    to && !isDate(to) ? "The To date is not a valid date." : null,
+    from && to && isDate(from) && isDate(to) && from > to ? "The From date is after the To date. Swap them or pick a new range." : null,
+    from && isDate(from) && from > today ? "The From date is in the future, so nothing can match." : null,
+  ].filter(Boolean) as string[];
+  const useDates = filterErrors.length === 0;
+  const knownArea = AREA_FILTERS.some((option) => option.value === area) ? area : "";
+
+  const supabase = await createServerSupabaseClient();
   let query = supabase
     .from("audit_logs")
     .select("id, action, resource_type, resource_id, organization_id, actor_email, details, created_at", { count: "exact" })
     .order("created_at", { ascending: false })
     .range((pageNumber - 1) * PAGE_SIZE, pageNumber * PAGE_SIZE - 1);
-  if (area) query = query.eq("resource_type", area);
-  if (actor.trim()) query = query.ilike("actor_email", `%${actor.trim()}%`);
+  if (knownArea) query = query.eq("resource_type", knownArea);
+  if (person) query = query.ilike("actor_email", `%${person.replace(/[%_]/g, "\\$&")}%`);
+  if (useDates && from) query = query.gte("created_at", istStart(from).toISOString());
+  if (useDates && to) query = query.lt("created_at", new Date(istStart(to).getTime() + DAY_MS).toISOString());
   const { data, count, error } = await query;
   if (error) console.error("Error fetching audit logs:", error);
 
   const logs = (data ?? []) as AuditLogRow[];
-  const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
-  const pageHref = (next: number) => `/admin/audit?${new URLSearchParams({ ...(area ? { area } : {}), ...(actor ? { actor } : {}), page: String(next) })}`;
+  const total = count ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const filtered = Boolean(knownArea || person || from || to);
+  const params = { ...(knownArea ? { area: knownArea } : {}), ...(person ? { actor: person } : {}), ...(from ? { from } : {}), ...(to ? { to } : {}) };
+  const pageHref = (next: number) => `/admin/audit?${new URLSearchParams({ ...params, page: String(next) })}`;
   const rows = logs.map((log) => ({
     when: formatAdminDateTime(log.created_at),
     who: auditActor(log),
     area: auditArea(log.resource_type),
     what: describeAuditLog(log),
   }));
+  const first = total === 0 ? 0 : (pageNumber - 1) * PAGE_SIZE + 1;
+  const last = Math.min(pageNumber * PAGE_SIZE, total);
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Audit log</h1>
-          <p className="text-sm text-slate-500">Every change to clients, billing, leads and website content, and who made it. Entries cannot be edited or deleted.</p>
-        </div>
-        <AuditExportButton rows={rows} />
-      </div>
+    <PageSheet>
+      <PageHeader
+        title="Audit log"
+        description="Every change to clients, billing, leads, the website and the team, and who made it. Entries cannot be edited or deleted."
+        actions={<AuditExportButton rows={rows} />}
+      />
 
-      <form className="flex flex-wrap items-end gap-3" action="/admin/audit">
-        <label className="text-xs font-bold text-slate-600">
+      <form action="/admin/audit" className="flex flex-wrap items-end gap-3 border-b border-slate-200 bg-slate-50/70 px-4 py-3 md:px-6">
+        <label className="w-full text-xs font-medium text-slate-600 sm:w-44">
           Area
-          <select name="area" defaultValue={area} className="mt-1 block rounded border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-900">
+          <select name="area" defaultValue={knownArea} className={`${adminInput} mt-1`}>
             {AREA_FILTERS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
           </select>
         </label>
-        <label className="text-xs font-bold text-slate-600">
-          Person (email)
-          <input name="actor" defaultValue={actor} placeholder="e.g. admin@" className="mt-1 block w-60 rounded border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-900" />
+        <label className="w-full text-xs font-medium text-slate-600 sm:w-64">
+          Person
+          <span className="relative mt-1 block">
+            <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+            <input type="search" name="actor" defaultValue={person} maxLength={100} placeholder="Email contains…" className={`${adminInput} pl-9`} />
+          </span>
         </label>
-        <button type="submit" className="rounded bg-slate-900 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800">Apply</button>
-        {(area || actor) && <Link href="/admin/audit" className="px-2 py-2 text-sm font-semibold text-blue-600 hover:underline">Clear</Link>}
+        <label className="w-[calc(50%-6px)] text-xs font-medium text-slate-600 sm:w-40">
+          From
+          <input type="date" name="from" defaultValue={from} max={today} className={`${adminInput} mt-1 ${from && !useDates ? "!border-red-500" : ""}`} />
+        </label>
+        <label className="w-[calc(50%-6px)] text-xs font-medium text-slate-600 sm:w-40">
+          To
+          <input type="date" name="to" defaultValue={to} max={today} className={`${adminInput} mt-1 ${to && !useDates ? "!border-red-500" : ""}`} />
+        </label>
+        <div className="flex gap-2">
+          <button type="submit" className={button.primary}>Apply</button>
+          {filtered && <Link href="/admin/audit" className={button.ghost}>Clear filters</Link>}
+        </div>
       </form>
 
-      <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
-        <table className="w-full min-w-[820px] text-left text-sm">
-          <thead className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold uppercase text-slate-500">
+      {(filterErrors.length > 0 || error) && (
+        <div className="space-y-2 px-4 pt-4 md:px-6">
+          {filterErrors.length > 0 && (
+            <Banner tone="error" role="alert" title="The date range was not applied">
+              <ul className="list-disc pl-4">{filterErrors.map((message) => <li key={message}>{message}</li>)}</ul>
+            </Banner>
+          )}
+          {error && <Banner tone="error" role="alert" title="The audit log could not be loaded">Refresh the page. If this keeps happening, check the database connection.</Banner>}
+        </div>
+      )}
+
+      <div className="flex-1 overflow-x-auto lg:overflow-visible">
+        <table className="w-full min-w-[880px] text-sm">
+          <thead>
             <tr>
-              <th className="px-4 py-3">When</th>
-              <th className="px-4 py-3">Who</th>
-              <th className="px-4 py-3">Area</th>
-              <th className="px-4 py-3">What happened</th>
+              <th className={`${th} w-48 md:pl-6`}>When</th>
+              <th className={`${th} w-64`}>Who</th>
+              <th className={`${th} w-44`}>Area</th>
+              <th className={th}>What happened</th>
+              <th className={`${th} w-12 md:pr-6`}><span className="sr-only">Open</span></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {logs.length === 0 ? (
-              <tr><td colSpan={4} className="px-4 py-12 text-center text-slate-500">{area || actor ? "No entries match these filters." : "No activity recorded yet."}</td></tr>
-            ) : logs.map((log, index) => (
-              <tr key={log.id} className="hover:bg-slate-50">
-                <td className="px-4 py-3 whitespace-nowrap text-slate-500">{rows[index].when}</td>
-                <td className="px-4 py-3 text-slate-700">{rows[index].who}</td>
-                <td className="px-4 py-3"><span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">{rows[index].area}</span></td>
-                <td className="px-4 py-3">
-                  <Link href={`/admin/audit/${log.id}`} className="text-slate-900 hover:text-blue-700 hover:underline">{rows[index].what}</Link>
+            {logs.map((log, index) => (
+              <tr key={log.id} className="group transition-colors hover:bg-slate-50/80">
+                <td className={`${td} whitespace-nowrap md:pl-6`}>
+                  <div className="text-[13px] text-slate-900">{rows[index].when}</div>
+                  <div className="text-xs text-slate-400">{formatRelative(log.created_at)}</div>
+                </td>
+                <td className={td}>
+                  <div className="flex min-w-0 items-center gap-2.5">
+                    <Avatar size="sm" name={rows[index].who} />
+                    <span className="truncate text-[13px] text-slate-700" title={rows[index].who}>{rows[index].who}</span>
+                  </div>
+                </td>
+                <td className={td}><Badge tone={AREA_TONES[log.resource_type ?? ""] ?? "slate"}>{rows[index].area}</Badge></td>
+                <td className={td}>
+                  <Link href={`/admin/audit/${log.id}`} className="text-[13px] text-slate-900 group-hover:text-blue-700 hover:underline">{rows[index].what}</Link>
+                </td>
+                <td className={`${td} text-right md:pr-6`}>
+                  <Link href={`/admin/audit/${log.id}`} aria-label="Open entry" className="inline-flex h-7 w-7 items-center justify-center rounded text-slate-400 hover:bg-slate-100 hover:text-slate-700">
+                    <ChevronRight className="h-4 w-4" />
+                  </Link>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+        {logs.length === 0 && !error && (
+          <EmptyState icon={History} title={pageNumber > totalPages ? "This page is past the end" : filtered ? "No entries match these filters" : "No activity recorded yet"}>
+            {pageNumber > totalPages
+              ? <Link href={pageHref(1)} className="font-medium text-blue-600 hover:underline">Go to the newest entries</Link>
+              : filtered ? <>Try a wider date range or another area, or <Link href="/admin/audit" className="font-medium text-blue-600 hover:underline">clear the filters</Link>.</> : "Changes made in the admin console appear here."}
+          </EmptyState>
+        )}
       </div>
 
-      <div className="flex items-center justify-between text-sm text-slate-500">
-        <span>{count ?? 0} entries · page {pageNumber} of {totalPages}</span>
-        <div className="flex gap-2">
-          {pageNumber > 1 && <Link href={pageHref(pageNumber - 1)} className="rounded border border-slate-300 bg-white px-3 py-1.5 font-semibold text-slate-700 hover:bg-slate-50">Newer</Link>}
-          {pageNumber < totalPages && <Link href={pageHref(pageNumber + 1)} className="rounded border border-slate-300 bg-white px-3 py-1.5 font-semibold text-slate-700 hover:bg-slate-50">Older</Link>}
+      <footer className="sticky -bottom-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-white px-4 py-3 text-[13px] text-slate-500 md:-bottom-6 md:px-6">
+        <span>
+          {total === 0 ? "No entries" : <>Showing <span className="font-medium text-slate-900">{first}–{last}</span> of <span className="font-medium text-slate-900">{total.toLocaleString("en-IN")}</span> entries</>}
+        </span>
+        <div className="flex items-center gap-2">
+          <span className="hidden sm:inline">Page {Math.min(pageNumber, totalPages)} of {totalPages}</span>
+          {pageNumber > 1
+            ? <Link href={pageHref(Math.min(pageNumber - 1, totalPages))} className={`${button.secondary} h-8 px-3`}><ChevronLeft className="h-4 w-4" /> Newer</Link>
+            : <span className={`${button.secondary} h-8 cursor-not-allowed px-3 opacity-40`} aria-disabled><ChevronLeft className="h-4 w-4" /> Newer</span>}
+          {pageNumber < totalPages
+            ? <Link href={pageHref(pageNumber + 1)} className={`${button.secondary} h-8 px-3`}>Older <ChevronRight className="h-4 w-4" /></Link>
+            : <span className={`${button.secondary} h-8 cursor-not-allowed px-3 opacity-40`} aria-disabled>Older <ChevronRight className="h-4 w-4" /></span>}
         </div>
-      </div>
-    </div>
+      </footer>
+    </PageSheet>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { Download } from "lucide-react";
+import { button } from "@/components/admin/ui";
 
 type Row = { when: string; who: string; area: string; what: string };
 
@@ -22,8 +23,8 @@ export function AuditExportButton({ rows }: { rows: Row[] }) {
   };
 
   return (
-    <button type="button" onClick={download} disabled={rows.length === 0} className="inline-flex items-center gap-2 rounded border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40">
-      <Download className="h-4 w-4" /> Export CSV
+    <button type="button" onClick={download} disabled={rows.length === 0} title="Downloads the entries on this page, with the current filters" className={button.secondary}>
+      <Download className="h-4 w-4" /> <span className="hidden sm:inline">Export CSV</span>
     </button>
   );
 }

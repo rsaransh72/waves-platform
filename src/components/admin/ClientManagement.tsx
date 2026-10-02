@@ -159,7 +159,6 @@ export function ClientHeaderActions({ organization }: { organization: ClientOrga
         {isEditing && (
           <OrganizationEditor
             initialData={organization}
-            isNew={false}
             onClose={() => { setIsEditing(false); router.refresh(); }}
           />
         )}

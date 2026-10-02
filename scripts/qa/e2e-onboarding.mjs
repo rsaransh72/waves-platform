@@ -51,18 +51,17 @@ try {
   const onboarded = await step("Admin: onboard a client from the form", async () => {
     const page = admin.page;
     await page.goto(`${baseUrl}/admin/onboarding`, { waitUntil: "networkidle2" });
-    await typeInto(page, "#org-name", schoolName);
-    await typeInto(page, "#org-email", schoolAdminEmail);
-    await typeInto(page, "#org-phone", "9000000001");
-    const planSelect = await page.$("#org-plan");
-    if (planSelect) await planSelect.select("custom");
-    const planName = await page.$("input[placeholder^='Plan name']");
-    if (planName) await planName.type("QA plan");
-    await typeInto(page, "#org-amount", "1000");
+    await typeInto(page, "#onboard-name", schoolName);
+    await typeInto(page, "#onboard-email", schoolAdminEmail);
+    await typeInto(page, "#onboard-phone", "9000000001");
+    await page.select("select[aria-label=Plan]", "custom");
+    await typeInto(page, "#onboard-planName", "QA plan");
+    await typeInto(page, "#onboard-planAmount", "1000");
     await clickText(page, "button[type=submit]", "Create client and send invitation");
-    await page.waitForFunction(() => location.pathname === "/admin/organizations" || document.querySelector("[data-sonner-toast][data-type=error]"), { timeout: 60000 });
-    const toasts = await toastText(page);
-    if (!page.url().endsWith("/admin/organizations")) throw new Error(`Stayed on the form: ${toasts}`);
+    await page.waitForFunction(() => /^\/admin\/organizations\/[0-9a-f-]{36}$/.test(location.pathname) || document.querySelector("[role=alert]"), { timeout: 60000 });
+    if (!/\/admin\/organizations\/[0-9a-f-]{36}$/.test(new URL(page.url()).pathname)) {
+      throw new Error(`Stayed on the form: ${await page.$$eval("[role=alert]", (alerts) => alerts.map((alert) => alert.textContent).join(" | "))}`);
+    }
     const { data: organization } = await service.from("organizations").select("id, status, type, phone").eq("name", schoolName).single();
     organizationId = organization.id;
     if (organization.phone !== "+919000000001") throw new Error(`Phone saved as ${organization.phone}`);
