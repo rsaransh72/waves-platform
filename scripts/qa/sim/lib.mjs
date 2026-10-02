@@ -16,10 +16,14 @@ export const service = createClient(SUPABASE_URL, process.env.SUPABASE_SERVICE_R
 
 export const BASE = process.env.SIM_BASE ?? "http://localhost:3000";
 export const OUT = process.env.SIM_OUT ?? "qa-sim-output";
-export const INBOX = "rsaransh.72@gmail.com";
+// Invitation and lead emails go to "+" aliases of an inbox you own; the principals'
+// password is chosen per environment. Neither is kept in the repository.
+export const INBOX = process.env.SIM_INBOX ?? "";
+if (!INBOX.includes("@")) throw new Error("Set SIM_INBOX to an inbox you own, e.g. you@gmail.com");
 export const TAG = "qasim";
 export const alias = (tag) => `${INBOX.split("@")[0]}+${TAG}-${tag}@${INBOX.split("@")[1]}`;
-export const PASSWORD = "QaSim-Principal-2026!";
+export const PASSWORD = process.env.SIM_PASSWORD ?? "";
+if (PASSWORD.length < 12) throw new Error("Set SIM_PASSWORD (12+ characters) for the seeded principals");
 
 fs.mkdirSync(path.join(OUT, "shots"), { recursive: true });
 

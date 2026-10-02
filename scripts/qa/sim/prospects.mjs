@@ -9,7 +9,7 @@ export const PROSPECTS = [
   { id: "p02", name: "Fr. Joseph Kurian", org: "St. Mary's Higher Secondary School", city: "Kochi", device: "iphone", size: "900 students", path: "home-mobile", form: "home" },
   { id: "p03", name: "Rajesh Gupta", org: "Gupta Public School", city: "Lucknow", device: "android", size: "450 students", path: "price-first", form: "pricing", slow: true },
   { id: "p04", name: "Dr. Meena Iyer", org: "Vidya Vikas Matriculation School", city: "Chennai", device: "desktop", size: "1,500 students", path: "wants-trial", form: "contact" },
-  { id: "p05", name: "Harpreet Kaur", org: "Guru Nanak Model School", city: "Ludhiana", device: "laptop", size: "700 students", path: "messy-input", form: "book-demo", phoneInput: "+91 90000 30005", emailInput: "  RSARANSH.72+QASIM-Lead-P05@Gmail.com " },
+  { id: "p05", name: "Harpreet Kaur", org: "Guru Nanak Model School", city: "Ludhiana", device: "laptop", size: "700 students", path: "messy-input", form: "book-demo", phoneInput: "+91 90000 30005", emailInput: `  ${alias("lead-p05").toUpperCase()} ` },
   { id: "p06", name: "Anil Deshmukh", org: "Jnana Prabodhini Vidyalaya", city: "Pune", device: "desktop", size: "1,000 students", path: "wrong-phone", form: "book-demo" },
   { id: "p07", name: "Sister Mary Lyngdoh", org: "Loreto Convent School", city: "Shillong", device: "tablet", size: "600 students", path: "signup", form: "signup" },
   { id: "p08", name: "Vikram Rathore", org: "Rathore Academy", city: "Jodhpur", device: "desktop", size: "800 students", path: "link-checker", form: "book-demo" },

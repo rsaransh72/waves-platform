@@ -2,7 +2,8 @@
 // existing principals working in their schools, and the super admin handling both.
 // Then probes tenant isolation with each principal's own login.
 //
-// Usage: node scripts/qa/sim/seed.mjs && node scripts/qa/sim/run.mjs && node scripts/qa/sim/cleanup.mjs
+// Usage (SIM_INBOX=you@gmail.com SIM_PASSWORD=<12+ chars> in the environment):
+//   node scripts/qa/sim/seed.mjs && node scripts/qa/sim/run.mjs && node scripts/qa/sim/cleanup.mjs
 import { ANON_KEY, BASE, Person, SUPABASE_URL, allEvents, closeBrowser, readJson, sessionCookies, sleep, userClient, writeJson } from "./lib.mjs";
 import { createClient } from "@supabase/supabase-js";
 import { PROSPECTS, runProspect } from "./prospects.mjs";
