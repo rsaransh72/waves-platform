@@ -121,13 +121,16 @@ export function checkStudents(rows: unknown[][], mapping: Record<string, number>
     }
 
     let classId: string | null = null;
+    let matchedLabel = "";
     let missingClass: CheckedRow<StudentRow>["missingClass"];
     if (!values.className || !values.section) {
       errors.push("Class and section are required.");
     } else {
       const schoolClass = classByKey.get(classSectionKey(values.className, values.section));
-      if (schoolClass) classId = schoolClass.id;
-      else {
+      if (schoolClass) {
+        classId = schoolClass.id;
+        matchedLabel = `${schoolClass.name} - ${schoolClass.section}`;
+      } else {
         missingClass = { name: classDisplayName(values.className), section: values.section.toUpperCase() };
         errors.push(`${missingClass.name} - ${missingClass.section} does not exist yet.`);
       }
@@ -135,7 +138,7 @@ export function checkStudents(rows: unknown[][], mapping: Record<string, number>
 
     const roll = values.rollNumber.toUpperCase();
     const rollProblem = codeError(roll, "Roll number");
-    const classLabel = missingClass ? `${missingClass.name} - ${missingClass.section}` : `${values.className} - ${values.section}`;
+    const classLabel = matchedLabel || (missingClass ? `${missingClass.name} - ${missingClass.section}` : `${values.className} - ${values.section}`);
     const seenKey = `${classSectionKey(values.className, values.section)}|${roll}`;
     if (rollProblem) errors.push(rollProblem);
     else if (classId && takenRolls.has(rollKey(classId, roll))) errors.push(`Roll number ${roll} is already used in ${classLabel}.`);

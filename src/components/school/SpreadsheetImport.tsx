@@ -60,7 +60,8 @@ export function SpreadsheetImport({ kind, classes: initialClasses, taken }: { ki
   const [showAll, setShowAll] = useState(false);
   const [done, setDone] = useState<{ created: number; skipped: number } | null>(null);
 
-  const takenRolls = useMemo(() => new Set((taken.rolls ?? []).map((value) => value.toUpperCase())), [taken.rolls]);
+  // Already rollKey(classId, roll): the roll part is upper-cased there, the class id must stay as it is.
+  const takenRolls = useMemo(() => new Set(taken.rolls ?? []), [taken.rolls]);
   const takenAdmissions = useMemo(() => new Set((taken.admissions ?? []).map((value) => value.toUpperCase())), [taken.admissions]);
   const takenEmployeeIds = useMemo(() => new Set((taken.employeeIds ?? []).map((value) => value.toUpperCase())), [taken.employeeIds]);
   const previewColumns = COLUMNS[kind].filter((column) => column.preview !== false);
