@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requirePlatformAdmin } from "@/lib/supabase-server";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import { siteOrigin } from "@/lib/site-origin";
+import { friendlyAuthEmailError } from "@/lib/client-members";
 
 export type TeamActionResult = { error?: string; message?: string };
 
@@ -64,7 +65,7 @@ export async function inviteTeamMember(input: { name: string; email: string; rol
     const alreadyRegistered = inviteError && (inviteError.code === "email_exists" || /already been registered/i.test(inviteError.message));
     if (inviteError && !alreadyRegistered) {
       await admin.supabase.from("team_members").delete().eq("email", email);
-      throw inviteError;
+      throw friendlyAuthEmailError(inviteError) ?? inviteError;
     }
     await logTeamEvent(admin, "team.invited", { email, role: input.role });
     return alreadyRegistered
@@ -77,7 +78,7 @@ export async function sendTeamPasswordReset(memberId: string) {
   return run(async (admin) => {
     const member = await getMember(admin, memberId);
     const { error } = await createSupabaseAdminClient().auth.resetPasswordForEmail(member.email, { redirectTo: `${await siteOrigin()}/account/reset-password` });
-    if (error) throw error;
+    if (error) throw friendlyAuthEmailError(error) ?? error;
     return `Password reset email sent to ${member.email}.`;
   });
 }
@@ -91,7 +92,7 @@ export async function updateTeamMember(memberId: string, input: { role?: string;
     const losesSuperadmin = member.role === "superadmin" && member.status === "active" && (input.role === "admin" || input.status === "suspended");
     if (losesSuperadmin && await activeSuperadmins(admin) <= 1) throw new Error("There must always be at least one active super administrator.");
 
-    const { error } = await admin.supabase.from("team_members").update({ ...input, updated_at: new Date().toISOString() }).eq("id", memberId);
+    const { error } = await admin.supabase.from("team_members").update(input).eq("id", memberId);
     if (error) throw error;
     return input.status === "suspended" ? `${member.email} can no longer sign in to the admin console.` : `${member.email} updated.`;
   });

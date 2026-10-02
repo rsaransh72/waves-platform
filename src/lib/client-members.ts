@@ -112,7 +112,7 @@ export async function inviteMember(organizationId: string, emailInput: string, r
     if (inviteError.code === "email_exists" || /already been registered/i.test(inviteError.message)) {
       throw new Error("That email already has an account. Each account can belong to one organization only.");
     }
-    throw inviteError;
+    throw friendlyAuthEmailError(inviteError) ?? inviteError;
   }
 
   const { error: memberError } = await authAdmin.from("organization_members").insert({
@@ -137,7 +137,7 @@ export async function resendInvite(organizationId: string, userId: string, actor
     data: { organization_id: organizationId, organization_type: organization.type, organization_name: organization.name },
     redirectTo: `${origin}/school/accept-invite`,
   });
-  if (error) throw error;
+  if (error) throw friendlyAuthEmailError(error) ?? error;
   await logMemberEvent(organizationId, actor, "member.invite_resent", { email, user_id: userId });
   return `Invitation re-sent to ${email}.`;
 }
@@ -147,7 +147,7 @@ export async function sendPasswordReset(organizationId: string, userId: string, 
   const { error } = await createSupabaseAdminClient().auth.resetPasswordForEmail(email, {
     redirectTo: `${origin}/account/reset-password`,
   });
-  if (error) throw error;
+  if (error) throw friendlyAuthEmailError(error) ?? error;
   await logMemberEvent(organizationId, actor, "member.password_reset_sent", { email, user_id: userId });
   return `Password reset email sent to ${email}.`;
 }
@@ -181,4 +181,15 @@ export async function removeMember(organizationId: string, userId: string, actor
   if (error) throw error;
   await logMemberEvent(organizationId, actor, "member.removed", { email, user_id: userId, role: membership.role });
   return `${email} no longer has access.`;
+}
+
+// Supabase's built-in mailer sends only a few emails per hour; say so plainly instead
+// of a generic failure, and point to the fix (custom SMTP in Supabase Auth settings).
+export function friendlyAuthEmailError(error: unknown): Error | null {
+  const code = typeof error === "object" && error !== null && "code" in error ? String((error as { code?: unknown }).code) : "";
+  const status = typeof error === "object" && error !== null && "status" in error ? Number((error as { status?: unknown }).status) : 0;
+  if (code === "over_email_send_rate_limit" || status === 429) {
+    return new Error("The email could not be sent: the hourly email limit was reached. Try again later, or connect your own email provider (SMTP) in Supabase → Authentication → Emails to remove the limit.");
+  }
+  return null;
 }

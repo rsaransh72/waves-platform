@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import { organizationTypeForProduct } from "@/lib/product-workspaces";
+import { friendlyAuthEmailError } from "@/lib/client-members";
 
 type SchoolClientInput = {
   name?: unknown;
@@ -165,6 +166,8 @@ export async function POST(request: Request) {
     }
 
     console.error("School client onboarding failed:", error);
+    const emailLimit = friendlyAuthEmailError(error);
+    if (emailLimit) return NextResponse.json({ error: `${emailLimit.message} Nothing was created.` }, { status: 429 });
     const status = typeof error === "object" && error !== null && "code" in error && error.code === "23505" ? 409 : 500;
     const message = status === 409
       ? "That school slug or administrator account is already in use."
