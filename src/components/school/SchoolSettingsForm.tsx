@@ -11,6 +11,8 @@ import { toStoredPhone } from "@/lib/india";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+const LOGO_TYPES: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" };
+
 export function SchoolSettingsForm({ initialSettings }: { initialSettings: any }) {
   const router = useRouter();
   const [formData, setFormData] = useState({
@@ -23,8 +25,39 @@ export function SchoolSettingsForm({ initialSettings }: { initialSettings: any }
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
 
   const supabase = createClient();
+
+  const uploadLogo = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (!LOGO_TYPES[file.type]) {
+      toast.error("Choose a PNG, JPEG or WebP image.");
+      return;
+    }
+    if (file.size > 1024 * 1024) {
+      toast.error(`That image is ${(file.size / 1024 / 1024).toFixed(1)} MB. Use one under 1 MB.`);
+      return;
+    }
+    setIsUploading(true);
+    try {
+      const { data: organizationId, error: idError } = await supabase.rpc("get_auth_organization_id");
+      if (idError || !organizationId) throw idError ?? new Error("Your school account could not be found.");
+      // A new name for every upload, so browsers and receipts never show a cached old logo.
+      const path = `${organizationId}/logo-${Date.now()}.${LOGO_TYPES[file.type]}`;
+      const { error } = await supabase.storage.from("school-logos").upload(path, file, { contentType: file.type, cacheControl: "31536000" });
+      if (error) throw error;
+      const { data } = supabase.storage.from("school-logos").getPublicUrl(path);
+      setFormData((current) => ({ ...current, logo_url: data.publicUrl }));
+      toast.success("Logo uploaded. Press Save Settings to use it.");
+    } catch (error) {
+      toast.error(`Could not upload the logo: ${describeError(error)}`);
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,7 +91,8 @@ export function SchoolSettingsForm({ initialSettings }: { initialSettings: any }
         if (error) throw error;
       }
 
-      setSaveMessage("Settings saved successfully!");
+      setSaveMessage("Settings saved.");
+      toast.success("School settings saved.");
       router.refresh();
       setTimeout(() => setSaveMessage(""), 3000);
     } catch (error: any) {
@@ -95,11 +129,12 @@ export function SchoolSettingsForm({ initialSettings }: { initialSettings: any }
             </div>
             
             <div className="col-span-1 md:col-span-2">
-              <label className="block text-[13px] font-medium text-[#333333] mb-1.5">School Logo URL</label>
+              <span id="logo-label" className="block text-[13px] font-medium text-[#333333] mb-1.5">School logo</span>
               <div className="flex gap-4 items-start">
                 {formData.logo_url ? (
                   <div className="w-16 h-16 rounded-lg border border-[#e5e5e5] flex items-center justify-center bg-white overflow-hidden shrink-0">
-                    <img src={formData.logo_url} alt="Logo" className="max-w-full max-h-full object-contain" />
+                    {/* eslint-disable-next-line @next/next/no-img-element -- logos live in Supabase Storage */}
+                    <img src={formData.logo_url} alt="Current school logo" className="max-w-full max-h-full object-contain" />
                   </div>
                 ) : (
                   <div className="w-16 h-16 rounded-lg border border-dashed border-[#cccccc] flex items-center justify-center bg-[#f9f9fa] shrink-0 text-[#888888]">
@@ -107,14 +142,17 @@ export function SchoolSettingsForm({ initialSettings }: { initialSettings: any }
                   </div>
                 )}
                 <div className="flex-1">
-                  <input
-                    type="url"
-                    value={formData.logo_url}
-                    onChange={e => setFormData({...formData, logo_url: e.target.value})}
-                    placeholder="https://example.com/logo.png"
-                    className="w-full h-10 px-3 rounded-md border border-[#cccccc] bg-white text-[14px] focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] outline-none mb-1.5"
-                  />
-                  <p className="text-[12px] text-[#888888]">Provide a direct URL to a square PNG or JPEG image.</p>
+                  <div className="flex flex-wrap gap-2">
+                    <label className={`inline-flex h-10 cursor-pointer items-center gap-2 rounded-md border border-[#cccccc] bg-white px-4 text-[13px] font-medium text-[#333333] hover:bg-[#f4f4f5] focus-within:ring-2 focus-within:ring-[#0066cc] ${isUploading ? "pointer-events-none opacity-60" : ""}`}>
+                      <UploadCloud className="w-4 h-4" />
+                      {isUploading ? "Uploading..." : formData.logo_url ? "Replace logo" : "Upload logo"}
+                      <input type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" aria-labelledby="logo-label" onChange={uploadLogo} disabled={isUploading} />
+                    </label>
+                    {formData.logo_url && (
+                      <button type="button" onClick={() => setFormData({ ...formData, logo_url: "" })} className="h-10 rounded-md px-3 text-[13px] font-medium text-red-700 hover:bg-red-50">Remove</button>
+                    )}
+                  </div>
+                  <p className="mt-1.5 text-[12px] text-[#888888]">PNG, JPEG or WebP, up to 1 MB. A square image looks best on fee receipts.</p>
                 </div>
               </div>
             </div>

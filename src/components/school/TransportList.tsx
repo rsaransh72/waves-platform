@@ -43,6 +43,11 @@ export function TransportList({ initialRoutes }: { initialRoutes: any[] }) {
 
   const handleAddRoute = async (e: React.FormEvent) => {
     e.preventDefault();
+    const name = routeForm.route_name.trim();
+    if (routes.some((route) => route.route_name.trim().toLowerCase() === name.toLowerCase())) {
+      toast.error(`There is already a route called "${name}". Give this one a different name.`);
+      return;
+    }
     setIsSubmitting(true);
 
     try {
@@ -60,11 +65,12 @@ export function TransportList({ initialRoutes }: { initialRoutes: any[] }) {
         setRoutes(newData);
         setIsRouteDrawerOpen(false);
         setRouteForm({ route_name: "", vehicle_number: "", driver_name: "", driver_phone: "" });
+        toast.success(`Route "${data.route_name}" added. Add its stops next.`);
         router.refresh();
       }
     } catch (error) {
       console.error("Error creating route:", error);
-      toast.error(`Failed to add route: ${describeError(error)}`);
+      toast.error(`Could not add route: ${describeError(error, "There is already a route with this name.")}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -100,10 +106,11 @@ export function TransportList({ initialRoutes }: { initialRoutes: any[] }) {
         setRoutes(updatedRoutes);
         setIsStopDrawerOpen(false);
         setStopForm({ stop_name: "", pickup_time: "", drop_time: "" });
+        toast.success(`Stop "${data.stop_name}" added to ${selectedRoute.route_name}.`);
       }
     } catch (err) {
       console.error("Error adding stop:", err);
-      toast.error(`Failed to add stop: ${describeError(err)}`);
+      toast.error(`Could not add stop: ${describeError(err)}`);
     } finally {
       setIsSubmitting(false);
     }

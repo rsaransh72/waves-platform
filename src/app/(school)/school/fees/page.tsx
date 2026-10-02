@@ -8,7 +8,6 @@ export const metadata = {
 export default async function FeesPage() {
   const supabase = await createServerSupabaseClient();
 
-  // Fetch Fee Structures
   const { data: structures } = await supabase
     .from("school_fee_structures")
     .select("*")
@@ -20,9 +19,9 @@ export default async function FeesPage() {
         <div className="max-w-7xl mx-auto space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-[20px] font-semibold text-[#111111] tracking-tight">Fee Structures</h2>
+              <h1 className="text-[20px] font-semibold text-[#111111] tracking-tight">Fee Structures</h1>
               <p className="text-[14px] text-[#555555] mt-1">
-                Manage tuition fees, term fees, and payment structures.
+                The fees your school charges, such as tuition, transport and annual charges. Assign them to students from Fee Collection.
               </p>
             </div>
           </div>
