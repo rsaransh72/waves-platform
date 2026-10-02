@@ -47,7 +47,9 @@ type Sheet = { fileName: string; headers: string[]; rows: unknown[][] };
 // SheetJS is large; load it only when someone opens the importer and uses it.
 const loadXlsx = () => import("xlsx");
 
-export function SpreadsheetImport({ kind, classes: initialClasses, taken }: { kind: ImportKind; classes: SchoolClass[]; taken: string[] }) {
+// `taken` holds what the school already uses: roll numbers as rollKey(classId, roll),
+// admission numbers, or employee IDs.
+export function SpreadsheetImport({ kind, classes: initialClasses, taken }: { kind: ImportKind; classes: SchoolClass[]; taken: { rolls?: string[]; admissions?: string[]; employeeIds?: string[] } }) {
   const router = useRouter();
   const copy = COPY[kind];
   const canCreateClasses = useCanManage("classes");
@@ -58,12 +60,17 @@ export function SpreadsheetImport({ kind, classes: initialClasses, taken }: { ki
   const [showAll, setShowAll] = useState(false);
   const [done, setDone] = useState<{ created: number; skipped: number } | null>(null);
 
-  const takenSet = useMemo(() => new Set(taken.map((value) => value.toUpperCase())), [taken]);
+  const takenRolls = useMemo(() => new Set((taken.rolls ?? []).map((value) => value.toUpperCase())), [taken.rolls]);
+  const takenAdmissions = useMemo(() => new Set((taken.admissions ?? []).map((value) => value.toUpperCase())), [taken.admissions]);
+  const takenEmployeeIds = useMemo(() => new Set((taken.employeeIds ?? []).map((value) => value.toUpperCase())), [taken.employeeIds]);
+  const previewColumns = COLUMNS[kind].filter((column) => column.preview !== false);
   const mapped = useMemo(() => (sheet ? mapHeaders(kind, sheet.headers) : null), [kind, sheet]);
   const checked = useMemo<CheckedRow<StudentRow | TeacherRow>[]>(() => {
     if (!sheet || !mapped || mapped.missing.length) return [];
-    return kind === "students" ? checkStudents(sheet.rows, mapped.mapping, classes, takenSet) : checkTeachers(sheet.rows, mapped.mapping, takenSet);
-  }, [kind, sheet, mapped, classes, takenSet]);
+    return kind === "students"
+      ? checkStudents(sheet.rows, mapped.mapping, classes, takenRolls, takenAdmissions)
+      : checkTeachers(sheet.rows, mapped.mapping, takenEmployeeIds);
+  }, [kind, sheet, mapped, classes, takenRolls, takenAdmissions, takenEmployeeIds]);
 
   const ready = checked.filter((row) => row.record);
   const failing = checked.filter((row) => !row.record);
@@ -83,6 +90,8 @@ export function SpreadsheetImport({ kind, classes: initialClasses, taken }: { ki
     const sheetData = [columns.map((column) => column.label + (column.required ? " *" : "")), ...[0, 1].map((example) => columns.map((column) => column.example[example]))];
     const worksheet = XLSX.utils.aoa_to_sheet(sheetData);
     worksheet["!cols"] = columns.map(() => ({ wch: 18 }));
+    // Keep dates and numbers as typed (14-08-2015, 0412) instead of Excel reformatting them.
+    for (const address of Object.keys(worksheet)) if (!address.startsWith("!")) worksheet[address].z = "@";
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, kind === "students" ? "Students" : "Teachers");
     XLSX.writeFile(workbook, `${kind}-import-template.xlsx`);
@@ -140,7 +149,7 @@ export function SpreadsheetImport({ kind, classes: initialClasses, taken }: { ki
     const { error, count } = await createClient().from(copy.table).insert(ready.map((row) => row.record!), { count: "exact" });
     setIsBusy(false);
     if (error) {
-      toast.error(`Nothing was imported: ${describeError(error, kind === "students" ? "A roll number in the file is already used." : "An employee ID in the file is already used.")}`);
+      toast.error(`Nothing was imported: ${describeError(error, kind === "students" ? "A roll number or admission number in the file is already used." : "An employee ID in the file is already used.")}`);
       return;
     }
     setDone({ created: count ?? ready.length, skipped: failing.length });
@@ -162,7 +171,7 @@ export function SpreadsheetImport({ kind, classes: initialClasses, taken }: { ki
         <li className="rounded-lg border border-slate-200 bg-white p-5">
           <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Step 1</p>
           <h2 className="mt-1 text-base font-semibold text-slate-900">Fill in the template</h2>
-          <p className="mt-1 text-sm text-slate-500">Columns: {COLUMNS[kind].map((column) => column.label + (column.required ? "*" : "")).join(", ")}. Your own sheet works too if it has these headings.</p>
+          <p className="mt-1 text-sm text-slate-500">Required: {COLUMNS[kind].filter((column) => column.required).map((column) => column.label).join(", ")}. Optional: {COLUMNS[kind].filter((column) => !column.required).map((column) => column.label).join(", ")}. Your own sheet works too if it has these headings.</p>
           <button type="button" onClick={() => void downloadTemplate()} className="mt-4 inline-flex items-center gap-2 rounded border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50">
             <Download className="h-4 w-4" /> Download Excel template
           </button>
@@ -238,7 +247,7 @@ export function SpreadsheetImport({ kind, classes: initialClasses, taken }: { ki
                   <thead className="bg-slate-50 text-xs font-bold uppercase text-slate-500">
                     <tr>
                       <th className="px-3 py-2">Row</th>
-                      {COLUMNS[kind].map((column) => <th key={column.key} className="px-3 py-2">{column.label}</th>)}
+                      {previewColumns.map((column) => <th key={column.key} className="px-3 py-2">{column.label}</th>)}
                       <th className="px-3 py-2">Check</th>
                     </tr>
                   </thead>
@@ -246,7 +255,7 @@ export function SpreadsheetImport({ kind, classes: initialClasses, taken }: { ki
                     {visible.map((row) => (
                       <tr key={row.line} className={row.record ? "" : "bg-red-50/50"}>
                         <td className="px-3 py-2 tabular-nums text-slate-500">{row.line}</td>
-                        {COLUMNS[kind].map((column) => <td key={column.key} className="px-3 py-2 text-slate-800">{row.values[column.key] || <span className="text-slate-300">—</span>}</td>)}
+                        {previewColumns.map((column) => <td key={column.key} className="px-3 py-2 text-slate-800">{row.values[column.key] || <span className="text-slate-300">—</span>}</td>)}
                         <td className="px-3 py-2">{row.record ? <span className="font-semibold text-emerald-700">Ready</span> : <span className="text-red-700">{row.errors.join(" ")}</span>}</td>
                       </tr>
                     ))}

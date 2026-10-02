@@ -14,6 +14,12 @@ import { useCanManage } from "@/components/school/SchoolSessionContext";
 import { describeError } from "@/lib/error-message";
 import { NameInput, PhoneInput } from "@/components/forms/IndiaInputs";
 import { formatPhone } from "@/lib/india";
+import { schoolToday } from "@/lib/school-date";
+import { BLOOD_GROUPS, CATEGORIES, GENDERS, dateOfBirthError } from "@/lib/school-students";
+
+const fieldClass = "w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none";
+const labelClass = "text-sm font-medium text-slate-700";
+const sectionClass = "mb-3 text-xs font-bold uppercase tracking-wider text-slate-500";
 
 export function StudentsList({ initialData, classes }: { initialData: any[], classes: any[] }) {
   const router = useRouter();
@@ -51,6 +57,11 @@ export function StudentsList({ initialData, classes }: { initialData: any[], cla
       accessorKey: "name",
       header: "Student Name",
       cell: ({ row }) => <span className="font-bold text-slate-900">{row.original.first_name} {row.original.last_name}</span>,
+    },
+    {
+      accessorKey: "admission_number",
+      header: "Adm. No.",
+      cell: ({ row }) => <span className="tabular-nums">{row.original.admission_number || "—"}</span>,
     },
     {
       accessorKey: "roll_number",
@@ -153,24 +164,40 @@ export function StudentsList({ initialData, classes }: { initialData: any[], cla
         title={selectedStudent ? "Edit Student" : "Admit New Student"}
       >
         <div className="p-6">
-          <form key={selectedStudent?.id || "new-student"} className="space-y-4" onSubmit={async (e) => { 
-            e.preventDefault(); 
+          <form key={selectedStudent?.id || "new-student"} className="space-y-6" onSubmit={async (e) => {
+            e.preventDefault();
             if (isSaving) return;
             const form = e.target as HTMLFormElement;
-            const supabase = createClient();
-            
+            const value = (name: string) => ((form.elements.namedItem(name) as HTMLInputElement | HTMLSelectElement | null)?.value ?? "").trim();
+            const dateOfBirth = value("dateOfBirth");
+            const dobProblem = dateOfBirthError(dateOfBirth);
+            if (dobProblem) {
+              toast.error(dobProblem);
+              return;
+            }
+
             const studentRecord = {
-              first_name: (form.elements.namedItem('firstName') as HTMLInputElement).value.trim(),
-              last_name: (form.elements.namedItem('lastName') as HTMLInputElement).value.trim(),
-              roll_number: (form.elements.namedItem('rollNumber') as HTMLInputElement).value.trim().toUpperCase(),
-              class_id: (form.elements.namedItem('class_id') as HTMLSelectElement).value,
-              parent_phone: (form.elements.namedItem('phone') as HTMLInputElement).value || null,
+              first_name: value("firstName"),
+              last_name: value("lastName"),
+              admission_number: value("admissionNumber").toUpperCase() || null,
+              admission_date: value("admissionDate") || null,
+              roll_number: value("rollNumber").toUpperCase(),
+              class_id: value("class_id"),
+              date_of_birth: dateOfBirth || null,
+              gender: value("gender") || null,
+              father_name: value("fatherName") || null,
+              mother_name: value("motherName") || null,
+              parent_phone: value("phone") || null,
+              address: value("address") || null,
+              category: value("category") || null,
+              blood_group: value("bloodGroup") || null,
               // The status field only exists when editing; new admissions start active.
-              status: selectedStudent ? (form.elements.namedItem('status') as HTMLSelectElement).value : "active",
+              status: selectedStudent ? value("status") : "active",
             };
 
             setIsSaving(true);
             try {
+              const supabase = createClient();
               const { error } = selectedStudent
                 ? await supabase.from("school_students").update(studentRecord).eq("id", selectedStudent.id)
                 : await supabase.from("school_students").insert(studentRecord);
@@ -181,53 +208,119 @@ export function StudentsList({ initialData, classes }: { initialData: any[], cla
               setSelectedStudent(null);
               router.refresh();
             } catch (error) {
-              toast.error(`Could not save student: ${describeError(error, "That roll number is already used by another student.")}`);
+              const duplicate = String((error as { message?: string })?.message ?? "").includes("admission_number")
+                ? "That admission number is already used by another student."
+                : "That roll number is already used in this class.";
+              toast.error(`Could not save student: ${describeError(error, duplicate)}`);
             } finally {
               setIsSaving(false);
             }
           }}>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">First Name</label>
-                <NameInput name="firstName" defaultValue={selectedStudent?.first_name || ""} className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" placeholder="e.g. Aarav" required />
+            <fieldset className="space-y-4">
+              <legend className={sectionClass}>Student</legend>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label htmlFor="student-first" className={labelClass}>First name *</label>
+                  <NameInput id="student-first" name="firstName" defaultValue={selectedStudent?.first_name || ""} className={fieldClass} placeholder="e.g. Aarav" required />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="student-last" className={labelClass}>Last name / surname</label>
+                  <NameInput id="student-last" name="lastName" defaultValue={selectedStudent?.last_name || ""} className={fieldClass} placeholder="e.g. Sharma" />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="student-dob" className={labelClass}>Date of birth</label>
+                  <input id="student-dob" name="dateOfBirth" type="date" min="1990-01-01" max={schoolToday()} defaultValue={selectedStudent?.date_of_birth || ""} className={fieldClass} />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="student-gender" className={labelClass}>Gender</label>
+                  <select id="student-gender" name="gender" defaultValue={selectedStudent?.gender || ""} className={fieldClass}>
+                    <option value="">Not recorded</option>
+                    {GENDERS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+                  </select>
+                </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Last Name / Surname</label>
-                <NameInput name="lastName" defaultValue={selectedStudent?.last_name || ""} className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" placeholder="e.g. Sharma" />
+            </fieldset>
+
+            <fieldset className="space-y-4">
+              <legend className={sectionClass}>Admission and class</legend>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label htmlFor="student-admission" className={labelClass}>Admission number</label>
+                  <input id="student-admission" name="admissionNumber" type="text" defaultValue={selectedStudent?.admission_number || ""} className={fieldClass} placeholder="e.g. 2026/0412" maxLength={20} pattern="[A-Za-z0-9\/\-]+" title="Letters, digits, / and - only" />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="student-admitted" className={labelClass}>Admission date</label>
+                  <input id="student-admitted" name="admissionDate" type="date" max={schoolToday()} defaultValue={selectedStudent?.admission_date || (selectedStudent ? "" : schoolToday())} className={fieldClass} />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="student-class" className={labelClass}>Class and section *</label>
+                  <select id="student-class" name="class_id" defaultValue={selectedStudent?.class_id || ""} required className={fieldClass}>
+                    <option value="">Choose a class</option>
+                    {classes.map(c => (
+                      <option key={c.id} value={c.id}>{c.name} - {c.section}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="student-roll" className={labelClass}>Roll number *</label>
+                  <input id="student-roll" name="rollNumber" type="text" defaultValue={selectedStudent?.roll_number || ""} className={fieldClass} placeholder="e.g. 12" required maxLength={20} pattern="[A-Za-z0-9\/\-]+" title="Letters, digits, / and - only" aria-describedby="student-roll-hint" />
+                  <p id="student-roll-hint" className="text-xs text-slate-500">Unique within the class.</p>
+                </div>
               </div>
-            </div>
+            </fieldset>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Roll Number</label>
-              <input name="rollNumber" type="text" defaultValue={selectedStudent?.roll_number || ""} className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" placeholder="e.g. R-101" required maxLength={20} pattern="[A-Za-z0-9\/\-]+" title="Letters, digits, / and - only" />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Class & Section</label>
-              <select name="class_id" defaultValue={selectedStudent?.class_id || ""} required className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none">
-                <option value="">-- Select Class --</option>
-                {classes.map(c => (
-                  <option key={c.id} value={c.id}>{c.name} - {c.section}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Parent/Guardian Mobile</label>
-              <PhoneInput name="phone" defaultValue={selectedStudent?.parent_phone || ""} className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" />
-            </div>
-
-            {selectedStudent && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Enrollment status</label>
-                <select name="status" defaultValue={selectedStudent.status || "active"} className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none">
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </select>
+            <fieldset className="space-y-4">
+              <legend className={sectionClass}>Parents</legend>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label htmlFor="student-father" className={labelClass}>Father&apos;s name</label>
+                  <NameInput id="student-father" name="fatherName" defaultValue={selectedStudent?.father_name || ""} className={fieldClass} />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="student-mother" className={labelClass}>Mother&apos;s name</label>
+                  <NameInput id="student-mother" name="motherName" defaultValue={selectedStudent?.mother_name || ""} className={fieldClass} />
+                </div>
+                <div className="space-y-2 sm:col-span-2">
+                  <label htmlFor="student-phone" className={labelClass}>Parent or guardian mobile</label>
+                  <PhoneInput id="student-phone" name="phone" defaultValue={selectedStudent?.parent_phone || ""} className={fieldClass} />
+                </div>
+                <div className="space-y-2 sm:col-span-2">
+                  <label htmlFor="student-address" className={labelClass}>Address</label>
+                  <textarea id="student-address" name="address" rows={2} maxLength={250} defaultValue={selectedStudent?.address || ""} className={fieldClass} placeholder="House, street, area, city, PIN code" />
+                </div>
               </div>
-            )}
+            </fieldset>
 
-            <div className="pt-4 flex justify-end gap-2">
+            <fieldset className="space-y-4">
+              <legend className={sectionClass}>Other details</legend>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label htmlFor="student-category" className={labelClass}>Category</label>
+                  <select id="student-category" name="category" defaultValue={selectedStudent?.category || ""} className={fieldClass}>
+                    <option value="">Not recorded</option>
+                    {CATEGORIES.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="student-blood" className={labelClass}>Blood group</label>
+                  <select id="student-blood" name="bloodGroup" defaultValue={selectedStudent?.blood_group || ""} className={fieldClass}>
+                    <option value="">Not recorded</option>
+                    {BLOOD_GROUPS.map((group) => <option key={group} value={group}>{group}</option>)}
+                  </select>
+                </div>
+                {selectedStudent && (
+                  <div className="space-y-2">
+                    <label htmlFor="student-status" className={labelClass}>Enrollment status</label>
+                    <select id="student-status" name="status" defaultValue={selectedStudent.status || "active"} className={fieldClass}>
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                    </select>
+                  </div>
+                )}
+              </div>
+            </fieldset>
+
+            <div className="pt-2 flex justify-end gap-2">
               <button type="button" onClick={() => setIsDrawerOpen(false)} className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded hover:bg-slate-50 transition-colors">
                 Cancel
               </button>
