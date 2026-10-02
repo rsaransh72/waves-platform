@@ -2,12 +2,15 @@
 
 import { createContext, useContext } from "react";
 import { canManageSchoolArea, type SchoolArea, type SchoolRole } from "@/lib/school-permissions";
+import type { BillingNotice } from "@/lib/school-account";
 
 export type SchoolSession = {
   email: string;
   name: string | null;
   role: SchoolRole;
   schoolName: string;
+  // Shown to the school administrator only.
+  billing: BillingNotice | null;
 };
 
 const SchoolSessionContext = createContext<SchoolSession | null>(null);

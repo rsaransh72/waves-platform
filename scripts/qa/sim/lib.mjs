@@ -45,6 +45,8 @@ export const DEVICES = {
   android: { userAgent: "Mozilla/5.0 (Linux; Android 13; Redmi Note 12) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36", viewport: { width: 360, height: 780, deviceScaleFactor: 3, isMobile: true, hasTouch: true } },
   small: KnownDevices["Galaxy S9+"],
   tablet: KnownDevices["iPad Mini"],
+  tiny: { userAgent: "Mozilla/5.0 (Linux; Android 11; Galaxy A02) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36", viewport: { width: 320, height: 640, deviceScaleFactor: 2, isMobile: true, hasTouch: true } },
+  phone390: { userAgent: "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36", viewport: { width: 390, height: 844, deviceScaleFactor: 3, isMobile: true, hasTouch: true } },
 };
 
 const events = [];

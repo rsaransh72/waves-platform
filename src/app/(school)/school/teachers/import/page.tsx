@@ -16,5 +16,5 @@ export default async function ImportTeachersPage() {
 
   const { data: teachers } = await supabase.from("school_teachers").select("employee_id");
 
-  return <SpreadsheetImport kind="teachers" classes={[]} taken={(teachers ?? []).map((teacher) => teacher.employee_id)} />;
+  return <SpreadsheetImport kind="teachers" classes={[]} taken={{ employeeIds: (teachers ?? []).map((teacher) => teacher.employee_id) }} />;
 }

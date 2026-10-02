@@ -21,7 +21,14 @@ type Subscription = {
 
 type Row = Subscription & { client: string; daysLeft: number | null; term: string };
 
-const STATUS_LABELS: Record<string, string> = { active: "Active", trialing: "Trial", past_due: "Expired – not renewed", canceled: "Canceled" };
+const STATUS_LABELS: Record<string, string> = { active: "Active", trialing: "Trial", past_due: "Payment overdue", canceled: "Canceled" };
+
+function statusLabel({ status, daysLeft }: { status: string; daysLeft: number | null }) {
+  const label = STATUS_LABELS[status] ?? status;
+  if (status !== "past_due" || daysLeft === null || daysLeft >= 0) return label;
+  const late = -daysLeft;
+  return `${label} · ${late} ${late === 1 ? "day" : "days"}`;
+}
 
 function statusStyle(status: string) {
   if (status === "active") return "border-emerald-200 bg-emerald-50 text-emerald-800";
@@ -64,7 +71,7 @@ export function SubscriptionList({ initialData, now }: { initialData: Subscripti
       header: "Status",
       cell: ({ row }) => (
         <span className={clsx("inline-flex rounded-full border px-2.5 py-1 text-xs font-bold", statusStyle(row.original.status))}>
-          {STATUS_LABELS[row.original.status] ?? row.original.status}
+          {statusLabel(row.original)}
         </span>
       ),
     },

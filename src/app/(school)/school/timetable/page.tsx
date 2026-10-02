@@ -33,9 +33,9 @@ export default async function TimetablePage() {
         <div className="max-w-7xl mx-auto space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-[20px] font-semibold text-[#111111] tracking-tight">Class Schedules</h2>
+              <h1 className="text-[20px] font-semibold text-[#111111] tracking-tight">Class Schedules</h1>
               <p className="text-[14px] text-[#555555] mt-1">
-                Manage weekly timetables for classes and teachers.
+                Weekly periods for each class. A teacher, class or room cannot be booked twice at the same time.
               </p>
             </div>
           </div>

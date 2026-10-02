@@ -15,6 +15,7 @@ import {
 import { createClient } from "@/lib/supabase-browser";
 import { toast } from "sonner";
 import { describeError } from "@/lib/error-message";
+import { formatDate } from "@/lib/india";
 import { useRouter } from "next/navigation";
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
@@ -151,10 +152,10 @@ export function ExamsList({ initialData, classesList }: { initialData: Exam[], c
                       {exam.name}
                     </td>
                     <td className="py-3 px-4 text-[14px] text-[#111111]">
-                      {exam.school_classes ? `${exam.school_classes.name} (${exam.school_classes.section})` : "N/A"}
+                      {exam.school_classes ? `${exam.school_classes.name} - ${exam.school_classes.section}` : "—"}
                     </td>
                     <td className="py-3 px-4 text-[14px] text-[#111111]">
-                      {exam.start_date} to {exam.end_date}
+                      {formatDate(exam.start_date)} to {formatDate(exam.end_date)}
                     </td>
                     <td className="py-3 px-4">
                       <span className={
@@ -224,7 +225,7 @@ export function ExamsList({ initialData, classesList }: { initialData: Exam[], c
                     >
                       <option value="">Select a Class...</option>
                       {classesList.map((c: any) => (
-                        <option key={c.id} value={c.id}>{c.name} ({c.section})</option>
+                        <option key={c.id} value={c.id}>{c.name} - {c.section}</option>
                       ))}
                     </select>
                   </div>

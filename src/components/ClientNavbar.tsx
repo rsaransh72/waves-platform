@@ -40,22 +40,33 @@ export default function ClientNavbar({
   }, []);
 
   useEffect(() => {
+    if (!mobileMenuOpen && !productsOpen) return;
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setMobileMenuOpen(false);
+      setProductsOpen(false);
+    };
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [mobileMenuOpen, productsOpen]);
+
+  useEffect(() => {
     document.body.style.overflow = mobileMenuOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [mobileMenuOpen]);
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-[#e6e9f0]">
-      <div className="w-full flex justify-between items-center h-[60px] px-8 xl:px-12">
-        <div className="flex items-center gap-10 xl:gap-14">
-          <Link prefetch={false} href="/" className="flex items-center gap-2 shrink-0 group">
+      <div className="w-full flex justify-between items-center gap-3 h-[60px] px-4 sm:px-8 xl:px-12">
+        <div className="flex min-w-0 items-center gap-10 xl:gap-14">
+          <Link prefetch={false} href="/" className="flex min-w-0 items-center gap-2 group">
             <div className="grid grid-cols-2 gap-[1.5px] w-[22px] h-[22px] shrink-0">
               <span className="w-2.5 h-2.5 rounded-[3px] bg-[#e42525] group-hover:scale-110 transition-transform" />
               <span className="w-2.5 h-2.5 rounded-[3px] bg-[#226eb4] group-hover:scale-110 transition-transform" />
               <span className="w-2.5 h-2.5 rounded-[3px] bg-[#10b981] group-hover:scale-110 transition-transform" />
               <span className="w-2.5 h-2.5 rounded-[3px] bg-[#f59e0b] group-hover:scale-110 transition-transform" />
             </div>
-            <span className="text-[19px] font-black tracking-tight text-black leading-none">{companyName.toUpperCase()}</span>
+            <span className="truncate text-[15px] sm:text-[19px] font-black tracking-tight text-black leading-none">{companyName.toUpperCase()}</span>
           </Link>
 
           <nav className="hidden lg:flex items-center gap-8 text-[14px] text-[#111111]">
@@ -98,11 +109,12 @@ export default function ClientNavbar({
           </Link>
         </div>
 
-        <div className="lg:hidden flex items-center gap-3">
-          <Link prefetch={false} href={requestDemoHref} className="zw-cta-outlined !py-1 !px-3 text-xs">
-            Request Demo
+        <div className="lg:hidden flex shrink-0 items-center gap-2 sm:gap-3">
+          <Link prefetch={false} href={requestDemoHref} className="zw-cta-outlined whitespace-nowrap !py-1 !px-3 text-xs">
+            <span className="hidden min-[420px]:inline">Request </span>Demo
           </Link>
           <button
+            type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="p-2 text-black hover:bg-[#f8f9fa] rounded transition cursor-pointer"
             aria-label="Toggle navigation menu"

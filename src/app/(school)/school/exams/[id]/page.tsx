@@ -49,7 +49,7 @@ export default async function ExamGradingPage({
               <ChevronLeft className="w-5 h-5" />
             </Link>
             <div>
-              <h2 className="text-[20px] font-semibold text-[#111111] tracking-tight">{exam.name} Grading</h2>
+              <h1 className="text-[20px] font-semibold text-[#111111] tracking-tight">{exam.name} Grading</h1>
               <p className="text-[14px] text-[#555555] mt-1">
                 {exam.school_classes?.name} ({exam.school_classes?.section}) • {formatDate(exam.start_date)}
               </p>

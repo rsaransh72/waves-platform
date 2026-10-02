@@ -12,6 +12,16 @@ const organizationIds = (organizations ?? []).map((organization) => organization
 const { data: leads } = await service.from("leads").delete().ilike("email", pattern).select("id");
 console.log(`Leads deleted: ${leads?.length ?? 0}`);
 
+// Uploaded logos live in Storage under the school's id.
+let logos = 0;
+for (const organizationId of organizationIds) {
+  const { data: files } = await service.storage.from("school-logos").list(organizationId);
+  if (!files?.length) continue;
+  await service.storage.from("school-logos").remove(files.map((file) => `${organizationId}/${file.name}`));
+  logos += files.length;
+}
+if (logos) console.log(`Logos deleted: ${logos}`);
+
 if (organizationIds.length) {
   const { error } = await service.from("organizations").delete().in("id", organizationIds);
   if (error) throw error;

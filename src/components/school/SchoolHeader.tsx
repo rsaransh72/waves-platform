@@ -24,8 +24,7 @@ export function SchoolHeader({ onOpenSidebar }: { onOpenSidebar: () => void }) {
 
   return (
     <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-x-4 border-b border-slate-200 bg-white px-4 shadow-sm sm:px-6 lg:px-8 print:hidden">
-      <button type="button" onClick={onOpenSidebar} className="-m-2.5 p-2.5 text-slate-700 md:hidden">
-        <span className="sr-only">Open sidebar</span>
+      <button type="button" onClick={onOpenSidebar} aria-label="Open menu" className="-m-2.5 p-2.5 text-slate-700 md:hidden">
         <Menu className="h-6 w-6" aria-hidden="true" />
       </button>
 
@@ -43,9 +42,10 @@ export function SchoolHeader({ onOpenSidebar }: { onOpenSidebar: () => void }) {
           type="button"
           onClick={() => void signOut()}
           disabled={isSigningOut}
+          aria-label={isSigningOut ? "Signing out" : "Sign out"}
           className="inline-flex items-center gap-1.5 rounded border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50"
         >
-          <LogOut className="h-3.5 w-3.5" />
+          <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
           <span className="hidden sm:inline">{isSigningOut ? "Signing out..." : "Sign out"}</span>
         </button>
       </div>

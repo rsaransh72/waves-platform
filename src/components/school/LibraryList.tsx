@@ -110,11 +110,12 @@ export function LibraryList({ initialBooks, students, initialIssues }: { initial
         setFilteredBooks(newData);
         setIsBookDrawerOpen(false);
         setBookForm({ title: "", author: "", isbn: "", quantity: 1 });
+        toast.success(`"${data.title}" added to the library.`);
         router.refresh();
       }
     } catch (error) {
       console.error("Error creating book:", error);
-      toast.error(`Failed to add book: ${describeError(error)}`);
+      toast.error(`Could not add book: ${describeError(error)}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -144,7 +145,7 @@ export function LibraryList({ initialBooks, students, initialIssues }: { initial
       toast.success("Book issued.");
     } catch (err) {
       console.error("Error issuing book:", err);
-      toast.error(`Failed to issue book: ${describeError(err)}`);
+      toast.error(`Could not issue book: ${describeError(err)}`);
     } finally {
       setIsSubmitting(false);
     }

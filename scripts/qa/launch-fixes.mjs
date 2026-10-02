@@ -127,7 +127,8 @@ const studentsFile = path.join(files, "students.xlsx");
     ["Meher", "Kaur", "960", "Class 6", "C", "9000041100"],
     ["Zubin", "Shah", "961", "6", "C", ""],
     ["Bad", "Phone", "962", "Class 8", "B", "12345"],
-    ["Dup", "Roll", "101", "Class 8", "B", ""],
+    ["Dup", "Roll", "301", "Class 8", "B", ""],
+    ["Other", "Section", "101", "Class 8", "B", ""],
   ];
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(rows), "Students");
@@ -160,28 +161,28 @@ fs.writeFileSync(teachersFile, "Employee ID,First name,Last name,Subject,Email,M
     return btoa(binary);
   });
   const headings = base64 ? XLSX.utils.sheet_to_json(XLSX.read(Buffer.from(base64, "base64")).Sheets.Students, { header: 1 })[0] : [];
-  check("Template downloads with the right headings", headings.join("|") === "First name *|Last name|Roll number *|Class *|Section *|Parent mobile", headings.join(", "));
+  check("Template downloads with the admission headings", headings.join("|") === "First name *|Last name|Admission number|Roll number *|Class *|Section *|Date of birth|Gender|Father's name|Mother's name|Parent mobile|Address|Category|Blood group", headings.join(", "));
 
   const input = await person.page.$("input[type=file]");
   await input.uploadFile(studentsFile);
   await person.page.waitForFunction(() => document.body.innerText.includes("ready"), { timeout: 15000 });
   let text = await textOf(person);
-  check("Preview: 8 ready, 4 with errors", text.includes("8 ready") && text.includes("4 with errors"), text.match(/\d+ ready[\s\S]{0,40}/)?.[0]);
+  check("Preview: 9 ready (roll 101 is free in Class 8 - B), 4 with errors", text.includes("9 ready") && text.includes("4 with errors"), text.match(/\d+ ready[\s\S]{0,40}/)?.[0]);
   check("“Class VIII / b” matches Class 8 - B", !text.includes("Class VIII - b does not exist"));
   check("Bad phone is explained", text.includes("Parent mobile: Enter all 10 digits (5 entered)."));
-  check("Existing roll number is caught", text.includes("Roll number 101 is already used"));
+  check("Existing roll number in the same class is caught", text.includes("Roll number 301 is already used in Class 8 - B"));
   check("Missing class is offered for creation", text.includes("1 class in the file does not exist yet: Class 6 - C"), text.match(/class(es)? in the file[^.]*/)?.[0]);
   await person.shot("import-preview");
 
   await person.clearToasts();
   await person.mustClick("Create it");
-  await person.page.waitForFunction(() => document.body.innerText.includes("10 ready"), { timeout: 15000 }).catch(() => {});
+  await person.page.waitForFunction(() => document.body.innerText.includes("11 ready"), { timeout: 15000 }).catch(() => {});
   text = await textOf(person);
-  check("After creating Class 6 - C: 10 ready, 2 with errors", text.includes("10 ready") && text.includes("2 with errors"));
-  await person.mustClick("Import 10 students");
+  check("After creating Class 6 - C: 11 ready, 2 with errors", text.includes("11 ready") && text.includes("2 with errors"));
+  await person.mustClick("Import 11 students");
   await person.page.waitForFunction(() => document.body.innerText.includes("imported"), { timeout: 20000 }).catch(() => {});
   text = await textOf(person);
-  check("Import confirms 10 students and 2 left out", text.includes("10 students imported.") && text.includes("2 rows with errors were left out"), text.match(/\d+ students? imported[^.]*\.[^.]*/)?.[0]);
+  check("Import confirms 11 students and 2 left out", text.includes("11 students imported.") && text.includes("2 rows with errors were left out"), text.match(/\d+ students? imported[^.]*\.[^.]*/)?.[0]);
   const { data: imported } = await service.from("school_students").select("roll_number, parent_phone, school_classes(name, section)").eq("organization_id", s4.organizationId).in("roll_number", ["901", "902", "960", "961"]);
   const byRoll = Object.fromEntries((imported ?? []).map((row) => [row.roll_number, row]));
   check("Saved rows have the right class and phone", byRoll["901"]?.school_classes?.name === "Class 8" && byRoll["901"]?.parent_phone === "+919000041000" && byRoll["902"]?.parent_phone === null && byRoll["960"]?.school_classes?.name === "Class 6" && byRoll["960"]?.school_classes?.section === "C", JSON.stringify(byRoll["901"]));

@@ -36,6 +36,7 @@ export default async function FeeCollectionPage() {
   const { data: structures } = await supabase
     .from("school_fee_structures")
     .select("id, name, amount")
+    .is("archived_at", null)
     .order("name");
 
   return (
@@ -44,7 +45,7 @@ export default async function FeeCollectionPage() {
         <div className="max-w-7xl mx-auto space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-[20px] font-semibold text-[#111111] tracking-tight">Fee Collection & Invoicing</h2>
+              <h1 className="text-[20px] font-semibold text-[#111111] tracking-tight">Fee Collection & Invoicing</h1>
               <p className="text-[14px] text-[#555555] mt-1">
                 Generate student invoices and record payments (Cash, Online, Card).
               </p>
