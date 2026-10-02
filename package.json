@@ -30,6 +30,7 @@
     "stripe": "^23.0.0",
     "tailwind-merge": "^3.7.0",
     "uuid": "^14.0.2",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
     "zustand": "^5.0.15"
   },
   "devDependencies": {

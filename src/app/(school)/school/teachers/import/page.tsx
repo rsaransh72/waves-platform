@@ -1,0 +1,20 @@
+import { redirect } from "next/navigation";
+import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { canManageSchoolArea, normalizeSchoolRole } from "@/lib/school-permissions";
+import { SpreadsheetImport } from "@/components/school/SpreadsheetImport";
+
+export const revalidate = 0;
+
+export const metadata = {
+  title: "Import teachers | School ERP",
+};
+
+export default async function ImportTeachersPage() {
+  const supabase = await createServerSupabaseClient();
+  const { data: role } = await supabase.rpc("get_auth_school_role");
+  if (!canManageSchoolArea(normalizeSchoolRole(role), "teachers")) redirect("/school?denied=1");
+
+  const { data: teachers } = await supabase.from("school_teachers").select("employee_id");
+
+  return <SpreadsheetImport kind="teachers" classes={[]} taken={(teachers ?? []).map((teacher) => teacher.employee_id)} />;
+}
