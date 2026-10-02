@@ -166,24 +166,30 @@ export default function LoginPage() {
               <form onSubmit={handleLogin} className="space-y-4">
                 {/* Email / Mobile Field */}
                 <div>
+                  <label htmlFor="login-email" className="mb-1.5 block text-[13px] font-medium text-[#333333]">Email address</label>
                   <input
+                    id="login-email"
                     type="email"
+                    autoComplete="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Email address *"
+                    placeholder="you@school.in"
                     className="w-full h-[54px] px-4 rounded-[6px] border border-[#cccccc] focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] text-[15px] outline-none transition placeholder:text-[#888888] bg-white text-[#111111]"
                   />
                 </div>
 
                 {/* Password Field with Eye Toggle */}
+                <label htmlFor="login-password" className="-mb-2.5 block text-[13px] font-medium text-[#333333]">Password</label>
                 <div className="relative">
                   <input
+                    id="login-password"
                     type={showPassword ? "text" : "password"}
+                    autoComplete="current-password"
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Password *"
+                    placeholder="Your password"
                     className="w-full h-[54px] px-4 pr-12 rounded-[6px] border border-[#cccccc] focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] text-[15px] outline-none transition placeholder:text-[#888888] bg-white text-[#111111]"
                   />
                   <button

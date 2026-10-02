@@ -31,7 +31,7 @@ export default async function LibraryPage() {
         <div className="max-w-7xl mx-auto space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-[20px] font-semibold text-[#111111] tracking-tight">Library Books</h2>
+              <h1 className="text-[20px] font-semibold text-[#111111] tracking-tight">Library Books</h1>
               <p className="text-[14px] text-[#555555] mt-1">
                 Manage books inventory and track student issues and returns.
               </p>

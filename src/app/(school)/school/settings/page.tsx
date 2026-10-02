@@ -19,7 +19,7 @@ export default async function SchoolSettingsPage() {
         <div className="max-w-4xl mx-auto space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-[20px] font-semibold text-[#111111] tracking-tight">Organization Profile</h2>
+              <h1 className="text-[20px] font-semibold text-[#111111] tracking-tight">Organization Profile</h1>
               <p className="text-[14px] text-[#555555] mt-1">
                 Manage your school&apos;s name, logo and contact details shown on receipts.
               </p>

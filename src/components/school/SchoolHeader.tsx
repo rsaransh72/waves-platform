@@ -24,8 +24,7 @@ export function SchoolHeader({ onOpenSidebar }: { onOpenSidebar: () => void }) {
 
   return (
     <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-x-4 border-b border-slate-200 bg-white px-4 shadow-sm sm:px-6 lg:px-8 print:hidden">
-      <button type="button" onClick={onOpenSidebar} className="-m-2.5 p-2.5 text-slate-700 md:hidden">
-        <span className="sr-only">Open sidebar</span>
+      <button type="button" onClick={onOpenSidebar} aria-label="Open menu" className="-m-2.5 p-2.5 text-slate-700 md:hidden">
         <Menu className="h-6 w-6" aria-hidden="true" />
       </button>
 

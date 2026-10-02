@@ -11,7 +11,7 @@ const schoolNavigation: Array<{ label: string; href: string; icon: typeof Layout
   { label: "Dashboard", href: "/school", icon: LayoutDashboard, area: "dashboard" },
   { label: "Students", href: "/school/students", icon: GraduationCap, area: "students" },
   { label: "Teachers", href: "/school/teachers", icon: Users, area: "teachers" },
-  { label: "Classes & Subjects", href: "/school/classes", icon: BookOpen, area: "classes" },
+  { label: "Classes", href: "/school/classes", icon: BookOpen, area: "classes" },
   { label: "Attendance", href: "/school/attendance", icon: Clock, area: "attendance" },
   { label: "Exams & Grades", href: "/school/exams", icon: FileText, area: "exams" },
   { label: "Fee Structures", href: "/school/fees", icon: CreditCard, area: "feeStructures" },
