@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, CircleAlert, CircleX, Save } from "lucide-react";
 import { createClient } from "@/lib/supabase-browser";
@@ -45,6 +45,9 @@ export function AttendanceRegister({
   const [marks, setMarks] = useState<Record<string, Status>>(() => startMarks(initialAttendance, classes[0]?.id ?? ""));
   const [isSaved, setIsSaved] = useState(initialAttendance.length > 0);
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  // Only the latest class/date choice may fill the register.
+  const latestRequest = useRef(0);
   const classStudents = classStudentsOf(classId);
   const markedCount = classStudents.filter((student) => marks[student.id]).length;
   const counts = STATUSES.map(([status, label]) => [label, classStudents.filter((student) => marks[student.id] === status).length] as const);
@@ -53,12 +56,16 @@ export function AttendanceRegister({
     setClassId(nextClassId);
     setDate(nextDate);
     setMarks({});
+    const request = ++latestRequest.current;
+    setIsLoading(Boolean(nextClassId && nextDate));
     if (!nextClassId || !nextDate) return;
     const { data, error } = await createClient()
       .from("school_attendance")
       .select("student_id, status")
       .eq("class_id", nextClassId)
       .eq("date", nextDate);
+    if (request !== latestRequest.current) return;
+    setIsLoading(false);
     if (error) {
       toast.error(`Could not load attendance: ${describeError(error)}`);
       return;
@@ -68,7 +75,7 @@ export function AttendanceRegister({
   };
 
   const saveRegister = async () => {
-    if (!classId || classStudents.length === 0 || markedCount !== classStudents.length || isSaving) return;
+    if (!classId || classStudents.length === 0 || markedCount !== classStudents.length || isSaving || isLoading) return;
     setIsSaving(true);
     const records = classStudents.map((student) => ({
       student_id: student.id,
@@ -108,7 +115,7 @@ export function AttendanceRegister({
             Date
             <input type="date" value={date} max={today} onChange={(event) => loadRegister(classId, event.target.value)} className="h-10 w-full rounded border border-slate-300 bg-white px-3 text-sm text-slate-900" />
           </label>
-          {canManage && <button type="button" onClick={saveRegister} disabled={!classId || classStudents.length === 0 || markedCount !== classStudents.length || isSaving} className="col-span-2 inline-flex h-10 items-center justify-center gap-2 rounded bg-slate-900 px-4 text-sm font-bold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50">
+          {canManage && <button type="button" onClick={saveRegister} disabled={!classId || classStudents.length === 0 || markedCount !== classStudents.length || isSaving || isLoading} className="col-span-2 inline-flex h-10 items-center justify-center gap-2 rounded bg-slate-900 px-4 text-sm font-bold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50">
             <Save className="h-4 w-4" />{isSaving ? "Saving..." : "Save Register"}
           </button>}
         </div>
@@ -116,9 +123,15 @@ export function AttendanceRegister({
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-y border-slate-200 py-3 text-sm">
         <span className="font-medium text-slate-700">{formatDate(date)}</span>
-        <span className="text-slate-500 tabular-nums">{counts.map(([label, count]) => `${count} ${label.toLowerCase()}`).join(" · ")}</span>
-        {markedCount < classStudents.length && <span className="text-amber-700">{classStudents.length - markedCount} not marked</span>}
-        {canManage && classStudents.length > 0 && (
+        {isLoading ? (
+          <span className="text-slate-500" role="status">Loading register...</span>
+        ) : (
+          <>
+            <span className="text-slate-500 tabular-nums">{counts.map(([label, count]) => `${count} ${label.toLowerCase()}`).join(" · ")}</span>
+            {markedCount < classStudents.length && <span className="text-amber-700">{classStudents.length - markedCount} not marked</span>}
+          </>
+        )}
+        {canManage && !isLoading && classStudents.length > 0 && (
           <span className="ml-auto flex gap-2">
             <button type="button" onClick={() => setMarks(allPresent(classStudents))} className="h-9 rounded border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50">All present</button>
             <button type="button" onClick={() => setMarks({})} className="h-9 rounded border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50">Clear</button>
@@ -126,7 +139,7 @@ export function AttendanceRegister({
         )}
       </div>
 
-      {canManage && !isSaved && classStudents.length > 0 && (
+      {canManage && !isSaved && !isLoading && classStudents.length > 0 && (
         <p role="status" className="rounded border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-900">
           Not saved yet. Everyone starts as present: mark who is absent or late, then press Save Register.
         </p>
@@ -149,7 +162,7 @@ export function AttendanceRegister({
               </div>
               <div className="grid grid-cols-3 gap-2 sm:flex sm:justify-end" role="group" aria-label={`Attendance for ${student.first_name} ${student.last_name}`}>
                 {STATUSES.map(([status, label, Icon, activeClass]) => (
-                  <button key={status} type="button" disabled={!canManage} aria-pressed={marks[student.id] === status} onClick={() => setMarks((current) => ({ ...current, [student.id]: status }))} className={`inline-flex h-11 items-center justify-center gap-1.5 rounded border px-3 text-sm font-semibold sm:h-9 sm:text-xs ${marks[student.id] === status ? activeClass : "border-slate-200 text-slate-500 hover:bg-slate-50"} disabled:cursor-default disabled:hover:bg-transparent`}>
+                  <button key={status} type="button" disabled={!canManage || isLoading} aria-pressed={marks[student.id] === status} onClick={() => setMarks((current) => ({ ...current, [student.id]: status }))} className={`inline-flex h-11 items-center justify-center gap-1.5 rounded border px-3 text-sm font-semibold sm:h-9 sm:text-xs ${marks[student.id] === status ? activeClass : "border-slate-200 text-slate-500 hover:bg-slate-50"} disabled:cursor-default disabled:hover:bg-transparent`}>
                     <Icon className="h-4 w-4 sm:h-3.5 sm:w-3.5" /><span>{label}</span>
                   </button>
                 ))}

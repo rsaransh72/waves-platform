@@ -42,9 +42,10 @@ export function SchoolHeader({ onOpenSidebar }: { onOpenSidebar: () => void }) {
           type="button"
           onClick={() => void signOut()}
           disabled={isSigningOut}
+          aria-label={isSigningOut ? "Signing out" : "Sign out"}
           className="inline-flex items-center gap-1.5 rounded border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50"
         >
-          <LogOut className="h-3.5 w-3.5" />
+          <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
           <span className="hidden sm:inline">{isSigningOut ? "Signing out..." : "Sign out"}</span>
         </button>
       </div>
