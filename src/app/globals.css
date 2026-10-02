@@ -1,0 +1,565 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Roboto+Mono:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+:root {
+  --primary-color: #111111;
+  --body-color: #404040;
+  --muted-color: #707070;
+  --brand-blue: #226eb4;
+  --brand-blue-light: #4199ea;
+  --brand-blue-soft: #edf5ff;
+  --brand-blue-gradient: linear-gradient(90deg, #226eb4 0%, #4199ea 50%, #226eb4 100%);
+  --brand-red: #e42525;
+  --brand-red-hover: #c91f1f;
+  --brand-red-soft: #fff1f1;
+  --bg-light: #f8f9fa;
+  --border-color: #e6e9f0;
+  --card-shadow: 0 0 0 4px #f9fafc;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --section-width: 1280px;
+  --section-padding: 0 5%;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-sans);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+  width: 100%;
+}
+
+body {
+  width: 100%;
+  min-height: 100%;
+  overflow-x: hidden;
+  background-color: #fff;
+  color: var(--primary-color);
+  font-family: var(--font-sans);
+  line-height: 1.8;
+  font-size: 16px;
+  margin: 0;
+  padding: 0;
+}
+
+/* Default heading styles. They live in the base layer so Tailwind classes on a
+   heading (text-lg, font-bold, ...) override them; unlayered rules would beat every
+   utility class and make all headings the same oversized style. */
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-sans);
+    color: var(--primary-color);
+    letter-spacing: -1px;
+    font-weight: 500;
+    line-height: 1.28;
+  }
+
+  h1 { font-size: 56px; line-height: 62px; }
+  h2 { font-size: 36px; line-height: 46px; }
+  h3 { font-size: 20px; line-height: 30px; }
+
+  /* The admin console uses compact application headings, not website headings. */
+  .admin-portal h1, .admin-portal h2, .admin-portal h3, .admin-portal h4 {
+    letter-spacing: 0;
+    color: inherit;
+  }
+  .admin-portal h1 { font-size: 1.5rem; line-height: 2rem; }
+  .admin-portal h2 { font-size: 1rem; line-height: 1.5rem; }
+  .admin-portal h3, .admin-portal h4 { font-size: 0.9375rem; line-height: 1.375rem; }
+
+  @media (max-width: 1024px) {
+    h1 { font-size: 42px; line-height: 50px; }
+    h2 { font-size: 36px; line-height: 42px; }
+  }
+
+  @media (max-width: 768px) {
+    h1 { font-size: 36px; line-height: 42px; }
+    h2 { font-size: 28px; line-height: 36px; }
+    h3 { font-size: 18px; line-height: 28px; }
+  }
+
+  @media (max-width: 500px) {
+    h1 { font-size: 32px; line-height: 40px; letter-spacing: -0.5px; }
+    h2 { font-size: 24px; line-height: 36px; }
+  }
+}
+
+/* ========================================================================= */
+/* ZOHO SECTION LAYOUT                                                       */
+/* ========================================================================= */
+.zw-section {
+  margin-bottom: 80px;
+  padding: var(--section-padding);
+}
+
+.zw-inner {
+  max-width: var(--section-width);
+  margin: 0 auto;
+  position: relative;
+}
+
+/* ========================================================================= */
+/* ZOHO RED DIVIDER LINE                                                     */
+/* ========================================================================= */
+.zw-divider {
+  width: 57px;
+  border-top: 1px solid #000;
+  display: block;
+  margin-top: 12px;
+  margin-bottom: 16px;
+}
+
+.zw-divider-red {
+  width: 44px;
+  height: 2px;
+  background-color: var(--brand-red);
+  display: block;
+}
+
+/* ========================================================================= */
+/* ZOHO MONO SECTION LABEL (exact match)                                     */
+/* ========================================================================= */
+.zw-label {
+  padding: 0 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 2px;
+  max-width: fit-content;
+  margin-bottom: 20px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.zw-label span {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 14px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  background: linear-gradient(90.01deg, #4199ea 0.01%, #21629f 139.06%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  padding: 8px 0;
+}
+
+.zw-label span::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  display: inline-block;
+  background-color: #4199ea;
+  margin-bottom: 1px;
+  margin-right: 7px;
+}
+
+/* Dark variant for dark sections */
+.zw-label-dark {
+  border-color: rgba(224, 224, 224, 0.2);
+}
+
+.zw-label-dark span {
+  background: linear-gradient(90.01deg, #fff 0.01%, #5ba4e9 89.06%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ========================================================================= */
+/* ZOHO PRIMARY CTA BUTTON (Red)                                             */
+/* ========================================================================= */
+.zw-cta-main {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: var(--brand-red);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  padding: 13px 31px;
+  border-radius: 2px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  text-decoration: none;
+  line-height: 1;
+  border: none;
+}
+
+.zw-cta-main:hover {
+  background-color: var(--brand-red-hover);
+  box-shadow: 0 4px 14px rgba(228, 37, 37, 0.25);
+  transform: translateY(-2px);
+}
+
+/* ========================================================================= */
+/* ZOHO ARROW CTA LINK                                                       */
+/* ========================================================================= */
+.zw-cta-arrow {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--brand-blue);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: gap 0.2s ease;
+}
+
+.zw-cta-arrow:hover {
+  gap: 10px;
+  text-decoration: underline;
+}
+
+.zw-cta-arrow::after {
+  content: "→";
+  font-size: 14px;
+}
+
+/* ========================================================================= */
+/* ZOHO OUTLINED CTA                                                         */
+/* ========================================================================= */
+.zw-cta-outlined {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid var(--brand-red);
+  color: var(--brand-red);
+  background-color: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 20px;
+  border-radius: 2px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  text-decoration: none;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.zw-cta-outlined:hover {
+  background-color: var(--brand-red);
+  color: #fff;
+}
+
+/* ========================================================================= */
+/* ZOHO ERP BLUE GRADIENT BUTTON                                             */
+/* ========================================================================= */
+.zw-erp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-image: linear-gradient(90deg, #226eb4 0%, #4199ea 50%, #226eb4 100%);
+  background-size: 200% auto;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 12px 60px;
+  border-radius: 6px;
+  transition: background-position 0.7s ease;
+  cursor: pointer;
+  text-decoration: none;
+  border: 1px solid transparent;
+  border-image-source: linear-gradient(90deg, #226eb4, #4199ea);
+  border-image-slice: 0;
+}
+
+.zw-erp-btn:hover {
+  background-position: 100% 0;
+}
+
+/* ========================================================================= */
+/* ZOHO ERP DARK HERO                                                        */
+/* ========================================================================= */
+.zw-dark-hero {
+  background: radial-gradient(circle at 50% 30%, #0a3258, #01162a);
+  position: relative;
+  overflow: hidden;
+}
+
+.zw-light-beam {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 2400px;
+  height: 1300px;
+  transform: translateX(-50%);
+  filter: blur(100px);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.zw-light-beam::after {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 100%;
+  clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+  background: linear-gradient(0deg, #51acff 35%, #a5fff5 56%, rgba(255, 126, 126, 0.89) 65%, #fff1b2 82%);
+}
+
+/* Grid pattern overlay */
+.zw-grid-pattern {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 0);
+  background-size: 124px 124px;
+  mask-image: linear-gradient(180deg, #000 0%, #000 90%, transparent);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.zw-grid-pattern-small {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(90deg, rgba(249, 249, 249, 0.04) 1px, transparent 0);
+  background-size: 31px 31px;
+  mask-image: linear-gradient(180deg, #000 0%, #000 90%, transparent);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ========================================================================= */
+/* ZOHO PERSPECTIVE DASHBOARD MOCKUP                                         */
+/* ========================================================================= */
+.zw-perspective-card {
+  perspective: 1000px;
+  transform: perspective(1000px) rotateX(12deg);
+  transition: transform 0.9s ease, box-shadow 0.9s ease;
+}
+
+.zw-perspective-card:hover {
+  transform: perspective(1000px) rotateX(0deg);
+}
+
+/* ========================================================================= */
+/* ZOHO GROWTH CARDS (2-column feature cards)                                */
+/* ========================================================================= */
+.zw-growth-card {
+  border: 1px solid var(--border-color);
+  box-shadow: var(--card-shadow);
+  border-radius: 8px;
+  background: #fff;
+  padding: 20px 0 27px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.zw-growth-card-thumb {
+  height: 260px;
+  border-radius: 6px;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  position: relative;
+  overflow: hidden;
+  background: #f9fafc;
+  margin: 0 20px;
+}
+
+.zw-growth-card-thumb::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(#4199ea, #01162a);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  z-index: 0;
+}
+
+.zw-growth-card:hover .zw-growth-card-thumb::before {
+  opacity: 1;
+}
+
+.zw-growth-card-content {
+  padding: 0 20px;
+  box-shadow: 0 -4.42px 6.19px 0 rgba(0, 0, 0, 0.03);
+  position: relative;
+}
+
+.zw-growth-card-content h3 {
+  font-size: 20px;
+  line-height: 34px;
+  font-weight: 500;
+  margin: 20px 0 8px;
+  color: #000;
+}
+
+.zw-growth-card-content p {
+  font-size: 16px;
+  line-height: 30px;
+  font-weight: 400;
+  color: var(--body-color);
+}
+
+/* ========================================================================= */
+/* ZOHO PRIVACY/COMPLIANCE DARK SECTION                                      */
+/* ========================================================================= */
+.zw-dark-section {
+  background: radial-gradient(circle at 50% 30%, #01162a, #0a3258);
+  color: #b6d3ee;
+}
+
+.zw-dark-section h2 {
+  color: #b6d3ee;
+}
+
+.zw-dark-section p {
+  color: #b6d3ee;
+  font-size: 16px;
+  line-height: 30px;
+}
+
+/* ========================================================================= */
+/* ZOHO MODULE CARDS                                                         */
+/* ========================================================================= */
+.zw-module {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--card-shadow);
+  border-radius: 8px;
+  flex: 1;
+}
+
+.zw-module-header {
+  padding: 24px 40px;
+  gap: 20px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+}
+
+.zw-module-body {
+  padding: 25px 40px 35px;
+  gap: 32px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ========================================================================= */
+/* ZOHO TEXT GRADIENT                                                         */
+/* ========================================================================= */
+.zw-text-gradient {
+  background: linear-gradient(90deg, #000 30%, #226eb4 60%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+.zw-link-gradient {
+  background: linear-gradient(90deg, #226eb4 30%, #4199ea 51%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ========================================================================= */
+/* ZOHO STATS SECTION                                                        */
+/* ========================================================================= */
+.zw-stats-divider {
+  width: 1px;
+  background-color: var(--border-color);
+  align-self: stretch;
+}
+
+/* ========================================================================= */
+/* ZOHO PRIVACY DASHED UNDERLINE LINK                                        */
+/* ========================================================================= */
+.zw-privacy-link {
+  border-bottom: 1px dashed rgba(0, 0, 0, 0.5);
+  color: inherit;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.zw-privacy-link:hover {
+  border-bottom-color: var(--brand-red);
+  color: var(--brand-red);
+}
+
+/* ========================================================================= */
+/* ZOHO PRODUCT TAG (floating tags in card thumbnails)                        */
+/* ========================================================================= */
+.zw-tag {
+  position: absolute;
+  background-color: #fff;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 400;
+  color: #a8a8a8;
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+  border-radius: 4px;
+  z-index: 3;
+  transition: all 0.1s ease;
+  border: 1px solid transparent;
+}
+
+/* ========================================================================= */
+/* CUSTOM SCROLLBAR                                                          */
+/* ========================================================================= */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ========================================================================= */
+/* RESPONSIVE                                                                */
+/* ========================================================================= */
+@media (max-width: 1024px) {
+  .zw-section { margin-bottom: 60px; }
+}
+
+@media (max-width: 500px) {
+  .zw-cta-main { width: 100%; }
+}
+
+/* Keep backward compat for existing classes during transition */
+.waves-mono-tag { 
+  composes: zw-label; 
+}
+.waves-btn-primary {
+  composes: zw-cta-main;
+}
+.waves-btn-outline-red {
+  composes: zw-cta-outlined;
+}
+.waves-erp-btn {
+  composes: zw-erp-btn;
+}
+.waves-erp-dark-bg {
+  composes: zw-dark-hero;
+}
+.waves-light-beam {
+  composes: zw-light-beam;
+}
+.waves-perspective-card {
+  composes: zw-perspective-card;
+}
