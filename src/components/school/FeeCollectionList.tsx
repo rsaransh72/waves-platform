@@ -11,7 +11,8 @@ import {
   User,
   Calendar,
   CheckCircle2,
-  Clock
+  Clock,
+  Users
 } from "lucide-react";
 import { createClient } from "@/lib/supabase-browser";
 import { toast } from "sonner";
@@ -21,6 +22,7 @@ import { formatMoney } from "@/lib/money";
 import { schoolToday } from "@/lib/school-date";
 import { AmountInput } from "@/components/forms/IndiaInputs";
 import { formatDate } from "@/lib/india";
+import { AssignFeeDrawer } from "@/components/school/AssignFeeDrawer";
 
 const INVOICE_SELECT = "*, school_students(id, first_name, last_name, roll_number), school_fee_structures(id, name, amount), school_fee_payments(id, receipt_number, amount_paid, payment_date, payment_method)";
 
@@ -37,9 +39,9 @@ function openReceipt(paymentId: string) {
   window.open(`/school/fees/receipts/${paymentId}`, "_blank", "noopener");
 }
 
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-export function FeeCollectionList({ initialInvoices, students, structures }: { initialInvoices: any[], students: any[], structures: any[] }) {
+export function FeeCollectionList({ initialInvoices, students, structures, classes }: { initialInvoices: any[], students: any[], structures: any[], classes: any[] }) {
   const router = useRouter();
   const [invoices, setInvoices] = useState<any[]>(initialInvoices);
   const [filteredInvoices, setFilteredInvoices] = useState<any[]>(initialInvoices);
@@ -48,6 +50,7 @@ export function FeeCollectionList({ initialInvoices, students, structures }: { i
   // Drawer states
   const [isInvoiceDrawerOpen, setIsInvoiceDrawerOpen] = useState(false);
   const [isPaymentDrawerOpen, setIsPaymentDrawerOpen] = useState(false);
+  const [isAssignDrawerOpen, setIsAssignDrawerOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
   
   // Form states
@@ -66,6 +69,19 @@ export function FeeCollectionList({ initialInvoices, students, structures }: { i
       inv.school_fee_structures?.name.toLowerCase().includes(query)
     );
     setFilteredInvoices(filtered);
+  };
+
+  // After a bulk assignment, load the list again (it holds its own copy of the rows).
+  const reloadInvoices = async () => {
+    const { data, error } = await supabase.from("school_student_fees").select(INVOICE_SELECT).order("created_at", { ascending: false });
+    if (error) {
+      toast.error(`Could not reload the fee list: ${describeError(error)}`);
+      return;
+    }
+    setInvoices(data ?? []);
+    setFilteredInvoices(data ?? []);
+    setSearchQuery("");
+    router.refresh();
   };
 
   const handleCreateInvoice = async (e: React.FormEvent) => {
@@ -173,14 +189,33 @@ export function FeeCollectionList({ initialInvoices, students, structures }: { i
             />
           </div>
           
-          <button
-            onClick={() => setIsInvoiceDrawerOpen(true)}
-            className="h-9 px-4 bg-[#0066cc] hover:bg-[#0055bb] text-white text-[13px] font-medium rounded-md flex items-center justify-center gap-2 transition-colors shadow-sm whitespace-nowrap"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Generate Invoice</span>
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setIsAssignDrawerOpen(true)}
+              className="h-9 px-4 bg-[#0066cc] hover:bg-[#0055bb] text-white text-[13px] font-medium rounded-md flex items-center justify-center gap-2 transition-colors shadow-sm whitespace-nowrap"
+            >
+              <Users className="w-4 h-4" />
+              <span>Assign to classes</span>
+            </button>
+            <button
+              onClick={() => setIsInvoiceDrawerOpen(true)}
+              className="h-9 px-4 bg-white hover:bg-[#f4f4f5] border border-[#cccccc] text-[#111111] text-[13px] font-medium rounded-md flex items-center justify-center gap-2 transition-colors shadow-sm whitespace-nowrap"
+            >
+              <Plus className="w-4 h-4" />
+              <span>One student</span>
+            </button>
+          </div>
         </div>
+
+        <AssignFeeDrawer
+          isOpen={isAssignDrawerOpen}
+          onClose={() => setIsAssignDrawerOpen(false)}
+          onAssigned={reloadInvoices}
+          students={students}
+          classes={classes}
+          structures={structures}
+          existingFees={invoices}
+        />
 
         {/* Table */}
         <div className="overflow-x-auto min-h-[400px]">
