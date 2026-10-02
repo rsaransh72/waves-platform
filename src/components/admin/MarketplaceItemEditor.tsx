@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+
+import { toast } from "sonner";import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Save, Globe, EyeOff, Archive, Check, Plus, Trash2, GripVertical } from "lucide-react";
 import Link from "next/link";
@@ -81,7 +82,7 @@ export function MarketplaceItemEditor({ initialData, isNew }: { initialData: any
       router.refresh();
     } catch (err: any) {
       console.error(err);
-      alert(`Error saving marketplaceitem: ${err.message || JSON.stringify(err)}`);
+      toast.error(`Error saving marketplaceitem: ${err.message || JSON.stringify(err)}`);
     } finally {
       setIsSaving(false);
     }

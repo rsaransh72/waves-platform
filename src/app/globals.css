@@ -47,23 +47,46 @@ body {
   padding: 0;
 }
 
-/* Zoho Puvi-matching heading styles */
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-sans);
-  color: var(--primary-color);
-  letter-spacing: -1px;
-  font-weight: 500;
-  line-height: 1.28;
-}
+/* Default heading styles. They live in the base layer so Tailwind classes on a
+   heading (text-lg, font-bold, ...) override them; unlayered rules would beat every
+   utility class and make all headings the same oversized style. */
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-sans);
+    color: var(--primary-color);
+    letter-spacing: -1px;
+    font-weight: 500;
+    line-height: 1.28;
+  }
 
-h1 { font-size: 56px; line-height: 62px; }
-h2 { font-size: 36px; line-height: 46px; }
-h3 { font-size: 20px; line-height: 30px; }
+  h1 { font-size: 56px; line-height: 62px; }
+  h2 { font-size: 36px; line-height: 46px; }
+  h3 { font-size: 20px; line-height: 30px; }
 
-.admin-portal h1 {
-  font-size: 40px;
-  line-height: 50px;
-  letter-spacing: 0;
+  /* The admin console uses compact application headings, not website headings. */
+  .admin-portal h1, .admin-portal h2, .admin-portal h3, .admin-portal h4 {
+    letter-spacing: 0;
+    color: inherit;
+  }
+  .admin-portal h1 { font-size: 1.5rem; line-height: 2rem; }
+  .admin-portal h2 { font-size: 1rem; line-height: 1.5rem; }
+  .admin-portal h3, .admin-portal h4 { font-size: 0.9375rem; line-height: 1.375rem; }
+
+  @media (max-width: 1024px) {
+    h1 { font-size: 42px; line-height: 50px; }
+    h2 { font-size: 36px; line-height: 42px; }
+  }
+
+  @media (max-width: 768px) {
+    h1 { font-size: 36px; line-height: 42px; }
+    h2 { font-size: 28px; line-height: 36px; }
+    h3 { font-size: 18px; line-height: 28px; }
+  }
+
+  @media (max-width: 500px) {
+    h1 { font-size: 32px; line-height: 40px; letter-spacing: -0.5px; }
+    h2 { font-size: 24px; line-height: 36px; }
+  }
 }
 
 /* ========================================================================= */
@@ -511,20 +534,10 @@ h3 { font-size: 20px; line-height: 30px; }
 /* RESPONSIVE                                                                */
 /* ========================================================================= */
 @media (max-width: 1024px) {
-  h1 { font-size: 42px; line-height: 50px; }
-  h2 { font-size: 36px; line-height: 42px; }
   .zw-section { margin-bottom: 60px; }
 }
 
-@media (max-width: 768px) {
-  h1 { font-size: 36px; line-height: 42px; }
-  h2 { font-size: 28px; line-height: 36px; }
-  h3 { font-size: 18px; line-height: 28px; }
-}
-
 @media (max-width: 500px) {
-  h1 { font-size: 32px; line-height: 40px; letter-spacing: -0.5px; }
-  h2 { font-size: 24px; line-height: 36px; }
   .zw-cta-main { width: 100%; }
 }
 

@@ -47,6 +47,16 @@ export function PageList({ initialPages }: { initialPages: any[] }) {
       ),
     },
     {
+      id: "website",
+      header: "On website",
+      cell: ({ row }) => {
+        const hasContent = Array.isArray(row.original.blocks) && row.original.blocks.some((block: { heading?: string; body?: string }) => block?.heading?.trim() || block?.body?.trim());
+        if (row.original.status !== "published") return <span className="text-xs text-slate-500">Not published</span>;
+        if (!hasContent) return <span className="text-xs font-semibold text-amber-700">Empty – not shown until you add content</span>;
+        return <a href={`/${row.original.slug}`} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-blue-600 hover:underline">/{row.original.slug} ↗</a>;
+      },
+    },
+    {
       accessorKey: "created_at",
       header: "Created",
       cell: ({ row }) => (

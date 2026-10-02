@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Command } from "cmdk";
 import { useRouter } from "next/navigation";
 import { 
-  Search, Plus, Building, Users, Receipt, LifeBuoy, Loader2
+  Search, Plus, Building, Users, Receipt, PhoneCall, Loader2
 } from "lucide-react";
 import { adminNavigation } from "@/lib/admin-navigation";
 import { createClient } from "@/lib/supabase-browser";
@@ -67,8 +67,8 @@ export function CommandPalette() {
         ] = await Promise.all([
           supabase.from("organizations").select("id, name, email").ilike("name", query).limit(5),
           supabase.from("team_members").select("id, name, email").ilike("name", query).limit(5),
-          supabase.from("invoices").select("id, invoice_number, amount").ilike("invoice_number", query).limit(5),
-          supabase.from("support_tickets").select("id, subject, customer_email").ilike("subject", query).limit(5),
+          supabase.from("invoices").select("id, invoice_number, amount, organization_id").ilike("invoice_number", query).limit(5),
+          supabase.from("leads").select("id, name, organization_name, phone").or(`name.ilike.${query},organization_name.ilike.${query},phone.ilike.${query}`).limit(5),
         ]);
 
         if (isMounted) {
@@ -206,7 +206,7 @@ export function CommandPalette() {
                           <Command.Item 
                             key={i.id}
                             value={`inv-${i.id}`}
-                            onSelect={() => runCommand(() => router.push(`/admin/billing`))}
+                            onSelect={() => runCommand(() => router.push(i.organization_id ? `/admin/organizations/${i.organization_id}` : `/admin/billing`))}
                             className="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg cursor-pointer hover:bg-slate-100 hover:text-slate-900 aria-selected:bg-slate-100 aria-selected:text-slate-900"
                           >
                             <Receipt className="h-4 w-4 mr-3 text-amber-500" />
@@ -218,18 +218,18 @@ export function CommandPalette() {
                     )}
 
                     {results.tics.length > 0 && (
-                      <Command.Group heading="Support Tickets" className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wider mt-2">
+                      <Command.Group heading="Leads" className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wider mt-2">
                         {results.tics.map((t: any) => (
                           <Command.Item 
                             key={t.id}
                             value={`tic-${t.id}`}
-                            onSelect={() => runCommand(() => router.push(`/admin/support`))}
+                            onSelect={() => runCommand(() => router.push(`/admin/leads`))}
                             className="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg cursor-pointer hover:bg-slate-100 hover:text-slate-900 aria-selected:bg-slate-100 aria-selected:text-slate-900"
                           >
-                            <LifeBuoy className="h-4 w-4 mr-3 text-red-500" />
+                            <PhoneCall className="h-4 w-4 mr-3 text-orange-500" />
                             <div className="flex flex-col">
-                              <span className="truncate max-w-sm">{t.subject}</span>
-                              <span className="text-xs text-slate-400">{t.customer_email}</span>
+                              <span className="truncate max-w-sm">{t.organization_name || t.name}</span>
+                              <span className="text-xs text-slate-400">{t.name}{t.phone ? ` · ${t.phone}` : ""}</span>
                             </div>
                           </Command.Item>
                         ))}

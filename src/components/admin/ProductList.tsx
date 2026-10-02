@@ -66,7 +66,11 @@ export function ProductList({ initialProducts }: { initialProducts: any[] }) {
       cell: ({ row }) => (
         <div className="flex flex-col">
           <span className="font-bold text-slate-900">{row.original.title}</span>
-          <span className="text-xs font-medium text-slate-500">/{row.original.slug}</span>
+          {row.original.status === "published" ? (
+            <a href={`/${row.original.slug}`} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-blue-600 hover:underline">/{row.original.slug} · view on site ↗</a>
+          ) : (
+            <span className="text-xs font-medium text-slate-500">/{row.original.slug} · not on the website</span>
+          )}
         </div>
       ),
     },

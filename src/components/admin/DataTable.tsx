@@ -42,6 +42,8 @@ interface DataTableProps<TData, TValue> {
   disablePagination?: boolean;
   onScrollEnd?: () => void;
   bulkActions?: BulkAction<TData>[];
+  // Shown when there are no rows at all (before any search or filter).
+  emptyState?: React.ReactNode;
 }
 
 export function DataTable<TData, TValue>({
@@ -56,6 +58,7 @@ export function DataTable<TData, TValue>({
   disablePagination = false,
   onScrollEnd,
   bulkActions,
+  emptyState,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -336,7 +339,7 @@ export function DataTable<TData, TValue>({
                     colSpan={columns.length}
                     className="h-24 text-center text-slate-500 font-medium"
                   >
-                    No results.
+                    {data.length === 0 && emptyState ? emptyState : data.length === 0 ? "Nothing here yet." : "No rows match your search or filters."}
                   </td>
                 </tr>
               )}
@@ -365,7 +368,7 @@ export function DataTable<TData, TValue>({
               <ChevronLeft className="h-4 w-4" />
             </button>
             <span className="text-sm text-slate-600 font-medium px-2">
-              Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+              Page {table.getState().pagination.pageIndex + 1} of {Math.max(1, table.getPageCount())}
             </span>
             <button
               className="p-1 rounded border border-gray-200 text-slate-500 hover:bg-slate-100 disabled:opacity-50"

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
+import { workspaceLabel } from "@/lib/product-workspaces";
 
 type AuthUser = {
   id: string;
@@ -41,13 +42,12 @@ export async function GET() {
     return NextResponse.json({ error: "User directory requires the server-only Supabase service-role key." }, { status: 503 });
   }
 
-  const [membershipsResult, organizationsResult, platformUsersResult] = await Promise.all([
+  const [membershipsResult, organizationsResult] = await Promise.all([
     adminClient.from("organization_members").select("user_id, organization_id, role, created_at"),
     adminClient.from("organizations").select("id, name, slug, type, status").order("name"),
-    adminClient.from("team_members").select("id, name, email, role, status, created_at").order("name"),
   ]);
 
-  const queryError = membershipsResult.error || organizationsResult.error || platformUsersResult.error;
+  const queryError = membershipsResult.error || organizationsResult.error;
   if (queryError) {
     console.error("Client user directory query failed:", queryError);
     return NextResponse.json({ error: "Could not load client memberships. Verify the production schemas and policies." }, { status: 503 });
@@ -66,7 +66,6 @@ export async function GET() {
   }
 
   const authUsersById = new Map(authUsers.map((authUser) => [authUser.id, authUser]));
-  const authUsersByEmail = new Map(authUsers.map((authUser) => [authUser.email?.toLowerCase(), authUser]));
   const organizationsById = new Map((organizationsResult.data ?? []).map((organization) => [organization.id, organization]));
 
   const clientUsers = (membershipsResult.data ?? []).map((membership) => {
@@ -77,7 +76,7 @@ export async function GET() {
       email: authUser?.email ?? null,
       name: authUser ? metadataName(authUser) : "Auth identity unavailable",
       role: membership.role,
-      product: organization?.type === "school" ? "School ERP" : organization?.type ?? "Unknown product",
+      product: organization ? workspaceLabel(organization.type) : "Unknown product",
       clientName: organization?.name ?? "Unknown client",
       clientSlug: organization?.slug ?? "",
       clientStatus: organization?.status ?? "unknown",
@@ -88,25 +87,8 @@ export async function GET() {
     };
   });
 
-  const platformUsers = (platformUsersResult.data ?? []).map((platformUser) => {
-    const authUser = authUsersByEmail.get(platformUser.email.toLowerCase());
-    return {
-      userId: authUser?.id ?? platformUser.id,
-      email: platformUser.email,
-      name: platformUser.name,
-      role: platformUser.role,
-      product: "Waves Platform",
-      clientName: "Platform Administration",
-      clientSlug: "",
-      clientStatus: platformUser.status,
-      accountStatus: !authUser ? "identity unavailable" : authUser.banned_until ? "restricted" : authUser.email_confirmed_at ? "active" : "invited",
-      lastSignInAt: authUser?.last_sign_in_at ?? null,
-      membershipCreatedAt: platformUser.created_at,
-      canSendReset: Boolean(authUser?.email),
-    };
-  });
-
-  const directory = [...clientUsers, ...platformUsers].sort((left, right) =>
+  // Platform staff are managed under Platform Team, not listed as client users.
+  const directory = [...clientUsers].sort((left, right) =>
     left.product.localeCompare(right.product)
       || left.clientName.localeCompare(right.clientName)
       || left.name.localeCompare(right.name)

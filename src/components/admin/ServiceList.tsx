@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+
+import { toast } from "sonner";import { useState } from "react";
 import { Search, Filter, Edit2, Trash2, EyeOff, CheckCircle, Eye } from "lucide-react";
 import Link from "next/link";
 import { clsx } from "clsx";
@@ -39,7 +40,7 @@ export function ServiceList({ initialServices }: { initialServices: any[] }) {
       setServices(services.filter(p => p.id !== id));
       router.refresh();
     } catch (err: any) {
-      alert(`Error deleting service: ${err.message}`);
+      toast.error(`Error deleting service: ${err.message}`);
     } finally {
       setIsDeleting(null);
     }
@@ -55,7 +56,7 @@ export function ServiceList({ initialServices }: { initialServices: any[] }) {
       setServices(services.map(p => p.id === id ? { ...p, status: newStatus } : p));
       router.refresh();
     } catch (err: any) {
-      alert(`Error updating service status: ${err.message}`);
+      toast.error(`Error updating service status: ${err.message}`);
     } finally {
       setIsToggling(null);
     }
@@ -141,7 +142,11 @@ export function ServiceList({ initialServices }: { initialServices: any[] }) {
                       <td className="px-6 py-4">
                         <div className="flex flex-col">
                           <span className="font-bold text-slate-900">{service.title}</span>
-                          <span className="text-xs font-medium text-slate-500">/{service.slug}</span>
+                          {service.status === "published" ? (
+                            <a href={`/services#${service.slug}`} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-blue-600 hover:underline">/services#{service.slug} · view on site ↗</a>
+                          ) : (
+                            <span className="text-xs font-medium text-slate-500">Not on the website</span>
+                          )}
                         </div>
                       </td>
                       <td className="px-6 py-4">

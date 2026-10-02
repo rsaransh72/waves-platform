@@ -118,7 +118,7 @@ export function ClientUserDirectory() {
         <div>
           <p className="text-xs font-bold uppercase text-blue-700">Access directory</p>
           <h1 className="mt-1 text-2xl font-bold text-slate-900">Client Users</h1>
-          <p className="mt-1 text-sm text-slate-500">School and platform accounts organized by product and client.</p>
+          <p className="mt-1 text-sm text-slate-500">Everyone who signs in to a client workspace, grouped by product and client. Add or remove users on the client&apos;s page.</p>
         </div>
         <div className="flex gap-2">
           <label className="relative min-w-0 flex-1 sm:w-72 sm:flex-none">
@@ -149,7 +149,7 @@ export function ClientUserDirectory() {
         <div className="border border-dashed border-slate-300 bg-white px-5 py-12 text-center">
           <Users className="mx-auto h-7 w-7 text-slate-400" />
           <p className="mt-3 font-semibold text-slate-900">No matching user accounts</p>
-          <p className="mt-1 text-sm text-slate-500">Try another search or onboard a school client first.</p>
+          <p className="mt-1 text-sm text-slate-500">{users.length === 0 ? "Users appear here once you onboard a client and its administrator accepts the invitation." : "Try another search."}</p>
         </div>
       )}
 
@@ -168,11 +168,10 @@ export function ClientUserDirectory() {
                     <span className="shrink-0 text-xs font-medium text-slate-500">{client.users.length} {client.users.length === 1 ? "user" : "users"}</span>
                   </summary>
                   <div className="overflow-x-auto">
-                    <table className="w-full min-w-[920px] text-left text-sm">
+                    <table className="w-full min-w-[760px] text-left text-sm">
                       <thead className="border-b border-slate-200 text-[11px] font-bold uppercase text-slate-500">
                         <tr>
                           <th className="px-4 py-3">User</th>
-                          <th className="px-4 py-3">User ID</th>
                           <th className="px-4 py-3">Role</th>
                           <th className="px-4 py-3">Account</th>
                           <th className="px-4 py-3">Last sign-in</th>
@@ -187,7 +186,6 @@ export function ClientUserDirectory() {
                               <div className="mt-0.5 text-xs text-slate-500">{user.email || "Email unavailable"}</div>
                               <div className="mt-1 text-[11px] text-slate-400">Client status: {user.clientStatus}</div>
                             </td>
-                            <td className="max-w-48 break-all px-4 py-3 font-mono text-xs text-slate-600">{user.userId}</td>
                             <td className="px-4 py-3 capitalize text-slate-700">{user.role.replaceAll("_", " ")}</td>
                             <td className="px-4 py-3"><span className={`inline-flex rounded border px-2 py-1 text-xs font-semibold capitalize ${statusClass(user.accountStatus)}`}>{user.accountStatus}</span></td>
                             <td className="px-4 py-3 whitespace-nowrap text-slate-600">{formatDate(user.lastSignInAt)}</td>

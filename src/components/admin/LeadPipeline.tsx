@@ -156,7 +156,7 @@ export function LeadPipeline({ leads, products, today, openCreate = false }: { l
                 </td>
                 <td className="px-4 py-3">
                   <div className="text-slate-800">{INQUIRY_LABELS[lead.inquiry_type ?? "demo"] ?? "Enquiry"}</div>
-                  <div className="text-xs text-slate-500">{lead.product && lead.product !== "general" ? productTitles.get(lead.product) ?? lead.product : "No product chosen"}</div>
+                  <div className="text-xs text-slate-500">{lead.product && lead.product !== "general" ? productTitles.get(lead.product) ?? `${lead.product} (no longer offered)` : "No product chosen"}</div>
                 </td>
                 <td className="px-4 py-3 text-xs text-slate-600">
                   {lead.phone && <div className="flex items-center gap-1"><Phone className="h-3 w-3" /> {lead.phone}</div>}
@@ -178,7 +178,7 @@ export function LeadPipeline({ leads, products, today, openCreate = false }: { l
       </div>
 
       <Drawer isOpen={selected !== null} onClose={() => setSelectedId(null)} title={selected?.name ?? "Lead"}>
-        {selected && <LeadDetail key={selected.id} lead={selected} productTitle={selected.product && selected.product !== "general" ? productTitles.get(selected.product) ?? selected.product : null} onClose={() => setSelectedId(null)} />}
+        {selected && <LeadDetail key={selected.id} lead={selected} productTitle={selected.product && selected.product !== "general" ? productTitles.get(selected.product) ?? `${selected.product} (no longer offered)` : null} onClose={() => setSelectedId(null)} />}
       </Drawer>
 
       <Drawer isOpen={isCreating} onClose={() => setIsCreating(false)} title="Add a lead">

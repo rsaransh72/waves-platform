@@ -3,14 +3,18 @@ import { SubscriptionList } from "@/components/admin/SubscriptionList";
 
 export const revalidate = 0;
 
+function currentTime() {
+  return Date.now();
+}
+
 export default async function SubscriptionsPage() {
   const supabase = await createServerSupabaseClient();
   const { data: subscriptions, error } = await supabase
     .from("subscriptions")
-    .select("*, organizations(name, email, type, status)")
-    .order("created_at", { ascending: false });
+    .select("id, organization_id, organization_name, plan_name, amount, status, next_billing_date, organizations(name, status)")
+    .order("next_billing_date", { ascending: true });
 
   if (error) console.error("Error fetching subscriptions:", error);
 
-  return <SubscriptionList initialData={subscriptions || []} />;
+  return <SubscriptionList initialData={(subscriptions ?? []) as never} now={currentTime()} />;
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "sonner";
 import { useState } from "react";
 import { Plus, Trash2, GripVertical, Save, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase-browser";
@@ -27,16 +28,25 @@ export function NavigationEditor({ initialMenu, validPaths }: { initialMenu: any
     setItems(newItems);
   };
 
+  // A link to a page that does not exist yet (or has no content) is saved but hidden on
+  // the website until the page is ready, so the menu can be prepared in advance.
+  const isLive = (href: unknown) => {
+    const path = normalizePublicMenuPath(href);
+    return Boolean(path && validPaths.includes(path));
+  };
+
   const handleSave = async () => {
-    const invalidItem = items.find((item: { label?: unknown; href?: unknown }) => {
-      const label = typeof item.label === "string" ? item.label.trim() : "";
-      const path = normalizePublicMenuPath(item.href);
-      return label.length === 0 || !path || !validPaths.includes(path);
-    });
-    if (invalidItem) {
-      alert("Every menu item needs a label and a path that matches an existing public page.");
+    const unlabeled = items.find((item: { label?: unknown }) => typeof item.label !== "string" || !item.label.trim());
+    if (unlabeled) {
+      toast.error("Every menu link needs a label.");
       return;
     }
+    const badPath = items.find((item: { href?: unknown }) => !normalizePublicMenuPath(item.href));
+    if (badPath) {
+      toast.error(`"${badPath.label}" needs a path that starts with /, e.g. /contact.`);
+      return;
+    }
+    const hidden = items.filter((item: { href?: unknown }) => !isLive(item.href)).map((item: { label: string }) => item.label);
 
     setIsSaving(true);
     try {
@@ -48,10 +58,10 @@ export function NavigationEditor({ initialMenu, validPaths }: { initialMenu: any
         const { error } = await supabase.from("menus").insert([{ name: "Main Navbar", items }]);
         if (error) throw error;
       }
-      alert("Navigation saved successfully!");
+      toast.success(hidden.length ? `Website menu saved. Hidden until their pages have content: ${hidden.join(", ")}.` : "Website menu saved.");
       router.refresh();
     } catch (err: any) {
-      alert(`Error saving menu: ${err.message}`);
+      toast.error(`Could not save the menu: ${err.message}`);
     } finally {
       setIsSaving(false);
     }
@@ -99,6 +109,9 @@ export function NavigationEditor({ initialMenu, validPaths }: { initialMenu: any
                   placeholder="e.g. /school-erp"
                   className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none"
                 />
+                {item.href && !isLive(item.href) && (
+                  <p className="mt-1 text-xs font-medium text-amber-700">Not shown on the website: this page does not exist or has no content yet.</p>
+                )}
               </div>
             </div>
 

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+
+import { toast } from "sonner";import { useState } from "react";
 import { Search, Filter, Edit2, Trash2, EyeOff, CheckCircle, Eye } from "lucide-react";
 import Link from "next/link";
 import { clsx } from "clsx";
@@ -39,7 +40,7 @@ export function MarketplaceItemList({ initialMarketplaceItems }: { initialMarket
       setMarketplaceItems(marketplaceitems.filter(p => p.id !== id));
       router.refresh();
     } catch (err: any) {
-      alert(`Error deleting marketplaceitem: ${err.message}`);
+      toast.error(`Error deleting marketplaceitem: ${err.message}`);
     } finally {
       setIsDeleting(null);
     }
@@ -55,7 +56,7 @@ export function MarketplaceItemList({ initialMarketplaceItems }: { initialMarket
       setMarketplaceItems(marketplaceitems.map(p => p.id === id ? { ...p, status: newStatus } : p));
       router.refresh();
     } catch (err: any) {
-      alert(`Error updating marketplaceitem status: ${err.message}`);
+      toast.error(`Error updating marketplaceitem status: ${err.message}`);
     } finally {
       setIsToggling(null);
     }

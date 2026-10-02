@@ -12,10 +12,12 @@ import { formatMoney, formatMoneyCode } from "@/lib/money";
 import { Drawer } from "./Drawer";
 import { InvoiceEditor } from "./InvoiceEditor";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 interface Invoice {
   id: string;
   invoice_number: string;
+  organization_id: string;
   organization_name: string;
   amount: number;
   status: string;
@@ -52,7 +54,11 @@ export function InvoiceList({ initialData, initialInvoiceId }: { initialData: In
     {
       accessorKey: "organization_name",
       header: "Customer",
-      cell: ({ row }) => <span className="font-medium text-slate-700">{row.original.organization_name}</span>,
+      cell: ({ row }) => (
+        <Link href={`/admin/organizations/${row.original.organization_id}`} className="font-medium text-slate-700 hover:text-blue-700 hover:underline">
+          {row.original.organization_name}
+        </Link>
+      ),
     },
     {
       accessorKey: "amount",
@@ -146,8 +152,8 @@ export function InvoiceList({ initialData, initialInvoiceId }: { initialData: In
     <div className="h-[calc(100vh-120px)] flex flex-col space-y-6">
       <div className="flex justify-between items-center shrink-0">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Billing History</h1>
-          <p className="text-sm font-medium text-slate-500">View all customer invoices.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Invoices</h1>
+          <p className="text-sm font-medium text-slate-500">Every invoice across clients. Create invoices and record payments on the client&apos;s page.</p>
         </div>
       </div>
       
@@ -155,16 +161,20 @@ export function InvoiceList({ initialData, initialInvoiceId }: { initialData: In
         <DataTable 
           columns={columns} 
           data={invoicesData} 
-          searchKey="invoice_number" 
+          searchKey="invoice_number"
+          searchPlaceholder="Search invoice number..."
           disablePagination={true}
+          emptyState={<span>No invoices yet. Invoices are created on a client&apos;s page, or when you renew a subscription.</span>}
           filters={[
             {
               key: "status",
               label: "All Statuses",
               options: [
+                { label: "Unpaid", value: "pending" },
                 { label: "Paid", value: "paid" },
-                { label: "Pending", value: "pending" },
-                { label: "Overdue", value: "overdue" }
+                { label: "Failed", value: "failed" },
+                { label: "Refunded", value: "refunded" },
+                { label: "Void", value: "void" }
               ]
             }
           ]}

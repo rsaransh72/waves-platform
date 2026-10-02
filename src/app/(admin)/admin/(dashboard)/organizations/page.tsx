@@ -16,7 +16,7 @@ export default async function CustomersPage({
   const supabase = await createServerSupabaseClient();
   const { data: orgs, error } = await supabase
     .from("organizations")
-    .select("*")
+    .select("id, name, slug, type, email, phone, city, status, subscriptions(plan_name, next_billing_date, status), organization_members(count)")
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -28,5 +28,5 @@ export default async function CustomersPage({
     );
   }
 
-  return <OrganizationList initialData={orgs || []} />;
+  return <OrganizationList initialData={(orgs ?? []) as never} />;
 }

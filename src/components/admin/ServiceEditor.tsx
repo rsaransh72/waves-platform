@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+
+import { toast } from "sonner";import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Save, Globe, EyeOff, Archive, Check, Plus, Trash2, GripVertical } from "lucide-react";
 import Link from "next/link";
@@ -83,7 +84,7 @@ export function ServiceEditor({ initialData, isNew }: { initialData: any, isNew:
       router.refresh();
     } catch (err: any) {
       console.error(err);
-      alert(`Error saving product: ${err.message || JSON.stringify(err)}`);
+      toast.error(`Could not save service: ${err.message || JSON.stringify(err)}`);
     } finally {
       setIsSaving(false);
     }

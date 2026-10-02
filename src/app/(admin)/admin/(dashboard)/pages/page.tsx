@@ -9,7 +9,7 @@ export default async function PagesPage() {
   const supabase = await createServerSupabaseClient();
   const { data: pages, error } = await supabase
     .from("pages")
-    .select("id, title, slug, status, created_at")
+    .select("id, title, slug, status, blocks, created_at")
     .order("created_at", { ascending: false });
 
   if (error) {
