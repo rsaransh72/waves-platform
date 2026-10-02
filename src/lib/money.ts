@@ -1,5 +1,6 @@
-// All amounts on the platform are stored as plain numbers in this single currency.
-export const BILLING_CURRENCY = process.env.NEXT_PUBLIC_BILLING_CURRENCY || "INR";
+// The platform serves India only: every amount is stored as a plain number of rupees
+// and shown with the ₹ sign and Indian digit grouping (₹1,25,000).
+export const BILLING_CURRENCY = "INR";
 
 const moneyFormatter = new Intl.NumberFormat("en-IN", {
   style: "currency",
@@ -7,12 +8,7 @@ const moneyFormatter = new Intl.NumberFormat("en-IN", {
   maximumFractionDigits: 2,
 });
 
-const moneyCodeFormatter = new Intl.NumberFormat("en-IN", {
-  style: "currency",
-  currency: BILLING_CURRENCY,
-  currencyDisplay: "code",
-  maximumFractionDigits: 2,
-});
+const plainNumberFormatter = new Intl.NumberFormat("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 function toAmount(value: number | string | null | undefined) {
   const amount = typeof value === "string" ? Number(value) : value ?? 0;
@@ -21,6 +17,14 @@ function toAmount(value: number | string | null | undefined) {
 
 export function formatMoney(value: number | string | null | undefined) {
   return moneyFormatter.format(toAmount(value));
+}
+
+// A plan price as rupees: 25000, "25,000", "₹25000", "Rs. 25000" and "25000/-" all give
+// 25000. Anything else ("$49/mo", "On request") gives null, i.e. pricing on request.
+export function rupeePrice(value: number | string | null | undefined): number | null {
+  if (value === undefined || value === null || value === "") return null;
+  const amount = typeof value === "number" ? value : Number(String(value).replace(/[₹,\s]|\/-$/g, "").replace(/^rs\.?/i, ""));
+  return Number.isFinite(amount) && amount > 0 ? amount : null;
 }
 
 const ONES = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
@@ -50,11 +54,10 @@ export function amountInWords(value: number | string) {
   }
   if (rupees) parts.push(belowThousand(rupees));
   const words = parts.join(" ") || "Zero";
-  const currencyName = BILLING_CURRENCY === "INR" ? "Rupees" : BILLING_CURRENCY;
-  return `${currencyName} ${words}${paise ? ` and ${belowHundred(paise)} Paise` : ""} Only`;
+  return `Rupees ${words}${paise ? ` and ${belowHundred(paise)} Paise` : ""} Only`;
 }
 
-// For PDFs: the built-in jsPDF fonts cannot draw symbols such as the rupee sign.
+// For PDFs: the built-in jsPDF fonts cannot draw the rupee sign, so "Rs. 1,25,000.00".
 export function formatMoneyCode(value: number | string | null | undefined) {
-  return moneyCodeFormatter.format(toAmount(value));
+  return `Rs. ${plainNumberFormatter.format(toAmount(value))}`;
 }

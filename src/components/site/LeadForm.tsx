@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { CityInput, EmailInput, NameInput, PhoneInput, TextInput } from "@/components/forms/IndiaInputs";
 
 export type LeadInquiryType = "demo" | "contact" | "consultation" | "pricing" | "access";
 
@@ -82,6 +83,7 @@ export default function LeadForm({
 
   const update = (field: keyof typeof form) => (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
     setForm((current) => ({ ...current, [field]: event.target.value }));
+  const set = (field: keyof typeof form) => (value: string) => setForm((current) => ({ ...current, [field]: value }));
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -140,17 +142,17 @@ export default function LeadForm({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div>
             <label htmlFor={`${inquiryType}-name`} className={labelClass}>Full name <Required /></label>
-            <input id={`${inquiryType}-name`} type="text" required minLength={2} autoComplete="name" value={form.name} onChange={update("name")} className={inputClass} />
+            <NameInput id={`${inquiryType}-name`} required value={form.name} onValueChange={set("name")} className={inputClass} />
           </div>
           <div>
-            <label htmlFor={`${inquiryType}-phone`} className={labelClass}>Phone number <Required /></label>
-            <input id={`${inquiryType}-phone`} type="tel" required autoComplete="tel" placeholder="+91" value={form.phone} onChange={update("phone")} className={inputClass} />
+            <label htmlFor={`${inquiryType}-phone`} className={labelClass}>Mobile number <Required /></label>
+            <PhoneInput id={`${inquiryType}-phone`} required value={form.phone} onValueChange={set("phone")} className={inputClass} />
           </div>
         </div>
 
         <div>
           <label htmlFor={`${inquiryType}-email`} className={labelClass}>Email <Required /></label>
-          <input id={`${inquiryType}-email`} type="email" required autoComplete="email" value={form.email} onChange={update("email")} className={inputClass} />
+          <EmailInput id={`${inquiryType}-email`} required value={form.email} onValueChange={set("email")} className={inputClass} />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -158,11 +160,11 @@ export default function LeadForm({
             <label htmlFor={`${inquiryType}-org`} className={labelClass}>
               {inquiryType === "contact" ? "Organization" : <>Organization <Required /></>}
             </label>
-            <input id={`${inquiryType}-org`} type="text" required={inquiryType !== "contact"} autoComplete="organization" value={form.organizationName} onChange={update("organizationName")} className={inputClass} />
+            <TextInput id={`${inquiryType}-org`} label="Organization" required={inquiryType !== "contact"} max={200} autoComplete="organization" value={form.organizationName} onValueChange={set("organizationName")} className={inputClass} />
           </div>
           <div>
             <label htmlFor={`${inquiryType}-city`} className={labelClass}>City</label>
-            <input id={`${inquiryType}-city`} type="text" autoComplete="address-level2" value={form.city} onChange={update("city")} className={inputClass} />
+            <CityInput id={`${inquiryType}-city`} value={form.city} onValueChange={set("city")} className={inputClass} />
           </div>
         </div>
 
@@ -191,6 +193,7 @@ export default function LeadForm({
             id={`${inquiryType}-message`}
             rows={inquiryType === "contact" || inquiryType === "consultation" ? 4 : 3}
             required={inquiryType === "contact"}
+            minLength={inquiryType === "contact" ? 10 : undefined}
             maxLength={2000}
             value={form.message}
             onChange={update("message")}

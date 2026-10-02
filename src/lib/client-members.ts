@@ -1,5 +1,6 @@
 import "server-only";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
+import { emailError } from "@/lib/india";
 
 // User management for a client organization, shared by the platform admin console
 // and a school's own Users & Access page. Callers must authorize the actor for the
@@ -19,7 +20,6 @@ export type ClientMember = {
 
 export type Actor = { id: string; email?: string | null };
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function assertRole(role: string): asserts role is MemberRole {
   if (!MEMBER_ROLES.includes(role as MemberRole)) throw new Error("Choose a role.");
@@ -99,7 +99,8 @@ export async function listMembers(organizationId: string): Promise<ClientMember[
 
 export async function inviteMember(organizationId: string, emailInput: string, role: string, actor: Actor, origin: string) {
   const email = emailInput.trim().toLowerCase();
-  if (!EMAIL_PATTERN.test(email)) throw new Error("Enter a valid email address.");
+  const invalidEmail = emailError(email, true);
+  if (invalidEmail) throw new Error(invalidEmail);
   assertRole(role);
   const organization = await getOrganization(organizationId);
 

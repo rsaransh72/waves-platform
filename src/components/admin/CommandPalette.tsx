@@ -9,6 +9,7 @@ import {
 import { adminNavigation } from "@/lib/admin-navigation";
 import { createClient } from "@/lib/supabase-browser";
 import { formatMoney } from "@/lib/money";
+import { formatPhone } from "@/lib/india";
 
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
@@ -229,7 +230,7 @@ export function CommandPalette() {
                             <PhoneCall className="h-4 w-4 mr-3 text-orange-500" />
                             <div className="flex flex-col">
                               <span className="truncate max-w-sm">{t.organization_name || t.name}</span>
-                              <span className="text-xs text-slate-400">{t.name}{t.phone ? ` · ${t.phone}` : ""}</span>
+                              <span className="text-xs text-slate-400">{t.name}{t.phone ? ` · ${formatPhone(t.phone)}` : ""}</span>
                             </div>
                           </Command.Item>
                         ))}

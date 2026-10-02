@@ -8,6 +8,8 @@ import { Building, CalendarClock, Loader2, Mail, MessageCircle, Phone, Plus, Roc
 import { Drawer } from "./Drawer";
 import { createClient } from "@/lib/supabase-browser";
 import { formatAdminDate, formatAdminDateTime } from "@/lib/admin-format";
+import { CityInput, EmailInput, NameInput, PhoneInput, TextInput } from "@/components/forms/IndiaInputs";
+import { formatPhone, phoneHref, whatsAppHref } from "@/lib/india";
 import { addLeadNote, createLead, deleteLead, updateLeadPipeline, type LeadActionResult } from "@/app/actions/leads";
 import { INQUIRY_LABELS, LEAD_STATUSES, LEAD_STATUS_HINTS, LEAD_STATUS_LABELS, OPEN_LEAD_STATUSES, type LeadStatus } from "@/lib/lead-pipeline";
 
@@ -43,9 +45,6 @@ const STATUS_STYLES: Record<LeadStatus, string> = {
 
 const inputClass = "w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
 
-function digits(value: string) {
-  return value.replace(/[^\d+]/g, "");
-}
 
 function useAction() {
   const router = useRouter();
@@ -159,7 +158,7 @@ export function LeadPipeline({ leads, products, today, openCreate = false }: { l
                   <div className="text-xs text-slate-500">{lead.product && lead.product !== "general" ? productTitles.get(lead.product) ?? `${lead.product} (no longer offered)` : "No product chosen"}</div>
                 </td>
                 <td className="px-4 py-3 text-xs text-slate-600">
-                  {lead.phone && <div className="flex items-center gap-1"><Phone className="h-3 w-3" /> {lead.phone}</div>}
+                  {lead.phone && <div className="flex items-center gap-1"><Phone className="h-3 w-3" /> {formatPhone(lead.phone)}</div>}
                   {lead.email && <div className="flex items-center gap-1"><Mail className="h-3 w-3" /> {lead.email}</div>}
                 </td>
                 <td className="px-4 py-3">
@@ -218,15 +217,15 @@ function LeadDetail({ lead, productTitle, onClose }: { lead: Lead; productTitle:
   return (
     <div className="space-y-6 p-1 pb-16">
       <div className="flex flex-wrap gap-2">
-        {lead.phone && <a href={`tel:${digits(lead.phone)}`} className="inline-flex items-center gap-1.5 rounded border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"><Phone className="h-3.5 w-3.5" /> Call</a>}
-        {lead.phone && <a href={`https://wa.me/${digits(lead.phone).replace(/^\+/, "")}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"><MessageCircle className="h-3.5 w-3.5" /> WhatsApp</a>}
+        {lead.phone && <a href={phoneHref(lead.phone)} className="inline-flex items-center gap-1.5 rounded border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"><Phone className="h-3.5 w-3.5" /> Call</a>}
+        {lead.phone && <a href={whatsAppHref(lead.phone)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"><MessageCircle className="h-3.5 w-3.5" /> WhatsApp</a>}
         {lead.email && <a href={`mailto:${lead.email}`} className="inline-flex items-center gap-1.5 rounded border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"><Mail className="h-3.5 w-3.5" /> Email</a>}
       </div>
 
       <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
         <div><dt className="text-xs font-bold uppercase text-slate-400">Request</dt><dd className="text-slate-900">{INQUIRY_LABELS[lead.inquiry_type ?? "demo"] ?? "Enquiry"}</dd></div>
         <div><dt className="text-xs font-bold uppercase text-slate-400">Product</dt><dd className="text-slate-900">{productTitle ?? "Not chosen"}</dd></div>
-        <div><dt className="text-xs font-bold uppercase text-slate-400">Phone</dt><dd className="text-slate-900">{lead.phone || "—"}</dd></div>
+        <div><dt className="text-xs font-bold uppercase text-slate-400">Phone</dt><dd className="text-slate-900">{lead.phone ? formatPhone(lead.phone) : "—"}</dd></div>
         <div><dt className="text-xs font-bold uppercase text-slate-400">Email</dt><dd className="break-all text-slate-900">{lead.email || "—"}</dd></div>
         <div><dt className="text-xs font-bold uppercase text-slate-400">Organization</dt><dd className="text-slate-900">{lead.organization_name || "—"}</dd></div>
         <div><dt className="text-xs font-bold uppercase text-slate-400">City</dt><dd className="text-slate-900">{lead.city || "—"}</dd></div>
@@ -323,17 +322,18 @@ function NewLeadForm({ products, onDone }: { products: Array<{ slug: string; tit
   const { run, isPending } = useAction();
   const [form, setForm] = useState({ name: "", phone: "", email: "", organization_name: "", city: "", product: products[0]?.slug ?? "", inquiry_type: "demo", source: "phone", message: "" });
   const update = (field: keyof typeof form) => (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setForm({ ...form, [field]: event.target.value });
+  const set = (field: keyof typeof form) => (value: string) => setForm((current) => ({ ...current, [field]: value }));
 
   return (
     <form className="space-y-4 p-1" onSubmit={(event) => { event.preventDefault(); run(() => createLead(form), onDone); }}>
-      <div><label className="mb-1 block text-xs font-bold text-slate-600">Name *</label><input value={form.name} onChange={update("name")} required className={inputClass} /></div>
+      <div><label className="mb-1 block text-xs font-bold text-slate-600">Name *</label><NameInput required value={form.name} onValueChange={set("name")} className={inputClass} /></div>
       <div className="grid grid-cols-2 gap-3">
-        <div><label className="mb-1 block text-xs font-bold text-slate-600">Phone</label><input type="tel" value={form.phone} onChange={update("phone")} className={inputClass} /></div>
-        <div><label className="mb-1 block text-xs font-bold text-slate-600">Email</label><input type="email" value={form.email} onChange={update("email")} className={inputClass} /></div>
+        <div><label className="mb-1 block text-xs font-bold text-slate-600">Mobile</label><PhoneInput value={form.phone} onValueChange={set("phone")} className={inputClass} /></div>
+        <div><label className="mb-1 block text-xs font-bold text-slate-600">Email</label><EmailInput value={form.email} onValueChange={set("email")} className={inputClass} /></div>
       </div>
       <div className="grid grid-cols-2 gap-3">
-        <div><label className="mb-1 block text-xs font-bold text-slate-600">Organization</label><input value={form.organization_name} onChange={update("organization_name")} className={inputClass} /></div>
-        <div><label className="mb-1 block text-xs font-bold text-slate-600">City</label><input value={form.city} onChange={update("city")} className={inputClass} /></div>
+        <div><label className="mb-1 block text-xs font-bold text-slate-600">Organization</label><TextInput label="Organization" max={200} value={form.organization_name} onValueChange={set("organization_name")} className={inputClass} /></div>
+        <div><label className="mb-1 block text-xs font-bold text-slate-600">City</label><CityInput value={form.city} onValueChange={set("city")} className={inputClass} /></div>
       </div>
       <div className="grid grid-cols-3 gap-3">
         <div>

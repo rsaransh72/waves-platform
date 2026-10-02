@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
+import { formatDate } from "@/lib/india";
 
 type Subscription = {
   id: string;
@@ -103,7 +104,7 @@ export async function GET(request: Request) {
         from,
         to: email,
         subject: `Subscription renewal due in 7 days: ${subscription.organization_name}`,
-        html: `<p>Hello ${schoolName},</p><p>Your ${planName} subscription is due to end on ${termEnd.toLocaleDateString("en-US", { timeZone: "UTC" })}.</p><p>Please contact your Waves account representative to renew and avoid interruption to your service.</p>`,
+        html: `<p>Hello ${schoolName},</p><p>Your ${planName} subscription is due to end on ${formatDate(termEnd)}.</p><p>Please contact your Waves account representative to renew and avoid interruption to your service.</p>`,
       }),
     });
     if (!response.ok) {

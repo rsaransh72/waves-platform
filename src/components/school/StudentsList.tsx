@@ -11,6 +11,8 @@ import { createClient } from "@/lib/supabase-browser";
 import { toast } from "sonner";
 import { useCanManage } from "@/components/school/SchoolSessionContext";
 import { describeError } from "@/lib/error-message";
+import { NameInput, PhoneInput } from "@/components/forms/IndiaInputs";
+import { formatPhone } from "@/lib/india";
 
 export function StudentsList({ initialData, classes }: { initialData: any[], classes: any[] }) {
   const router = useRouter();
@@ -66,7 +68,7 @@ export function StudentsList({ initialData, classes }: { initialData: any[], cla
     {
       accessorKey: "parent_phone",
       header: "Parent Phone",
-      cell: ({ row }) => <span>{row.original.parent_phone || 'N/A'}</span>,
+      cell: ({ row }) => <span className="whitespace-nowrap">{row.original.parent_phone ? formatPhone(row.original.parent_phone) : "—"}</span>,
     },
     {
       accessorKey: "status",
@@ -152,11 +154,11 @@ export function StudentsList({ initialData, classes }: { initialData: any[], cla
             const supabase = createClient();
             
             const studentRecord = {
-              first_name: (form.elements.namedItem('firstName') as HTMLInputElement).value,
-              last_name: (form.elements.namedItem('lastName') as HTMLInputElement).value,
-              roll_number: (form.elements.namedItem('rollNumber') as HTMLInputElement).value,
+              first_name: (form.elements.namedItem('firstName') as HTMLInputElement).value.trim(),
+              last_name: (form.elements.namedItem('lastName') as HTMLInputElement).value.trim(),
+              roll_number: (form.elements.namedItem('rollNumber') as HTMLInputElement).value.trim().toUpperCase(),
               class_id: (form.elements.namedItem('class_id') as HTMLSelectElement).value,
-              parent_phone: (form.elements.namedItem('phone') as HTMLInputElement).value,
+              parent_phone: (form.elements.namedItem('phone') as HTMLInputElement).value || null,
               // The status field only exists when editing; new admissions start active.
               status: selectedStudent ? (form.elements.namedItem('status') as HTMLSelectElement).value : "active",
             };
@@ -181,17 +183,17 @@ export function StudentsList({ initialData, classes }: { initialData: any[], cla
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-700">First Name</label>
-                <input name="firstName" type="text" defaultValue={selectedStudent?.first_name || ""} className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" placeholder="John" required />
+                <NameInput name="firstName" defaultValue={selectedStudent?.first_name || ""} className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" placeholder="e.g. Aarav" required />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Last Name</label>
-                <input name="lastName" type="text" defaultValue={selectedStudent?.last_name || ""} className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" placeholder="Doe" required />
+                <label className="text-sm font-medium text-slate-700">Last Name / Surname</label>
+                <NameInput name="lastName" defaultValue={selectedStudent?.last_name || ""} className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" placeholder="e.g. Sharma" />
               </div>
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Roll Number</label>
-              <input name="rollNumber" type="text" defaultValue={selectedStudent?.roll_number || ""} className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" placeholder="e.g. R-101" required />
+              <input name="rollNumber" type="text" defaultValue={selectedStudent?.roll_number || ""} className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" placeholder="e.g. R-101" required maxLength={20} pattern="[A-Za-z0-9/-]+" title="Letters, digits, / and - only" />
             </div>
 
             <div className="space-y-2">
@@ -205,8 +207,8 @@ export function StudentsList({ initialData, classes }: { initialData: any[], cla
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Parent/Guardian Phone</label>
-              <input name="phone" type="tel" defaultValue={selectedStudent?.parent_phone || ""} className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" placeholder="+1 (555) 000-0000" />
+              <label className="text-sm font-medium text-slate-700">Parent/Guardian Mobile</label>
+              <PhoneInput name="phone" defaultValue={selectedStudent?.parent_phone || ""} className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" />
             </div>
 
             {selectedStudent && (

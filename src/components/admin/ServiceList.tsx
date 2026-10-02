@@ -7,6 +7,7 @@ import Link from "next/link";
 import { clsx } from "clsx";
 import { createClient } from "@/lib/supabase-browser";
 import { useRouter } from "next/navigation";
+import { formatDate } from "@/lib/india";
 
 export function ServiceList({ initialServices }: { initialServices: any[] }) {
   const router = useRouter();
@@ -166,7 +167,7 @@ export function ServiceList({ initialServices }: { initialServices: any[] }) {
                         </span>
                       </td>
                       <td className="px-6 py-4 font-semibold text-slate-500" suppressHydrationWarning>
-                        {new Date(service.created_at).toLocaleDateString("en-CA")}
+                        {formatDate(service.created_at)}
                       </td>
                       <td className="sticky right-0 z-[5] border-l border-slate-200 bg-white px-6 py-4 text-right group-hover:bg-slate-50 shadow-[-8px_0_12px_-12px_rgba(15,23,42,0.65)]">
                         <div className="flex items-center justify-end gap-2">

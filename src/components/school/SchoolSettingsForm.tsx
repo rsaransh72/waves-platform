@@ -6,6 +6,8 @@ import { createClient } from "@/lib/supabase-browser";
 import { toast } from "sonner";
 import { describeError } from "@/lib/error-message";
 import { useRouter } from "next/navigation";
+import { EmailInput, PhoneInput } from "@/components/forms/IndiaInputs";
+import { toStoredPhone } from "@/lib/india";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -26,6 +28,19 @@ export function SchoolSettingsForm({ initialSettings }: { initialSettings: any }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    let record;
+    try {
+      record = {
+      ...formData,
+      school_name: formData.school_name.trim(),
+      address: formData.address.trim(),
+      contact_email: formData.contact_email.trim().toLowerCase(),
+      contact_phone: toStoredPhone(formData.contact_phone, { kind: "landline" }),
+      };
+    } catch (error) {
+      toast.error(describeError(error));
+      return;
+    }
     setIsSubmitting(true);
     setSaveMessage("");
 
@@ -33,13 +48,13 @@ export function SchoolSettingsForm({ initialSettings }: { initialSettings: any }
       if (initialSettings?.id) {
         const { error } = await supabase
           .from('school_settings')
-          .update(formData)
+          .update(record)
           .eq('id', initialSettings.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from('school_settings')
-          .insert([formData]);
+          .insert([record]);
         if (error) throw error;
       }
 
@@ -71,6 +86,8 @@ export function SchoolSettingsForm({ initialSettings }: { initialSettings: any }
               <input
                 type="text"
                 required
+                minLength={2}
+                maxLength={200}
                 value={formData.school_name}
                 onChange={e => setFormData({...formData, school_name: e.target.value})}
                 className="w-full h-10 px-3 rounded-md border border-[#cccccc] bg-white text-[14px] focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] outline-none"
@@ -118,29 +135,30 @@ export function SchoolSettingsForm({ initialSettings }: { initialSettings: any }
                 rows={3}
                 value={formData.address}
                 onChange={e => setFormData({...formData, address: e.target.value})}
-                placeholder="123 Education Lane..."
+                placeholder="Building, street, area, city, state – PIN code" maxLength={500}
                 className="w-full p-3 rounded-md border border-[#cccccc] bg-white text-[14px] focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] outline-none resize-none"
               />
             </div>
             
             <div>
               <label className="block text-[13px] font-medium text-[#333333] mb-1.5 flex items-center gap-1.5"><Mail className="w-3.5 h-3.5 text-[#888888]" /> Support Email</label>
-              <input
-                type="email"
+              <EmailInput
                 value={formData.contact_email}
-                onChange={e => setFormData({...formData, contact_email: e.target.value})}
+                onValueChange={(contact_email) => setFormData((current) => ({ ...current, contact_email }))}
+                placeholder="office@school.in"
                 className="w-full h-10 px-3 rounded-md border border-[#cccccc] bg-white text-[14px] focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] outline-none"
               />
             </div>
             
             <div>
               <label className="block text-[13px] font-medium text-[#333333] mb-1.5 flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-[#888888]" /> Contact Phone</label>
-              <input
-                type="tel"
+              <PhoneInput
+                kind="landline"
                 value={formData.contact_phone}
-                onChange={e => setFormData({...formData, contact_phone: e.target.value})}
+                onValueChange={(contact_phone) => setFormData((current) => ({ ...current, contact_phone }))}
                 className="w-full h-10 px-3 rounded-md border border-[#cccccc] bg-white text-[14px] focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] outline-none"
               />
+              <p className="mt-1 text-[12px] text-[#888888]">Mobile, or landline with STD code (e.g. 1204567890).</p>
             </div>
           </div>
         </div>
@@ -151,7 +169,11 @@ export function SchoolSettingsForm({ initialSettings }: { initialSettings: any }
             <CreditCard className="w-5 h-5 text-[#0066cc]" />
             <h3 className="text-[16px] font-semibold text-[#111111]">Payments & Currency</h3>
           </div>
-          
+          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-[14px]">
+            <div><dt className="text-[13px] text-[#555555]">Currency</dt><dd className="font-medium text-[#111111]">Indian Rupee (₹ INR)</dd></div>
+            <div><dt className="text-[13px] text-[#555555]">Number format</dt><dd className="font-medium text-[#111111]">₹1,25,000.00 (lakh / crore)</dd></div>
+          </dl>
+          <p className="mt-3 text-[12px] text-[#888888]">All fees, payments and receipts are recorded in rupees. Receipts print the amount in words, e.g. &quot;Rupees One Lakh Twenty Five Thousand Only&quot;.</p>
         </div>
         
         {/* Footer Actions */}

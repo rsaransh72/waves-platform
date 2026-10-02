@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { KeyRound, Loader2, Mail, Trash2, UserPlus } from "lucide-react";
 import { formatAdminDateTime } from "@/lib/admin-format";
+import { EmailInput } from "@/components/forms/IndiaInputs";
 import {
   changeSchoolUserRole,
   inviteSchoolUser,
@@ -72,7 +73,7 @@ export function SchoolUsersList({ members, currentUserId, loadError }: { members
         <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_200px_auto] sm:items-end">
           <div>
             <label htmlFor="invite-email" className="mb-1 block text-xs font-bold text-slate-600">Email</label>
-            <input id="invite-email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required placeholder="teacher@school.edu" className={inputClass} />
+            <EmailInput id="invite-email" value={email} onValueChange={setEmail} required placeholder="teacher@school.in" className={inputClass} />
           </div>
           <div>
             <label htmlFor="invite-role" className="mb-1 block text-xs font-bold text-slate-600">Role</label>

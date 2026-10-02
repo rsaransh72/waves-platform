@@ -24,7 +24,7 @@ export default function PricingPlans({ plans, productTitle, quoteHref, startHref
     <div className={`grid gap-6 ${plans.length === 1 ? "max-w-md mx-auto" : plans.length === 2 ? "md:grid-cols-2 max-w-4xl mx-auto" : "md:grid-cols-2 lg:grid-cols-3"}`}>
       {plans.map((plan) => {
         const price = planPrice(plan);
-        const numeric = typeof price === "number";
+        const numeric = price !== null;
         return (
           <div key={plan.name} className={`relative bg-white rounded-xl p-7 flex flex-col ${plan.highlighted ? "border-2 border-[#0066cc] shadow-[0_8px_30px_rgba(0,102,204,0.12)]" : "border border-[#e6e9f0]"}`}>
             {plan.highlighted && (
@@ -37,7 +37,7 @@ export default function PricingPlans({ plans, productTitle, quoteHref, startHref
                 <p className="text-[22px] font-semibold text-[#111]">Pricing on request</p>
               ) : (
                 <p className="text-[32px] font-semibold text-[#111] leading-none">
-                  {numeric ? formatMoney(price) : price}
+                  {formatMoney(price)}
                   {numeric && plan.period && <span className="text-[14px] font-normal text-[#555]"> / {plan.period}</span>}
                 </p>
               )}

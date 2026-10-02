@@ -306,6 +306,7 @@ export function ExamGradingView({ examId, students, initialResults }: { examId: 
                             type="number"
                             required
                             min="1"
+                            max="1000"
                             value={mark.max_marks}
                             onChange={e => handleMarkChange(index, 'max_marks', parseFloat(e.target.value))}
                             className="w-full h-9 px-3 rounded-md border border-[#cccccc] bg-[#f4f4f5] text-[14px] focus:outline-none"

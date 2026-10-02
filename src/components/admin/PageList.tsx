@@ -7,6 +7,7 @@ import { useAdminStore } from "@/store/adminStore";
 import { DataTable } from "./DataTable";
 import { ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
+import { formatDate } from "@/lib/india";
 
 export function PageList({ initialPages }: { initialPages: any[] }) {
   const { pages, setPages } = useAdminStore();
@@ -61,7 +62,7 @@ export function PageList({ initialPages }: { initialPages: any[] }) {
       header: "Created",
       cell: ({ row }) => (
         <span className="font-medium text-slate-500">
-          {new Date(row.original.created_at).toLocaleDateString("en-CA")}
+          {formatDate(row.original.created_at)}
         </span>
       ),
     },

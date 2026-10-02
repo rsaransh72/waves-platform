@@ -11,6 +11,8 @@ import { createClient } from "@/lib/supabase-browser";
 import { toast } from "sonner";
 import { useCanManage } from "@/components/school/SchoolSessionContext";
 import { describeError } from "@/lib/error-message";
+import { EmailInput, NameInput, PhoneInput } from "@/components/forms/IndiaInputs";
+import { formatPhone } from "@/lib/india";
 
 const SUGGESTED_SUBJECTS = ["Mathematics", "Science", "Physics", "Chemistry", "Biology", "English", "Hindi", "Social Studies", "Computer Science", "Physical Education", "Art", "Music"];
 const inputClass = "w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none";
@@ -49,7 +51,7 @@ export function TeachersList({ initialData }: { initialData: any[] }) {
     { accessorKey: "employee_id", header: "Employee ID" },
     { accessorKey: "subject", header: "Primary Subject" },
     { accessorKey: "email", header: "Email", cell: ({ row }) => <span>{row.original.email || "—"}</span> },
-    { accessorKey: "phone", header: "Phone", cell: ({ row }) => <span>{row.original.phone || "—"}</span> },
+    { accessorKey: "phone", header: "Phone", cell: ({ row }) => <span className="whitespace-nowrap">{row.original.phone ? formatPhone(row.original.phone) : "—"}</span> },
     {
       accessorKey: "status",
       header: "Status",
@@ -126,9 +128,9 @@ export function TeachersList({ initialData }: { initialData: any[] }) {
             const teacherRecord = {
               first_name: value("firstName"),
               last_name: value("lastName"),
-              employee_id: value("employeeId"),
+              employee_id: value("employeeId").toUpperCase(),
               primary_subject: value("subject") || null,
-              email: value("email") || null,
+              email: value("email").toLowerCase() || null,
               phone: value("phone") || null,
               status: selectedTeacher ? value("status") : "active",
             };
@@ -153,17 +155,17 @@ export function TeachersList({ initialData }: { initialData: any[] }) {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-700">First Name</label>
-                <input name="firstName" type="text" defaultValue={selectedTeacher?.first_name || ""} className={inputClass} placeholder="Jane" required />
+                <NameInput name="firstName" defaultValue={selectedTeacher?.first_name || ""} className={inputClass} placeholder="e.g. Priya" required />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Last Name</label>
-                <input name="lastName" type="text" defaultValue={selectedTeacher?.last_name || ""} className={inputClass} placeholder="Smith" required />
+                <label className="text-sm font-medium text-slate-700">Last Name / Surname</label>
+                <NameInput name="lastName" defaultValue={selectedTeacher?.last_name || ""} className={inputClass} placeholder="e.g. Verma" />
               </div>
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Employee ID</label>
-              <input name="employeeId" type="text" defaultValue={selectedTeacher?.employee_id || ""} className={inputClass} placeholder="e.g. T-001" required />
+              <input name="employeeId" type="text" defaultValue={selectedTeacher?.employee_id || ""} className={inputClass} placeholder="e.g. T-001" required maxLength={20} pattern="[A-Za-z0-9/-]+" title="Letters, digits, / and - only" />
             </div>
 
             <div className="space-y-2">
@@ -177,11 +179,11 @@ export function TeachersList({ initialData }: { initialData: any[] }) {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-700">Email Address</label>
-                <input name="email" type="email" defaultValue={selectedTeacher?.email || ""} className={inputClass} placeholder="teacher@school.edu" />
+                <EmailInput name="email" defaultValue={selectedTeacher?.email || ""} className={inputClass} placeholder="teacher@school.in" />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Phone</label>
-                <input name="phone" type="tel" defaultValue={selectedTeacher?.phone || ""} className={inputClass} placeholder="+91 98765 43210" />
+                <label className="text-sm font-medium text-slate-700">Mobile</label>
+                <PhoneInput name="phone" defaultValue={selectedTeacher?.phone || ""} className={inputClass} />
               </div>
             </div>
 

@@ -7,6 +7,8 @@ import { createClient } from "@/lib/supabase-browser";
 import { useAdminStore } from "@/store/adminStore";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
+import { AmountInput } from "@/components/forms/IndiaInputs";
+import { amountError } from "@/lib/india";
 
 const tabs = ["General", "Features", "Pricing", "SEO", "Publishing"];
 
@@ -59,6 +61,11 @@ export function SuiteEditor({ initialData, isNew, onClose }: { initialData: any,
   };
 
   const handleSave = async () => {
+    const badPrice = formData.pricing.find((plan: any) => amountError(plan.price, { required: false }));
+    if (badPrice) {
+      toast.error(`Plan "${badPrice.plan || "untitled"}": ${amountError(badPrice.price, { required: false })}`);
+      return;
+    }
     if (!formData.title || !formData.slug) {
       toast.error("Title and URL Slug are required");
       return;
@@ -191,10 +198,7 @@ export function SuiteEditor({ initialData, isNew, onClose }: { initialData: any,
                   type="text" value={plan.plan} onChange={(e) => updatePricing(idx, "plan", e.target.value)}
                   placeholder="Plan Name" className="w-full pr-10 rounded border border-gray-300 bg-white px-3 py-2 text-sm font-bold text-slate-900"
                 />
-                <input 
-                  type="text" value={plan.price} onChange={(e) => updatePricing(idx, "price", e.target.value)}
-                  placeholder="Price" className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-slate-900"
-                />
+<AmountInput required={false} value={plan.price} onValueChange={(value) => updatePricing(idx, "price", value)} placeholder="Price in rupees (empty = on request)" className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-slate-900" />
               </div>
             ))}
           </div>

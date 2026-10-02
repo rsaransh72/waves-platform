@@ -8,6 +8,8 @@ import { useAdminStore } from "@/store/adminStore";
 import { toast } from "sonner";
 import { describeError } from "@/lib/error-message";
 import { RESERVED_SLUGS } from "@/lib/product-routes";
+import { AmountInput } from "@/components/forms/IndiaInputs";
+import { amountError } from "@/lib/india";
 
 const tabs = ["General", "Features", "Use cases", "Pricing", "FAQs", "SEO", "Publishing"];
 
@@ -79,8 +81,13 @@ export function ProductEditor({ initialData, isNew, onClose }: { initialData: an
       return;
     }
 
-    // Only real columns are sent; numeric prices are stored as numbers so the site
-    // can format them in rupees, anything else (e.g. "On request") as text.
+    const badPlan = plans.find((plan) => plan.name.trim() && amountError(plan.price, { required: false }));
+    if (badPlan) {
+      toast.error(`Plan "${badPlan.name}": ${amountError(badPlan.price, { required: false })}`);
+      return;
+    }
+
+    // Prices are rupee amounts stored as numbers; an empty price shows "Pricing on request".
     const payload = {
       ...general,
       title,
@@ -88,10 +95,9 @@ export function ProductEditor({ initialData, isNew, onClose }: { initialData: an
       features: features.filter((item) => item.title.trim()).map((item) => ({ title: item.title.trim(), desc: item.desc.trim() })),
       use_cases: useCases.filter((item) => item.title.trim()).map((item) => ({ title: item.title.trim(), desc: item.desc.trim() })),
       pricing: plans.filter((plan) => plan.name.trim()).map((plan) => {
-        const numeric = Number(plan.price.replace(/[,\s₹]/g, ""));
         return {
           name: plan.name.trim(),
-          price: plan.price.trim() === "" ? null : Number.isFinite(numeric) ? numeric : plan.price.trim(),
+          price: plan.price.trim() === "" ? null : Number(plan.price),
           period: plan.period.trim(),
           description: plan.description.trim(),
           features: plan.features.split("\n").map((line) => line.trim()).filter(Boolean),
@@ -195,7 +201,7 @@ export function ProductEditor({ initialData, isNew, onClose }: { initialData: an
 
         {activeTab === "Pricing" && (
           <div className="space-y-4 animate-in fade-in">
-            <p className="text-sm text-slate-500">These plans appear on the product page and the Pricing page. Leave the price empty, or write text such as &quot;On request&quot;, to ask visitors for a quote instead.</p>
+            <p className="text-sm text-slate-500">These plans appear on the product page and the Pricing page. Prices are in rupees (₹). Leave the price empty to show &quot;Pricing on request&quot; and ask visitors for a quote instead.</p>
             <button type="button" onClick={() => setPlans([...plans, { name: "", price: "", period: "year", description: "", features: "", highlighted: false }])} className="inline-flex items-center gap-1.5 rounded bg-blue-50 px-3 py-1.5 text-sm font-bold text-blue-700 hover:bg-blue-100 transition-colors">
               <Plus className="h-4 w-4" /> Add plan
             </button>
@@ -208,7 +214,7 @@ export function ProductEditor({ initialData, isNew, onClose }: { initialData: an
                   </button>
                   <input type="text" value={plan.name} onChange={(e) => update("name", e.target.value)} placeholder="Plan name, e.g. Standard" className={`${inputClass} pr-10 font-bold`} />
                   <div className="grid grid-cols-2 gap-3">
-                    <input type="text" value={plan.price} onChange={(e) => update("price", e.target.value)} placeholder="Price in ₹, e.g. 25000" className={inputClass} />
+                    <AmountInput required={false} value={plan.price} onValueChange={(value) => update("price", value)} placeholder="Price in rupees (empty = on request)" className={inputClass} />
                     <input type="text" value={plan.period} onChange={(e) => update("period", e.target.value)} placeholder="Per, e.g. year or student / year" className={inputClass} />
                   </div>
                   <input type="text" value={plan.description} onChange={(e) => update("description", e.target.value)} placeholder="Who this plan is for" className={inputClass} />

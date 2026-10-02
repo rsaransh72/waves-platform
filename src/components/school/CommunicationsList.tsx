@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { describeError } from "@/lib/error-message";
 import { useCanManage } from "@/components/school/SchoolSessionContext";
 import { useRouter } from "next/navigation";
+import { formatDateTime } from "@/lib/india";
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 
@@ -134,7 +135,7 @@ export function CommunicationsList({ initialData }: { initialData: any[] }) {
                     <div className="flex items-center gap-4 text-[12px] text-[#888888]">
                       <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5" /> Audience: <span className="capitalize">{msg.audience}</span></span>
                       <span>•</span>
-                      <span>{new Date(msg.created_at).toLocaleString()}</span>
+                      <span>{formatDateTime(msg.created_at)}</span>
                     </div>
                   </div>
                 </div>
@@ -194,7 +195,7 @@ export function CommunicationsList({ initialData }: { initialData: any[] }) {
                     required
                     value={formData.title}
                     onChange={e => setFormData({...formData, title: e.target.value})}
-                    placeholder="e.g. School closed tomorrow due to snow"
+                    placeholder="e.g. School will remain closed tomorrow due to heavy rain" minLength={3} maxLength={150}
                     className="w-full h-9 px-3 rounded-md border border-[#cccccc] bg-white text-[14px] focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] outline-none transition-shadow"
                   />
                 </div>
@@ -206,7 +207,7 @@ export function CommunicationsList({ initialData }: { initialData: any[] }) {
                     rows={6}
                     value={formData.message}
                     onChange={e => setFormData({...formData, message: e.target.value})}
-                    placeholder="Type your message here..."
+                    placeholder="Type your message here..." minLength={3} maxLength={2000}
                     className="w-full p-3 rounded-md border border-[#cccccc] bg-white text-[14px] focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] outline-none transition-shadow resize-none"
                   />
                 </div>

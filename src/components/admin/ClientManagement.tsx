@@ -8,6 +8,7 @@ import { Drawer } from "./Drawer";
 import { OrganizationEditor } from "./OrganizationEditor";
 import { formatAdminDate, formatAdminDateTime } from "@/lib/admin-format";
 import { formatMoney } from "@/lib/money";
+import { AmountInput, EmailInput } from "@/components/forms/IndiaInputs";
 import {
   type ActionResult,
   changeClientUserRole,
@@ -184,12 +185,12 @@ function SubscriptionForm({ organizationId, subscription, onDone }: { organizati
     >
       <div>
         <label className={labelClass}>Plan name</label>
-        <input value={planName} onChange={(event) => setPlanName(event.target.value)} required maxLength={100} className={inputClass} />
+        <input value={planName} onChange={(event) => setPlanName(event.target.value)} required minLength={2} maxLength={100} className={inputClass} />
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className={labelClass}>Annual amount</label>
-          <input type="number" min="0" step="0.01" value={amount} onChange={(event) => setAmount(event.target.value)} required className={inputClass} />
+          <label className={labelClass}>Annual amount (₹)</label>
+          <AmountInput allowZero showWords={false} value={amount} onValueChange={setAmount} className={inputClass} />
         </div>
         <div>
           <label className={labelClass}>Status</label>
@@ -301,7 +302,7 @@ function PaymentForm({ organizationId, invoice, onDone }: { organizationId: stri
       </div>
       <div>
         <label className={labelClass}>Reference / UTR</label>
-        <input value={reference} onChange={(event) => setReference(event.target.value)} maxLength={100} className={inputClass} />
+        <input value={reference} onChange={(event) => setReference(event.target.value.toUpperCase().replace(/[^A-Z0-9/-]/g, ""))} maxLength={30} placeholder="UTR / cheque no." className={inputClass} />
       </div>
       <div>
         <label className={labelClass}>Paid on</label>
@@ -346,11 +347,11 @@ export function InvoicesPanel({ organizationId, invoices, subscription }: { orga
         >
           <div className="sm:col-span-2">
             <label className={labelClass}>Description</label>
-            <input value={description} onChange={(event) => setDescription(event.target.value)} required maxLength={300} className={inputClass} />
+            <input value={description} onChange={(event) => setDescription(event.target.value)} required minLength={3} maxLength={300} className={inputClass} />
           </div>
           <div>
-            <label className={labelClass}>Amount</label>
-            <input type="number" min="0.01" step="0.01" value={amount} onChange={(event) => setAmount(event.target.value)} required className={inputClass} />
+            <label className={labelClass}>Amount (₹)</label>
+            <AmountInput showWords={false} value={amount} onValueChange={setAmount} className={inputClass} />
           </div>
           <div>
             <label className={labelClass}>Due date</label>
@@ -422,7 +423,7 @@ export function UsersPanel({ organizationId, members, directoryError }: { organi
         >
           <div className="sm:col-span-2">
             <label className={labelClass}>Email</label>
-            <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required className={inputClass} />
+            <EmailInput required value={email} onValueChange={setEmail} className={inputClass} />
           </div>
           <div>
             <label className={labelClass}>Role</label>

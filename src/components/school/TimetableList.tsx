@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { describeError } from "@/lib/error-message";
 import { useCanManage } from "@/components/school/SchoolSessionContext";
 import { useRouter } from "next/navigation";
+import { formatTime } from "@/lib/india";
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 
@@ -49,6 +50,10 @@ export function TimetableList({ initialTimetables, classes, teachers }: { initia
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.end_time || formData.end_time <= formData.start_time) {
+      toast.error("The period must end after it starts.");
+      return;
+    }
     setIsSubmitting(true);
 
     try {
@@ -139,7 +144,7 @@ export function TimetableList({ initialTimetables, classes, teachers }: { initia
                       <div>
                         <div className="flex items-center gap-2 text-[12px] font-bold text-[#0066cc] mb-1">
                           <Clock className="w-3.5 h-3.5" />
-                          {period.start_time.substring(0, 5)} - {period.end_time.substring(0, 5)}
+                          {formatTime(period.start_time)} – {formatTime(period.end_time)}
                         </div>
                         <h4 className="text-[16px] font-bold text-[#111111]">{period.subject}</h4>
                         <div className="flex items-center gap-4 mt-2 text-[13px] text-[#555555]">
@@ -227,7 +232,7 @@ export function TimetableList({ initialTimetables, classes, teachers }: { initia
                     required
                     value={formData.subject}
                     onChange={e => setFormData({...formData, subject: e.target.value})}
-                    placeholder="e.g. Physics"
+                    placeholder="e.g. Physics" minLength={2} maxLength={60}
                     className="w-full h-9 px-3 rounded-md border border-[#cccccc] bg-white text-[14px] focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] outline-none transition-shadow"
                   />
                 </div>
@@ -253,7 +258,7 @@ export function TimetableList({ initialTimetables, classes, teachers }: { initia
                     type="text"
                     value={formData.room_number}
                     onChange={e => setFormData({...formData, room_number: e.target.value})}
-                    placeholder="e.g. 101A"
+                    placeholder="e.g. 101A" maxLength={20}
                     className="w-full h-9 px-3 rounded-md border border-[#cccccc] bg-white text-[14px] focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] outline-none transition-shadow"
                   />
                 </div>

@@ -1,22 +1,10 @@
-const adminDateFormatter = new Intl.DateTimeFormat("en-CA", {
-  dateStyle: "medium",
-  timeZone: "UTC",
-});
+import { formatDate, formatDateTime } from "@/lib/india";
 
-const adminDateTimeFormatter = new Intl.DateTimeFormat("en-CA", {
-  dateStyle: "medium",
-  timeStyle: "short",
-  timeZone: "UTC",
-});
-
+// Admin dates follow the Indian format and time zone: "02 Oct 2026, 4:30 pm".
 export function formatAdminDate(value: string | Date | null | undefined) {
-  if (!value) return "Not set";
-  const date = value instanceof Date ? value : new Date(value);
-  return Number.isNaN(date.getTime()) ? "Invalid date" : adminDateFormatter.format(date);
+  return formatDate(value, "Not set");
 }
 
 export function formatAdminDateTime(value: string | Date | null | undefined) {
-  if (!value) return "Not set";
-  const date = value instanceof Date ? value : new Date(value);
-  return Number.isNaN(date.getTime()) ? "Invalid date" : adminDateTimeFormatter.format(date);
+  return formatDateTime(value, "Not set");
 }

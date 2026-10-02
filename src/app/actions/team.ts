@@ -5,12 +5,12 @@ import { requirePlatformAdmin } from "@/lib/supabase-server";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import { siteOrigin } from "@/lib/site-origin";
 import { friendlyAuthEmailError } from "@/lib/client-members";
+import { emailError, personNameError } from "@/lib/india";
 
 export type TeamActionResult = { error?: string; message?: string };
 
 // Only these roles grant access to the admin console (see is_platform_admin()).
 const TEAM_ROLES = ["superadmin", "admin"] as const;
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 type Admin = Awaited<ReturnType<typeof requirePlatformAdmin>>;
 
@@ -51,8 +51,8 @@ export async function inviteTeamMember(input: { name: string; email: string; rol
   return run(async (admin) => {
     const name = input.name.trim().slice(0, 120);
     const email = input.email.trim().toLowerCase();
-    if (!name) throw new Error("Enter the person's name.");
-    if (!EMAIL_PATTERN.test(email)) throw new Error("Enter a valid email address.");
+    const invalid = personNameError(name) ?? emailError(email, true);
+    if (invalid) throw new Error(invalid);
     if (!TEAM_ROLES.includes(input.role as typeof TEAM_ROLES[number])) throw new Error("Choose a role.");
 
     const { error } = await admin.supabase.from("team_members").insert({ name, email, role: input.role, status: "active" });

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Activity, ArrowLeft, Building2, CreditCard, Users } from "lucide-react";
 import Link from "next/link";
 import { formatAdminDateTime } from "@/lib/admin-format";
+import { formatPhone } from "@/lib/india";
 import { auditActor, describeAuditLog, type AuditLogRow } from "@/lib/audit-format";
 import { workspaceLabel } from "@/lib/product-workspaces";
 import {
@@ -85,7 +86,7 @@ export default async function OrganizationDetailsPage({ params }: { params: Prom
             <div className="border-b border-slate-100 p-5"><h3 className="font-bold text-slate-800">Contact</h3></div>
             <dl className="space-y-3 p-5 text-sm">
               <div><dt className="text-xs font-bold uppercase text-slate-400">Email</dt><dd className="text-slate-900">{org.email || "Not set"}</dd></div>
-              <div><dt className="text-xs font-bold uppercase text-slate-400">Phone</dt><dd className="text-slate-900">{org.phone || "Not set"}</dd></div>
+              <div><dt className="text-xs font-bold uppercase text-slate-400">Phone</dt><dd className="text-slate-900">{org.phone ? formatPhone(org.phone) : "Not set"}</dd></div>
               <div>
                 <dt className="text-xs font-bold uppercase text-slate-400">Address</dt>
                 <dd className="text-slate-900">{[org.address, org.city, org.state, org.pincode].filter(Boolean).join(", ") || "Not set"}</dd>

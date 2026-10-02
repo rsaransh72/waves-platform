@@ -53,7 +53,7 @@ try {
     await page.goto(`${baseUrl}/admin/onboarding`, { waitUntil: "networkidle2" });
     await typeInto(page, "#org-name", schoolName);
     await typeInto(page, "#org-email", schoolAdminEmail);
-    await typeInto(page, "#org-phone", "+91 90000 00001");
+    await typeInto(page, "#org-phone", "9000000001");
     const planSelect = await page.$("#org-plan");
     if (planSelect) await planSelect.select("custom");
     const planName = await page.$("input[placeholder^='Plan name']");
@@ -63,9 +63,10 @@ try {
     await page.waitForFunction(() => location.pathname === "/admin/organizations" || document.querySelector("[data-sonner-toast][data-type=error]"), { timeout: 60000 });
     const toasts = await toastText(page);
     if (!page.url().endsWith("/admin/organizations")) throw new Error(`Stayed on the form: ${toasts}`);
-    const { data: organization } = await service.from("organizations").select("id, status, type").eq("name", schoolName).single();
+    const { data: organization } = await service.from("organizations").select("id, status, type, phone").eq("name", schoolName).single();
     organizationId = organization.id;
-    return `type ${organization.type}, status ${organization.status}`;
+    if (organization.phone !== "+919000000001") throw new Error(`Phone saved as ${organization.phone}`);
+    return `type ${organization.type}, status ${organization.status}, phone ${organization.phone}`;
   });
 
   if (onboarded) {
@@ -119,8 +120,8 @@ try {
 
         await school.page.goto(`${baseUrl}/school/fees/collection`, { waitUntil: "networkidle2" });
         await clickText(school.page, "button", "Pay Now");
-        await school.page.waitForSelector("form input[type=number]");
-        await school.page.$eval("form input[type=number]", (input) => {
+        await school.page.waitForSelector("#payment-amount");
+        await school.page.$eval("#payment-amount", (input) => {
           Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set.call(input, "5000");
           input.dispatchEvent(new Event("input", { bubbles: true }));
         });

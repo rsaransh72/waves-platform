@@ -3,6 +3,7 @@ import { canManageSchoolArea, normalizeSchoolRole } from "@/lib/school-permissio
 import { schoolToday } from "@/lib/school-date";
 import Link from "next/link";
 import { BookOpen, CreditCard, GraduationCap, Users, UserCheck } from "lucide-react";
+import { formatDate, formatIndianNumber } from "@/lib/india";
 
 export default async function SchoolDashboardPage({ searchParams }: { searchParams: Promise<{ denied?: string }> }) {
   const { denied } = await searchParams;
@@ -33,9 +34,9 @@ export default async function SchoolDashboardPage({ searchParams }: { searchPara
         : `${Math.round((presentStudents / attendanceRecords.length) * 100)}%`;
 
   const stats = [
-    { name: "Active Students", value: studentsResult.count?.toLocaleString() ?? "Unavailable", icon: GraduationCap, color: "text-blue-700", bg: "bg-blue-50" },
-    { name: "Active Staff", value: teachersResult.count?.toLocaleString() ?? "Unavailable", icon: Users, color: "text-teal-700", bg: "bg-teal-50" },
-    { name: "Classes", value: classesResult.count?.toLocaleString() ?? "Unavailable", icon: BookOpen, color: "text-amber-700", bg: "bg-amber-50" },
+    { name: "Active Students", value: (studentsResult.count === null ? "Unavailable" : formatIndianNumber(studentsResult.count)), icon: GraduationCap, color: "text-blue-700", bg: "bg-blue-50" },
+    { name: "Active Staff", value: (teachersResult.count === null ? "Unavailable" : formatIndianNumber(teachersResult.count)), icon: Users, color: "text-teal-700", bg: "bg-teal-50" },
+    { name: "Classes", value: (classesResult.count === null ? "Unavailable" : formatIndianNumber(classesResult.count)), icon: BookOpen, color: "text-amber-700", bg: "bg-amber-50" },
     { name: "Attendance Today", value: attendanceValue, icon: UserCheck, color: "text-emerald-700", bg: "bg-emerald-50" },
   ];
 
@@ -90,7 +91,7 @@ export default async function SchoolDashboardPage({ searchParams }: { searchPara
             <div>
               <h2 className="text-lg font-bold text-slate-900">Today&apos;s attendance</h2>
               <p className="mt-1 text-sm text-slate-500">
-                {attendanceResult.error ? "Unavailable" : attendanceRecords.length} records for {new Date(`${today}T00:00:00`).toLocaleDateString()}
+                {attendanceResult.error ? "Unavailable" : attendanceRecords.length} records for {formatDate(today)}
               </p>
             </div>
             <Link href="/school/attendance" className="text-sm font-semibold text-blue-700 hover:text-blue-900">Open register</Link>

@@ -49,7 +49,7 @@ export default async function ServicesPage() {
                       return (
                         <p key={plan.name} className="text-[14px] text-[#111]">
                           <span className="font-semibold">{plan.name}</span>
-                          {price !== null && <>: {typeof price === "number" ? formatMoney(price) : price}{plan.period ? ` / ${plan.period}` : ""}</>}
+                          {price !== null && <>: {formatMoney(price)}{plan.period ? ` / ${plan.period}` : ""}</>}
                         </p>
                       );
                     })}

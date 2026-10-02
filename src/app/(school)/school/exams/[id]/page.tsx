@@ -2,6 +2,7 @@ import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { ExamGradingView } from "@/components/school/ExamGradingView";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
+import { formatDate } from "@/lib/india";
 
 export const metadata = {
   title: "Exam Grading | Waves School ERP",
@@ -50,7 +51,7 @@ export default async function ExamGradingPage({
             <div>
               <h2 className="text-[20px] font-semibold text-[#111111] tracking-tight">{exam.name} Grading</h2>
               <p className="text-[14px] text-[#555555] mt-1">
-                {exam.school_classes?.name} ({exam.school_classes?.section}) • {new Date(exam.start_date).toLocaleDateString()}
+                {exam.school_classes?.name} ({exam.school_classes?.section}) • {formatDate(exam.start_date)}
               </p>
             </div>
           </div>

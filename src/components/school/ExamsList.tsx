@@ -206,7 +206,7 @@ export function ExamsList({ initialData, classesList }: { initialData: Exam[], c
                       required
                       value={formData.name}
                       onChange={e => setFormData({...formData, name: e.target.value})}
-                      placeholder="e.g. Midterm Examination 2026"
+                      placeholder="e.g. Half-Yearly Examination 2026-27" minLength={2} maxLength={100}
                       className="w-full h-9 pl-9 pr-3 rounded-md border border-[#cccccc] bg-white text-[14px] focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] outline-none transition-shadow"
                     />
                   </div>

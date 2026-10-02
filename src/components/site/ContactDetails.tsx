@@ -1,16 +1,13 @@
 import { Clock, Mail, MapPin, MessageCircle, PhoneCall } from "lucide-react";
 import type { SiteSettings } from "@/lib/site-content";
-
-function digits(value: string) {
-  return value.replace(/[^\d+]/g, "");
-}
+import { formatPhone, phoneHref, whatsAppHref } from "@/lib/india";
 
 // Company contact details from Admin → Settings. Lines that are not filled in are
 // left out rather than shown with a placeholder.
 export default function ContactDetails({ settings, heading = "Prefer to talk to us directly?" }: { settings: SiteSettings; heading?: string }) {
   const items = [
-    settings.phone && { icon: PhoneCall, label: settings.phone, href: `tel:${digits(settings.phone)}` },
-    settings.whatsapp && { icon: MessageCircle, label: `WhatsApp ${settings.whatsapp}`, href: `https://wa.me/${digits(settings.whatsapp).replace(/^\+/, "")}` },
+    settings.phone && { icon: PhoneCall, label: formatPhone(settings.phone), href: phoneHref(settings.phone) },
+    settings.whatsapp && { icon: MessageCircle, label: `WhatsApp ${formatPhone(settings.whatsapp)}`, href: whatsAppHref(settings.whatsapp) },
     settings.sales_email && { icon: Mail, label: settings.sales_email, href: `mailto:${settings.sales_email}` },
   ].filter(Boolean) as Array<{ icon: typeof PhoneCall; label: string; href: string }>;
 

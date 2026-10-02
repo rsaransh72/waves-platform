@@ -3,11 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { requirePlatformAdmin } from "@/lib/supabase-server";
 import { LEAD_STATUSES } from "@/lib/lead-pipeline";
+import { cityError, emailError, personNameError, phoneError, toStoredPhone } from "@/lib/india";
 
 export type LeadActionResult = { error?: string; message?: string };
 
 const INQUIRY_TYPES = ["demo", "contact", "consultation", "pricing", "access"] as const;
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 async function run(work: (admin: Awaited<ReturnType<typeof requirePlatformAdmin>>) => Promise<string>): Promise<LeadActionResult> {
   try {
@@ -32,14 +32,14 @@ export async function createLead(input: Record<string, string>) {
     const name = text(input.name, 120);
     const email = text(input.email, 200).toLowerCase();
     const phone = text(input.phone, 30);
-    if (name.length < 2) throw new Error("Enter the contact's name.");
-    if (!phone && !email) throw new Error("Enter a phone number or an email address.");
-    if (email && !EMAIL_PATTERN.test(email)) throw new Error("Enter a valid email address.");
+    const invalid = personNameError(name) ?? phoneError(phone) ?? emailError(email) ?? cityError(text(input.city, 100));
+    if (invalid) throw new Error(invalid);
+    if (!phone && !email) throw new Error("Enter a mobile number or an email address.");
     const inquiryType = (INQUIRY_TYPES as readonly string[]).includes(input.inquiry_type) ? input.inquiry_type : "demo";
     const { error } = await supabase.from("leads").insert([{
       name,
-      email,
-      phone,
+      email: email || null,
+      phone: toStoredPhone(phone),
       organization_name: text(input.organization_name, 200) || null,
       city: text(input.city, 100) || null,
       product: text(input.product, 100) || "general",

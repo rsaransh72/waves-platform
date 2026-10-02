@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { getPublishedProducts, getSiteSettings } from "@/lib/site-content";
+import { cityError, emailError, formatPhone, personNameError, phoneError, toStoredPhone } from "@/lib/india";
 
 // Every enquiry form on the website posts here. The lead lands in Admin → Leads,
 // where the sales team works it from "new" through to "converted" (onboarded) or "lost".
@@ -15,9 +16,6 @@ const INQUIRY_LABELS: Record<InquiryType, string> = {
   pricing: "Pricing quote",
   access: "Account access request",
 };
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PHONE_PATTERN = /^\+?[0-9][0-9\s-]{6,18}$/;
 
 function text(value: unknown, max: number) {
   return typeof value === "string" ? value.trim().slice(0, max) : "";
@@ -63,10 +61,11 @@ export async function POST(request: NextRequest) {
   const message = text(body.message, 2000);
   const requestedProduct = text(body.product, 100);
 
-  if (name.length < 2) return NextResponse.json({ success: false, error: "Please enter your full name." }, { status: 400 });
-  if (!EMAIL_PATTERN.test(email)) return NextResponse.json({ success: false, error: "Please enter a valid email address." }, { status: 400 });
-  if (!PHONE_PATTERN.test(phone)) return NextResponse.json({ success: false, error: "Please enter a valid phone number." }, { status: 400 });
-  if (inquiryType === "contact" && !message) return NextResponse.json({ success: false, error: "Please tell us how we can help." }, { status: 400 });
+  const invalid = personNameError(name) ?? emailError(email, true) ?? phoneError(phone, { required: true }) ?? cityError(city)
+    ?? (inquiryType !== "contact" && organizationName.length < 2 ? "Please enter your organization name." : null)
+    ?? (inquiryType === "contact" && message.length < 10 ? "Please tell us how we can help (at least 10 characters)." : null);
+  if (invalid) return NextResponse.json({ success: false, error: invalid }, { status: 400 });
+  const storedPhone = toStoredPhone(phone, { required: true });
 
   const products = await getPublishedProducts();
   const product = products.find((item) => item.slug === requestedProduct);
@@ -74,7 +73,7 @@ export async function POST(request: NextRequest) {
   const { error } = await supabase.from("leads").insert([{
     name,
     email,
-    phone,
+    phone: storedPhone,
     organization_name: organizationName || null,
     product: product?.slug ?? "general",
     city: city || null,
@@ -101,7 +100,7 @@ export async function POST(request: NextRequest) {
     ["Product", productName],
     ["Name", name],
     ["Email", email],
-    ["Phone", phone],
+    ["Phone", formatPhone(storedPhone)],
     ["Organization", organizationName],
     ["City", city],
     ["Size", teamSize],
@@ -120,7 +119,7 @@ export async function POST(request: NextRequest) {
     sendEmail(
       email,
       `We received your request – ${settings.company_name}`,
-      `<p>Hello ${escapeHtml(name)},</p><p>Thank you for contacting ${escapeHtml(settings.company_name)}. We have received your ${escapeHtml(INQUIRY_LABELS[inquiryType].toLowerCase())}${product ? ` for ${escapeHtml(product.title)}` : ""} and a member of our team will contact you at ${escapeHtml(phone)}.</p>${settings.phone ? `<p>If you need us sooner, call ${escapeHtml(settings.phone)}.</p>` : ""}`,
+      `<p>Hello ${escapeHtml(name)},</p><p>Thank you for contacting ${escapeHtml(settings.company_name)}. We have received your ${escapeHtml(INQUIRY_LABELS[inquiryType].toLowerCase())}${product ? ` for ${escapeHtml(product.title)}` : ""} and a member of our team will contact you at ${escapeHtml(formatPhone(storedPhone))}.</p>${settings.phone ? `<p>If you need us sooner, call ${escapeHtml(formatPhone(settings.phone))}.</p>` : ""}`,
       salesInbox || undefined
     ),
   ]);

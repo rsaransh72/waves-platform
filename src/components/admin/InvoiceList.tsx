@@ -13,6 +13,7 @@ import { Drawer } from "./Drawer";
 import { InvoiceEditor } from "./InvoiceEditor";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { formatDate } from "@/lib/india";
 
 interface Invoice {
   id: string;
@@ -84,7 +85,7 @@ export function InvoiceList({ initialData, initialInvoiceId }: { initialData: In
       header: "Due Date",
       cell: ({ row }) => (
         <span className="font-medium text-slate-500">
-          {new Date(row.original.due_date).toLocaleDateString("en-CA")}
+          {formatDate(row.original.due_date)}
         </span>
       ),
     },
@@ -102,8 +103,8 @@ export function InvoiceList({ initialData, initialInvoiceId }: { initialData: In
           
           doc.setFontSize(12);
           doc.text(`Invoice Number: ${inv.invoice_number}`, 20, 40);
-          doc.text(`Date Issued: ${new Date().toLocaleDateString("en-CA")}`, 20, 50);
-          doc.text(`Due Date: ${new Date(inv.due_date).toLocaleDateString("en-CA")}`, 20, 60);
+          doc.text(`Date Issued: ${formatDate(new Date())}`, 20, 50);
+          doc.text(`Due Date: ${formatDate(inv.due_date)}`, 20, 60);
           doc.text(`Status: ${inv.status.toUpperCase()}`, 20, 70);
           
           // Billed To

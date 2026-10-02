@@ -1,9 +1,6 @@
 import Link from "next/link";
 import { getPublishedPages, getPublishedProducts, getPublishedServices, getSiteSettings, productHref } from "@/lib/site-content";
-
-function telHref(phone: string) {
-  return `tel:${phone.replace(/[^\d+]/g, "")}`;
-}
+import { formatPhone, phoneHref } from "@/lib/india";
 
 export default async function SiteFooter() {
   const [settings, products, services, pages] = await Promise.all([
@@ -13,7 +10,7 @@ export default async function SiteFooter() {
     getPublishedPages(),
   ]);
   const contactLines = [
-    settings.phone && { label: settings.phone, href: telHref(settings.phone) },
+    settings.phone && { label: formatPhone(settings.phone), href: phoneHref(settings.phone) },
     settings.sales_email && { label: settings.sales_email, href: `mailto:${settings.sales_email}` },
     settings.support_email && settings.support_email !== settings.sales_email && { label: `Support: ${settings.support_email}`, href: `mailto:${settings.support_email}` },
   ].filter(Boolean) as Array<{ label: string; href: string }>;

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
 import { saveSiteSettings } from "@/app/actions/site-settings";
+import { EmailInput, PhoneInput } from "@/components/forms/IndiaInputs";
 
 const SECTIONS: Array<{ title: string; description: string; fields: Array<{ key: string; label: string; hint?: string; type?: string; multiline?: boolean }> }> = [
   {
@@ -19,8 +20,8 @@ const SECTIONS: Array<{ title: string; description: string; fields: Array<{ key:
     title: "Public contact details",
     description: "Shown on the Contact page, next to enquiry forms and in the footer. Leave a field empty to hide it.",
     fields: [
-      { key: "phone", label: "Phone", type: "tel", hint: "Include the country code, e.g. +91 ..." },
-      { key: "whatsapp", label: "WhatsApp number", type: "tel" },
+      { key: "phone", label: "Phone", type: "tel", hint: "10 digits; +91 is added automatically. A landline needs its STD code." },
+      { key: "whatsapp", label: "WhatsApp number", type: "whatsapp", hint: "10-digit mobile number on WhatsApp." },
       { key: "sales_email", label: "Sales email", type: "email" },
       { key: "support_email", label: "Support email for customers", type: "email" },
       { key: "address", label: "Office address", multiline: true },
@@ -81,8 +82,12 @@ export function SiteSettingsForm({ initialValues }: { initialValues: Record<stri
                 <label htmlFor={`setting-${field.key}`} className="block text-sm font-bold text-slate-700 mb-1.5">{field.label}</label>
                 {field.multiline ? (
                   <textarea id={`setting-${field.key}`} rows={3} value={values[field.key] ?? ""} onChange={(event) => setValues({ ...values, [field.key]: event.target.value })} className={inputClass} />
+                ) : field.type === "tel" || field.type === "whatsapp" ? (
+                  <PhoneInput id={`setting-${field.key}`} kind={field.type === "tel" ? "landline" : "mobile"} value={values[field.key] ?? ""} onValueChange={(value) => setValues((current) => ({ ...current, [field.key]: value }))} className={inputClass} />
+                ) : field.type === "email" ? (
+                  <EmailInput id={`setting-${field.key}`} value={values[field.key] ?? ""} onValueChange={(value) => setValues((current) => ({ ...current, [field.key]: value }))} className={inputClass} />
                 ) : (
-                  <input id={`setting-${field.key}`} type={field.type ?? "text"} value={values[field.key] ?? ""} onChange={(event) => setValues({ ...values, [field.key]: event.target.value })} className={inputClass} />
+                  <input id={`setting-${field.key}`} type={field.type ?? "text"} required={field.key === "company_name"} maxLength={200} value={values[field.key] ?? ""} onChange={(event) => setValues({ ...values, [field.key]: event.target.value })} className={inputClass} />
                 )}
                 {field.hint && <p className="mt-1 text-xs text-slate-500">{field.hint}</p>}
               </div>

@@ -15,6 +15,8 @@ import {
 import { createClient } from "@/lib/supabase-browser";
 import { toast } from "sonner";
 import { describeError } from "@/lib/error-message";
+import { NameInput, PhoneInput, VehicleNumberInput } from "@/components/forms/IndiaInputs";
+import { formatPhone, formatTime, normalizeVehicleNumber, toStoredPhone } from "@/lib/india";
 import { useRouter } from "next/navigation";
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
@@ -46,7 +48,7 @@ export function TransportList({ initialRoutes }: { initialRoutes: any[] }) {
     try {
       const { data, error } = await supabase
         .from('school_transport_routes')
-        .insert([routeForm])
+        .insert([{ ...routeForm, route_name: routeForm.route_name.trim(), vehicle_number: normalizeVehicleNumber(routeForm.vehicle_number), driver_name: routeForm.driver_name.trim() || null, driver_phone: toStoredPhone(routeForm.driver_phone) }])
         .select()
         .single();
 
@@ -70,6 +72,10 @@ export function TransportList({ initialRoutes }: { initialRoutes: any[] }) {
 
   const handleAddStop = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (stopForm.drop_time <= stopForm.pickup_time) {
+      toast.error("Drop time must be later than pickup time.");
+      return;
+    }
     setIsSubmitting(true);
 
     try {
@@ -161,7 +167,7 @@ export function TransportList({ initialRoutes }: { initialRoutes: any[] }) {
                     
                     <div className="flex items-center gap-4 text-[13px] text-[#555555]">
                       <div className="flex items-center gap-1.5"><User className="w-4 h-4 text-[#888888]" /> {route.driver_name || 'No driver'}</div>
-                      {route.driver_phone && <div className="flex items-center gap-1.5"><Phone className="w-4 h-4 text-[#888888]" /> {route.driver_phone}</div>}
+                      {route.driver_phone && <div className="flex items-center gap-1.5"><Phone className="w-4 h-4 text-[#888888]" /> {formatPhone(route.driver_phone)}</div>}
                     </div>
                   </div>
                   
@@ -176,8 +182,8 @@ export function TransportList({ initialRoutes }: { initialRoutes: any[] }) {
                             <div className="absolute w-4 h-4 bg-white border-2 border-[#0066cc] rounded-full -left-[1px] top-1" />
                             <div className="font-semibold text-[#333333] text-[14px]">{stop.stop_name}</div>
                             <div className="flex items-center gap-3 text-[12px] text-[#555555] mt-0.5">
-                              <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> Pick: {stop.pickup_time.substring(0,5)}</span>
-                              <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> Drop: {stop.drop_time.substring(0,5)}</span>
+                              <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> Pick: {formatTime(stop.pickup_time)}</span>
+                              <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> Drop: {formatTime(stop.drop_time)}</span>
                             </div>
                           </div>
                         ))}
@@ -212,38 +218,33 @@ export function TransportList({ initialRoutes }: { initialRoutes: any[] }) {
                     required
                     value={routeForm.route_name}
                     onChange={e => setRouteForm({...routeForm, route_name: e.target.value})}
-                    placeholder="e.g. Route A - North City"
+                    placeholder="e.g. Route 1 – Sector 62" minLength={2} maxLength={80}
                     className="w-full h-9 px-3 rounded-md border border-[#cccccc] bg-white text-[14px] focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] outline-none transition-shadow"
                   />
                 </div>
                 <div>
                   <label className="block text-[13px] font-medium text-[#333333] mb-1.5">Vehicle Number *</label>
-                  <input
-                    type="text"
+                  <VehicleNumberInput
                     required
                     value={routeForm.vehicle_number}
-                    onChange={e => setRouteForm({...routeForm, vehicle_number: e.target.value})}
-                    placeholder="e.g. BUS-4092"
+                    onValueChange={(vehicle_number) => setRouteForm((current) => ({ ...current, vehicle_number }))}
                     className="w-full h-9 px-3 rounded-md border border-[#cccccc] bg-white text-[14px] focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] outline-none transition-shadow"
                   />
                 </div>
                 <div>
                   <label className="block text-[13px] font-medium text-[#333333] mb-1.5">Driver Name (Optional)</label>
-                  <input
-                    type="text"
+                  <NameInput
                     value={routeForm.driver_name}
-                    onChange={e => setRouteForm({...routeForm, driver_name: e.target.value})}
-                    placeholder="e.g. Mike Smith"
+                    onValueChange={(driver_name) => setRouteForm((current) => ({ ...current, driver_name }))}
+                    placeholder="e.g. Ramesh Kumar"
                     className="w-full h-9 px-3 rounded-md border border-[#cccccc] bg-white text-[14px] focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] outline-none transition-shadow"
                   />
                 </div>
                 <div>
-                  <label className="block text-[13px] font-medium text-[#333333] mb-1.5">Driver Phone (Optional)</label>
-                  <input
-                    type="tel"
+                  <label className="block text-[13px] font-medium text-[#333333] mb-1.5">Driver Mobile (Optional)</label>
+                  <PhoneInput
                     value={routeForm.driver_phone}
-                    onChange={e => setRouteForm({...routeForm, driver_phone: e.target.value})}
-                    placeholder="e.g. +1 555-0000"
+                    onValueChange={(driver_phone) => setRouteForm((current) => ({ ...current, driver_phone }))}
                     className="w-full h-9 px-3 rounded-md border border-[#cccccc] bg-white text-[14px] focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] outline-none transition-shadow"
                   />
                 </div>
@@ -281,7 +282,7 @@ export function TransportList({ initialRoutes }: { initialRoutes: any[] }) {
                     required
                     value={stopForm.stop_name}
                     onChange={e => setStopForm({...stopForm, stop_name: e.target.value})}
-                    placeholder="e.g. Central Library"
+                    placeholder="e.g. City Mall Gate 2" minLength={2} maxLength={100}
                     className="w-full h-9 px-3 rounded-md border border-[#cccccc] bg-white text-[14px] focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] outline-none transition-shadow"
                   />
                 </div>

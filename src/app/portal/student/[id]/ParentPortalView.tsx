@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { CreditCard, UploadCloud, CheckCircle2, Clock, DollarSign, X } from "lucide-react";
+import { CreditCard, UploadCloud, CheckCircle2, Clock, IndianRupee, X } from "lucide-react";
+import { formatMoney } from "@/lib/money";
+import { formatDate } from "@/lib/india";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -54,7 +56,7 @@ export function ParentPortalView({ student, invoices: initialInvoices }: { stude
   const handleOnlinePayment = async () => {
     setIsSubmitting(true);
     try {
-      const res = await fetch('/api/portal/payment/stripe', {
+      const res = await fetch('/api/portal/payment/online', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -68,7 +70,7 @@ export function ParentPortalView({ student, invoices: initialInvoices }: { stude
       if (!res.ok) throw new Error(data.error);
       
       if (data.url) {
-        window.location.href = data.url; // Redirect to Stripe Checkout or simulated success URL
+        window.location.href = data.url; // Redirect to the payment gateway
       }
     } catch (err: any) {
       alert("Failed to initiate payment: " + err.message);
@@ -114,7 +116,7 @@ export function ParentPortalView({ student, invoices: initialInvoices }: { stude
                   <div key={inv.id} className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50 transition-colors">
                     <div>
                       <h3 className="font-semibold text-slate-900 text-base">{inv.fee_name}</h3>
-                      <p className="text-sm text-slate-500 mt-1">Due Date: {new Date(inv.due_date).toLocaleDateString()}</p>
+                      <p className="text-sm text-slate-500 mt-1">Due Date: {formatDate(inv.due_date)}</p>
                       
                       <div className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border capitalize bg-white shadow-sm">
                         {inv.status === 'paid' && <><CheckCircle2 className="w-3.5 h-3.5 text-green-600"/> <span className="text-green-700">Paid in Full</span></>}
@@ -126,7 +128,7 @@ export function ParentPortalView({ student, invoices: initialInvoices }: { stude
                     
                     <div className="flex flex-col sm:items-end gap-3">
                       <div className="text-2xl font-bold text-slate-900">
-                        ${balance.toFixed(2)}
+                        {formatMoney(balance)}
                       </div>
                       
                       {(inv.status === 'pending' || inv.status === 'partial') && (
@@ -168,8 +170,8 @@ export function ParentPortalView({ student, invoices: initialInvoices }: { stude
                       <CreditCard className="w-6 h-6" />
                     </div>
                     <div>
-                      <div className="font-bold text-slate-900 text-base">Pay Online (Card / Stripe)</div>
-                      <div className="text-sm text-slate-500 mt-0.5">Instant secure payment via credit or debit card.</div>
+                      <div className="font-bold text-slate-900 text-base">Pay Online (UPI / Net Banking / Card)</div>
+                      <div className="text-sm text-slate-500 mt-0.5">Instant secure payment by UPI, net banking or card.</div>
                     </div>
                   </button>
 
@@ -204,7 +206,7 @@ export function ParentPortalView({ student, invoices: initialInvoices }: { stude
                     <>
                       <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
                         <div className="text-sm text-slate-500">Amount Due</div>
-                        <div className="text-xl font-bold text-slate-900">${(Number(selectedInvoice.amount_due) - Number(selectedInvoice.amount_paid)).toFixed(2)}</div>
+                        <div className="text-xl font-bold text-slate-900">{formatMoney(Number(selectedInvoice.amount_due) - Number(selectedInvoice.amount_paid))}</div>
                       </div>
 
                       <div>
@@ -243,10 +245,10 @@ export function ParentPortalView({ student, invoices: initialInvoices }: { stude
                 </div>
                 <div className="p-8 text-center space-y-6">
                   <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto">
-                    <DollarSign className="w-10 h-10 text-blue-600" />
+                    <IndianRupee className="w-10 h-10 text-blue-600" />
                   </div>
                   <div>
-                    <div className="text-3xl font-bold text-slate-900">${(Number(selectedInvoice.amount_due) - Number(selectedInvoice.amount_paid)).toFixed(2)}</div>
+                    <div className="text-3xl font-bold text-slate-900">{formatMoney(Number(selectedInvoice.amount_due) - Number(selectedInvoice.amount_paid))}</div>
                     <div className="text-sm text-slate-500 mt-1">{selectedInvoice.fee_name}</div>
                   </div>
                   
@@ -255,7 +257,7 @@ export function ParentPortalView({ student, invoices: initialInvoices }: { stude
                     disabled={isSubmitting}
                     className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition-colors disabled:opacity-70"
                   >
-                    {isSubmitting ? 'Connecting to Stripe...' : 'Pay with Stripe'}
+                    {isSubmitting ? 'Connecting...' : 'Pay now'}
                   </button>
                 </div>
               </div>

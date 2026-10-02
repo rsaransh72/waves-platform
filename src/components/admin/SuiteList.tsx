@@ -10,6 +10,7 @@ import { DataTable } from "./DataTable";
 import { ColumnDef } from "@tanstack/react-table";
 import { Drawer } from "./Drawer";
 import { SuiteEditor } from "./SuiteEditor";
+import { formatDate } from "@/lib/india";
 
 export function SuiteList({ initialSuites }: { initialSuites: any[] }) {
   const { suites, setSuites, removeSuite, updateSuite } = useAdminStore();
@@ -108,7 +109,7 @@ export function SuiteList({ initialSuites }: { initialSuites: any[] }) {
       header: "Created",
       cell: ({ row }) => (
         <span className="font-semibold text-slate-500">
-          {new Date(row.original.created_at).toLocaleDateString("en-CA")}
+          {formatDate(row.original.created_at)}
         </span>
       ),
     },

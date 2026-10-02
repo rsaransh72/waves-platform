@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { Building2, CreditCard, Users } from "lucide-react";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { formatAdminDate } from "@/lib/admin-format";
+import { formatMoney } from "@/lib/money";
 
 const productNames: Record<string, string> = {
   hospital: "Hospital ERP",
@@ -48,7 +49,7 @@ export default async function ClientWorkspacePage() {
             {subscription ? (
               <dl className="grid grid-cols-2 gap-x-5 gap-y-4 text-sm">
                 <dt className="text-slate-500">Plan</dt><dd className="font-semibold">{subscription.plan_name}</dd>
-                <dt className="text-slate-500">Annual amount</dt><dd className="font-semibold">{new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(Number(subscription.amount))}</dd>
+                <dt className="text-slate-500">Annual amount</dt><dd className="font-semibold">{formatMoney(subscription.amount)}</dd>
                 <dt className="text-slate-500">Status</dt><dd className="font-semibold capitalize">{subscription.status}</dd>
                 <dt className="text-slate-500">Term ends</dt><dd className="font-semibold">{formatAdminDate(subscription.next_billing_date)}</dd>
               </dl>

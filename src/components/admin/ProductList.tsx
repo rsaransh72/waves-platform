@@ -10,6 +10,7 @@ import { DataTable } from "./DataTable";
 import { ColumnDef } from "@tanstack/react-table";
 import { Drawer } from "./Drawer";
 import { ProductEditor } from "./ProductEditor";
+import { formatDate } from "@/lib/india";
 
 export function ProductList({ initialProducts }: { initialProducts: any[] }) {
   const { products, setProducts, removeProduct, updateProduct } = useAdminStore();
@@ -112,7 +113,7 @@ export function ProductList({ initialProducts }: { initialProducts: any[] }) {
       header: "Created",
       cell: ({ row }) => (
         <span className="font-semibold text-slate-500">
-          {new Date(row.original.created_at).toLocaleDateString("en-CA")}
+          {formatDate(row.original.created_at)}
         </span>
       ),
     },

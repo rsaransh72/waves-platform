@@ -6,8 +6,10 @@ import { createClient } from "@/lib/supabase-browser";
 import { useAdminStore } from "@/store/adminStore";
 import { toast } from "sonner";
 import { describeError } from "@/lib/error-message";
-import { formatMoney } from "@/lib/money";
+import { formatMoney, rupeePrice } from "@/lib/money";
 import { workspaceLabel } from "@/lib/product-workspaces";
+import { AmountInput, CityInput, EmailInput, PhoneInput, PincodeInput, StateSelect, TextInput } from "@/components/forms/IndiaInputs";
+import { amountError, cityError, emailError, phoneError, pincodeError, stateError, textError, toStoredPhone } from "@/lib/india";
 
 type OrganizationFormData = {
   id?: string;
@@ -35,9 +37,8 @@ function slugify(value: string) {
 
 // Annual amount implied by a plan price, when the plan states a numeric price.
 function annualAmount(plan: OnboardingPlan): number | null {
-  const raw = String(plan.price ?? "").trim();
-  const price = typeof plan.price === "number" ? plan.price : Number(raw.replace(/[,\s₹]/g, ""));
-  if (raw === "" || !Number.isFinite(price)) return null;
+  const price = rupeePrice(plan.price);
+  if (price === null) return null;
   const period = (plan.period ?? "").toLowerCase();
   if (period.includes("student")) return null; // depends on the number of students
   if (period.includes("month")) return price * 12;
@@ -112,6 +113,8 @@ export function OrganizationEditor({
     }));
   };
 
+  const setField = (name: keyof OrganizationFormData) => (value: string) => setFormData((current) => ({ ...current, [name]: value }));
+
   const applyPlan = (plan: OnboardingPlan | undefined) => {
     setPlanName(plan?.name ?? "");
     const amount = plan ? annualAmount(plan) : null;
@@ -136,21 +139,26 @@ export function OrganizationEditor({
     const slug = formData.slug.trim().toLowerCase();
     if (!name || !slug) return void toast.error("Organization name and web address are required.");
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) return void toast.error("Use lowercase letters, numbers and single hyphens in the web address.");
+    const invalid = textError(name, { label: "Organization name", required: true, max: 200 })
+      ?? emailError(formData.email, isNew)
+      ?? phoneError(formData.phone, { kind: "landline" })
+      ?? cityError(formData.city)
+      ?? stateError(formData.state)
+      ?? pincodeError(formData.pincode);
+    if (invalid) return void toast.error(invalid);
     if (isNew) {
       if (!productSlug) return void toast.error("Choose the product the client is buying.");
-      if (!formData.email?.trim()) return void toast.error("Enter the administrator's email; the invitation is sent there.");
       if (!planName.trim()) return void toast.error("Choose or enter a plan.");
-      if (planAmount.trim() === "" || !Number.isFinite(Number(planAmount)) || Number(planAmount) < 0) {
-        return void toast.error("Enter the annual amount agreed with the client (0 only for a free pilot).");
-      }
+      const amountProblem = amountError(planAmount, { allowZero: true });
+      if (amountProblem) return void toast.error(`Annual amount: ${amountProblem} (₹0 only for a free pilot.)`);
     }
     if (isSubmitting) return;
 
     const organization = {
       name,
       slug,
-      email: formData.email?.trim() || null,
-      phone: formData.phone?.trim() || null,
+      email: formData.email?.trim().toLowerCase() || null,
+      phone: toStoredPhone(formData.phone, { kind: "landline" }),
       address: formData.address?.trim() || null,
       city: formData.city?.trim() || null,
       state: formData.state?.trim() || null,
@@ -205,7 +213,7 @@ export function OrganizationEditor({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="org-name" className={labelClass}>Organization name *</label>
-            <input id="org-name" type="text" name="name" value={formData.name} onChange={handleChange} required className={inputClass} />
+            <TextInput id="org-name" label="Organization name" max={200} value={formData.name} onValueChange={(value) => handleChange({ target: { name: "name", value } } as React.ChangeEvent<HTMLInputElement>)} required className={inputClass} />
           </div>
           <div>
             <label htmlFor="org-slug" className={labelClass}>Web address *</label>
@@ -247,11 +255,11 @@ export function OrganizationEditor({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="org-email" className={labelClass}>{isNew ? "Administrator email *" : "Primary email"}</label>
-            <input id="org-email" type="email" name="email" value={formData.email ?? ""} onChange={handleChange} required={isNew} className={inputClass} />
+            <EmailInput id="org-email" value={formData.email ?? ""} onValueChange={setField("email")} required={isNew} className={inputClass} />
           </div>
           <div>
-            <label htmlFor="org-phone" className={labelClass}>Phone</label>
-            <input id="org-phone" type="tel" name="phone" value={formData.phone ?? ""} onChange={handleChange} className={inputClass} />
+            <label htmlFor="org-phone" className={labelClass}>Phone (mobile or landline with STD code)</label>
+            <PhoneInput id="org-phone" kind="landline" value={formData.phone ?? ""} onValueChange={setField("phone")} className={inputClass} />
           </div>
         </div>
       </Section>
@@ -265,13 +273,13 @@ export function OrganizationEditor({
                 {product?.pricing.map((plan, index) => (
                   <option key={`${plan.name}-${index}`} value={String(index)}>
                     {plan.name}
-                    {plan.price !== undefined && plan.price !== null && plan.price !== "" ? ` (${typeof plan.price === "number" ? formatMoney(plan.price) : plan.price}${plan.period ? ` / ${plan.period}` : ""})` : ""}
+                    {rupeePrice(plan.price) !== null ? ` (${formatMoney(rupeePrice(plan.price))}${plan.period ? ` / ${plan.period}` : ""})` : ""}
                   </option>
                 ))}
                 <option value="custom">Custom plan</option>
               </select>
               {planChoice === "custom" && (
-                <input type="text" value={planName} onChange={(event) => setPlanName(event.target.value)} placeholder="Plan name, e.g. Annual – 600 students" className={`${inputClass} mt-2`} />
+                <input type="text" value={planName} onChange={(event) => setPlanName(event.target.value)} required minLength={2} maxLength={120} placeholder="Plan name, e.g. Annual – 600 students" className={`${inputClass} mt-2`} />
               )}
               {product && product.pricing.length === 0 && (
                 <p className="mt-1 text-xs text-slate-500">This product has no published plans; enter the plan agreed with the client.</p>
@@ -279,7 +287,7 @@ export function OrganizationEditor({
             </div>
             <div>
               <label htmlFor="org-amount" className={labelClass}>Annual amount (₹) *</label>
-              <input id="org-amount" type="number" min="0" step="0.01" value={planAmount} onChange={(event) => setPlanAmount(event.target.value)} required placeholder="Agreed amount per year" className={inputClass} />
+              <AmountInput id="org-amount" allowZero value={planAmount} onValueChange={setPlanAmount} placeholder="Agreed amount per year" className={inputClass} />
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -302,20 +310,20 @@ export function OrganizationEditor({
       <Section title="Address">
         <div>
           <label htmlFor="org-address" className={labelClass}>Address</label>
-          <input id="org-address" type="text" name="address" value={formData.address ?? ""} onChange={handleChange} className={inputClass} />
+          <input id="org-address" type="text" name="address" maxLength={250} autoComplete="street-address" placeholder="Building, street, area" value={formData.address ?? ""} onChange={handleChange} className={inputClass} />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <label htmlFor="org-city" className={labelClass}>City</label>
-            <input id="org-city" type="text" name="city" value={formData.city ?? ""} onChange={handleChange} className={inputClass} />
+            <CityInput id="org-city" value={formData.city ?? ""} onValueChange={setField("city")} className={inputClass} />
           </div>
           <div>
             <label htmlFor="org-state" className={labelClass}>State</label>
-            <input id="org-state" type="text" name="state" value={formData.state ?? ""} onChange={handleChange} className={inputClass} />
+            <StateSelect id="org-state" value={formData.state ?? ""} onValueChange={setField("state")} className={inputClass} />
           </div>
           <div>
-            <label htmlFor="org-pincode" className={labelClass}>Pincode</label>
-            <input id="org-pincode" type="text" name="pincode" inputMode="numeric" value={formData.pincode ?? ""} onChange={handleChange} className={inputClass} />
+            <label htmlFor="org-pincode" className={labelClass}>PIN code</label>
+            <PincodeInput id="org-pincode" value={formData.pincode ?? ""} onValueChange={setField("pincode")} className={inputClass} />
           </div>
         </div>
       </Section>

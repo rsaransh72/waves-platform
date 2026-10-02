@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { KeyRound, Loader2, Trash2, UserPlus } from "lucide-react";
 import { formatAdminDate, formatAdminDateTime } from "@/lib/admin-format";
+import { EmailInput, NameInput } from "@/components/forms/IndiaInputs";
 import { inviteTeamMember, removeTeamMember, sendTeamPasswordReset, updateTeamMember, type TeamActionResult } from "@/app/actions/team";
 
 export type TeamMember = {
@@ -57,11 +58,11 @@ export function TeamList({ members, currentEmail }: { members: TeamMember[]; cur
         <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_1fr_200px_auto] sm:items-end">
           <div>
             <label htmlFor="team-name" className="mb-1 block text-xs font-bold text-slate-600">Name</label>
-            <input id="team-name" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} required className={inputClass} />
+            <NameInput id="team-name" value={form.name} onValueChange={(name) => setForm((current) => ({ ...current, name }))} required className={inputClass} />
           </div>
           <div>
             <label htmlFor="team-email" className="mb-1 block text-xs font-bold text-slate-600">Work email</label>
-            <input id="team-email" type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} required className={inputClass} />
+            <EmailInput id="team-email" value={form.email} onValueChange={(email) => setForm((current) => ({ ...current, email }))} required className={inputClass} />
           </div>
           <div>
             <label htmlFor="team-role" className="mb-1 block text-xs font-bold text-slate-600">Role</label>

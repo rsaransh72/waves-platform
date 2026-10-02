@@ -3,6 +3,9 @@ import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import { organizationTypeForProduct } from "@/lib/product-workspaces";
 import { friendlyAuthEmailError } from "@/lib/client-members";
+import { amountError, cityError, emailError, phoneError, pincodeError, stateError, toStoredPhone } from "@/lib/india";
+
+const optionalText = (value: unknown) => (typeof value === "string" ? value.trim() : "");
 
 type SchoolClientInput = {
   name?: unknown;
@@ -58,16 +61,24 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Choose a published product for this client." }, { status: 400 });
   }
   const organizationType = organizationTypeForProduct(product.slug);
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!name || name.length > 200) {
     return NextResponse.json({ error: "School name is required and must be at most 200 characters." }, { status: 400 });
   }
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
     return NextResponse.json({ error: "Slug must use lowercase letters, numbers, and single hyphens." }, { status: 400 });
   }
-  if (!emailPattern.test(email)) {
+  if (emailError(email, true)) {
     return NextResponse.json({ error: "A valid school administrator email is required for the invitation." }, { status: 400 });
   }
+  const phoneInput = optionalText(body.phone);
+  const city = optionalText(body.city);
+  const state = optionalText(body.state);
+  const pincode = optionalText(body.pincode);
+  const address = optionalText(body.address).slice(0, 250);
+  const contactProblem = phoneError(phoneInput, { kind: "landline" }) ?? cityError(city) ?? stateError(state) ?? pincodeError(pincode)
+    ?? (typeof body.planAmount === "number" ? amountError(String(body.planAmount), { allowZero: true }) : null);
+  if (contactProblem) return NextResponse.json({ error: contactProblem }, { status: 400 });
+  const phone = toStoredPhone(phoneInput, { kind: "landline" });
   const planName = typeof body.planName === "string" ? body.planName.trim() : "";
   const planAmount = typeof body.planAmount === "number" ? body.planAmount : Number.NaN;
   const subscriptionStatus = body.subscriptionStatus === "trialing" ? "trialing" : body.subscriptionStatus === "active" ? "active" : "";
@@ -94,11 +105,11 @@ export async function POST(request: Request) {
         slug,
         type: organizationType,
         email,
-        phone: typeof body.phone === "string" ? body.phone.trim() || null : null,
-        address: typeof body.address === "string" ? body.address.trim() || null : null,
-        city: typeof body.city === "string" ? body.city.trim() || null : null,
-        state: typeof body.state === "string" ? body.state.trim() || null : null,
-        pincode: typeof body.pincode === "string" ? body.pincode.trim() || null : null,
+        phone,
+        address: address || null,
+        city: city || null,
+        state: state || null,
+        pincode: pincode || null,
         status: subscriptionStatus === "trialing" ? "trial" : "active",
       })
       .select("*")
@@ -111,8 +122,8 @@ export async function POST(request: Request) {
         organization_id: organization.id,
         school_name: name,
         contact_email: email,
-        contact_phone: typeof body.phone === "string" ? body.phone.trim() || null : null,
-        address: typeof body.address === "string" ? body.address.trim() || null : null,
+        contact_phone: phone,
+        address: address || null,
       });
       if (settingsError) throw settingsError;
     }

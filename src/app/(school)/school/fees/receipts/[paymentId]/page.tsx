@@ -4,6 +4,7 @@ import { ChevronLeft } from "lucide-react";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { amountInWords, formatMoney } from "@/lib/money";
 import { PrintButton } from "@/components/school/PrintButton";
+import { formatDate, formatPhone } from "@/lib/india";
 
 export const metadata = {
   title: "Fee Receipt | School ERP",
@@ -18,9 +19,6 @@ const METHOD_LABELS: Record<string, string> = {
   other: "Other",
 };
 
-function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
-}
 
 export default async function FeeReceiptPage({ params }: { params: Promise<{ paymentId: string }> }) {
   const { paymentId } = await params;
@@ -74,7 +72,7 @@ export default async function FeeReceiptPage({ params }: { params: Promise<{ pay
             <div>
               <h1 className="text-xl font-bold">{school?.school_name ?? "School"}</h1>
               {school?.address && <p className="mt-1 max-w-sm text-sm text-slate-600">{school.address}</p>}
-              <p className="mt-1 text-sm text-slate-600">{[school?.contact_phone, school?.contact_email].filter(Boolean).join(" · ")}</p>
+              <p className="mt-1 text-sm text-slate-600">{[school?.contact_phone ? formatPhone(school.contact_phone) : null, school?.contact_email].filter(Boolean).join(" · ")}</p>
             </div>
           </div>
           <div className="text-right">

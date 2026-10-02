@@ -169,11 +169,11 @@ export function ClassesList({ initialData, teachers }: { initialData: any[], tea
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-700">Class/Grade Name</label>
-                <input name="name" type="text" defaultValue={selectedClass?.name || ""} className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" placeholder="e.g. Grade 10" required />
+                <input name="name" type="text" defaultValue={selectedClass?.name || ""} className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" placeholder="e.g. Class 10" maxLength={40} required />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-700">Section</label>
-                <input name="section" type="text" defaultValue={selectedClass?.section || ""} className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" placeholder="e.g. A" required />
+                <input name="section" type="text" defaultValue={selectedClass?.section || ""} className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" placeholder="e.g. A" maxLength={10} required />
               </div>
             </div>
 
@@ -189,7 +189,7 @@ export function ClassesList({ initialData, teachers }: { initialData: any[], tea
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Room Number</label>
-              <input name="room" type="text" defaultValue={selectedClass?.room_number || ""} className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" placeholder="e.g. Room 101" />
+              <input name="room" type="text" defaultValue={selectedClass?.room_number || ""} className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" placeholder="e.g. Room 101" maxLength={20} />
             </div>
 
             <div className="pt-4 flex justify-end gap-2">

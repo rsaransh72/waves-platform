@@ -19,6 +19,8 @@ import { describeError } from "@/lib/error-message";
 import { useRouter } from "next/navigation";
 import { formatMoney } from "@/lib/money";
 import { schoolToday } from "@/lib/school-date";
+import { AmountInput } from "@/components/forms/IndiaInputs";
+import { formatDate } from "@/lib/india";
 
 const INVOICE_SELECT = "*, school_students(id, first_name, last_name, roll_number), school_fee_structures(id, name, amount), school_fee_payments(id, receipt_number, amount_paid, payment_date, payment_method)";
 
@@ -51,7 +53,7 @@ export function FeeCollectionList({ initialInvoices, students, structures }: { i
   // Form states
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [invoiceForm, setInvoiceForm] = useState({ student_id: "", fee_structure_id: "", due_date: "" });
-  const [paymentForm, setPaymentForm] = useState({ amount_paid: 0, payment_method: "cash", transaction_id: "", paid_on: schoolToday() });
+  const [paymentForm, setPaymentForm] = useState({ amount_paid: "", payment_method: "cash", transaction_id: "", paid_on: schoolToday() });
 
   const supabase = createClient();
 
@@ -115,9 +117,9 @@ export function FeeCollectionList({ initialInvoices, students, structures }: { i
       const { data: payment, error: paymentError } = await supabase
         .rpc("record_fee_payment", {
           p_student_fee_id: selectedInvoice.id,
-          p_amount: paymentForm.amount_paid,
+          p_amount: Number(paymentForm.amount_paid),
           p_method: paymentForm.payment_method,
-          p_reference: paymentForm.transaction_id || null,
+          p_reference: paymentForm.transaction_id.trim() || null,
           p_paid_on: paymentForm.paid_on || null,
         })
         .single<{ payment_id: string; receipt_number: string }>();
@@ -134,7 +136,7 @@ export function FeeCollectionList({ initialInvoices, students, structures }: { i
       setInvoices(newData);
       setFilteredInvoices(newData);
       setIsPaymentDrawerOpen(false);
-      setPaymentForm({ amount_paid: 0, payment_method: "cash", transaction_id: "", paid_on: schoolToday() });
+      setPaymentForm({ amount_paid: "", payment_method: "cash", transaction_id: "", paid_on: schoolToday() });
       toast.success(`Payment recorded. Receipt ${payment.receipt_number}.`, {
         action: { label: "Print receipt", onClick: () => openReceipt(payment.payment_id) },
         duration: 10000,
@@ -151,7 +153,7 @@ export function FeeCollectionList({ initialInvoices, students, structures }: { i
   const openPaymentDrawer = (invoice: any) => {
     setSelectedInvoice(invoice);
     const balance = Number(invoice.amount_due) - Number(invoice.amount_paid);
-    setPaymentForm({ ...paymentForm, amount_paid: balance });
+    setPaymentForm({ ...paymentForm, amount_paid: String(Math.round(balance * 100) / 100) });
     setIsPaymentDrawerOpen(true);
   };
 
@@ -223,7 +225,7 @@ export function FeeCollectionList({ initialInvoices, students, structures }: { i
                         {(inv.school_fee_payments ?? []).filter((payment: any) => payment.receipt_number).length > 0 && (
                           <div className="mt-1 flex flex-wrap gap-x-2 text-[11px] font-normal">
                             {(inv.school_fee_payments ?? []).filter((payment: any) => payment.receipt_number).map((payment: any) => (
-                              <button key={payment.id} type="button" onClick={() => openReceipt(payment.id)} className="text-[#0066cc] hover:underline" title={`${formatMoney(payment.amount_paid)} on ${new Date(payment.payment_date).toLocaleDateString("en-IN")}`}>
+                              <button key={payment.id} type="button" onClick={() => openReceipt(payment.id)} className="text-[#0066cc] hover:underline" title={`${formatMoney(payment.amount_paid)} on ${formatDate(payment.payment_date)}`}>
                                 {payment.receipt_number}
                               </button>
                             ))}
@@ -388,19 +390,13 @@ export function FeeCollectionList({ initialInvoices, students, structures }: { i
 
                 <div>
                   <label className="block text-[13px] font-medium text-[#333333] mb-1.5">Amount received *</label>
-                  <div className="relative">
-                    <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#888888]" />
-                    <input
-                      type="number"
-                      required
-                      min="0.01"
-                      step="0.01"
-                      max={(Number(selectedInvoice.amount_due) - Number(selectedInvoice.amount_paid))}
-                      value={paymentForm.amount_paid}
-                      onChange={e => setPaymentForm({...paymentForm, amount_paid: parseFloat(e.target.value)})}
-                      className="w-full h-11 pl-9 pr-3 rounded-md border border-[#cccccc] bg-white text-[16px] font-medium focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] outline-none transition-shadow"
-                    />
-                  </div>
+                  <AmountInput
+                    id="payment-amount"
+                    max={Math.round((Number(selectedInvoice.amount_due) - Number(selectedInvoice.amount_paid)) * 100) / 100}
+                    value={paymentForm.amount_paid}
+                    onValueChange={(amount_paid) => setPaymentForm((current) => ({ ...current, amount_paid }))}
+                    className="w-full h-11 pr-3 rounded-md border border-[#cccccc] bg-white text-[16px] font-medium focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] outline-none transition-shadow"
+                  />
                 </div>
 
                 <div>
@@ -421,7 +417,8 @@ export function FeeCollectionList({ initialInvoices, students, structures }: { i
                     <input
                       type="text"
                       value={paymentForm.transaction_id}
-                      onChange={e => setPaymentForm({...paymentForm, transaction_id: e.target.value})}
+                      onChange={e => setPaymentForm({...paymentForm, transaction_id: e.target.value.toUpperCase().replace(/[^A-Z0-9/-]/g, "")})}
+                      maxLength={30}
                       placeholder={paymentForm.payment_method === "cheque" ? "e.g. 004512" : "e.g. 412345678901"}
                       className="w-full h-11 px-3 rounded-md border border-[#cccccc] bg-white text-[14px] focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] outline-none transition-shadow"
                     />
@@ -436,7 +433,7 @@ export function FeeCollectionList({ initialInvoices, students, structures }: { i
                   className="w-full h-12 bg-[#10b981] hover:bg-[#059669] text-white text-[15px] font-bold rounded-md flex items-center justify-center gap-2 transition-colors shadow-sm disabled:opacity-70"
                 >
                   <CheckCircle2 className="w-5 h-5" />
-                  {isSubmitting ? 'Processing...' : `Confirm payment of ${formatMoney(Number.isFinite(paymentForm.amount_paid) ? paymentForm.amount_paid : 0)}`}
+                  {isSubmitting ? 'Processing...' : `Confirm payment of ${formatMoney(Number(paymentForm.amount_paid) || 0)}`}
                 </button>
               </div>
             </form>

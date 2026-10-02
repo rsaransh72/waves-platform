@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { describeError } from "@/lib/error-message";
 import { useCanManage } from "@/components/school/SchoolSessionContext";
 import { formatMoney } from "@/lib/money";
+import { AmountInput } from "@/components/forms/IndiaInputs";
 import { useRouter } from "next/navigation";
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
@@ -41,6 +42,7 @@ export function FeesList({ initialData }: { initialData: FeeStructure[] }) {
     frequency: "monthly"
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [amountText, setAmountText] = useState("");
 
   const supabase = createClient();
 
@@ -62,8 +64,8 @@ export function FeesList({ initialData }: { initialData: FeeStructure[] }) {
       const { data, error } = await supabase
         .from('school_fee_structures')
         .insert([{
-          name: formData.name,
-          amount: formData.amount,
+          name: formData.name?.trim(),
+          amount: Number(amountText),
           frequency: formData.frequency
         }])
         .select()
@@ -77,6 +79,7 @@ export function FeesList({ initialData }: { initialData: FeeStructure[] }) {
         setFilteredFees(newData);
         setIsDrawerOpen(false);
         setFormData({ name: "", amount: 0, frequency: "monthly" });
+        setAmountText("");
         router.refresh();
       }
     } catch (error) {
@@ -178,26 +181,19 @@ export function FeesList({ initialData }: { initialData: FeeStructure[] }) {
                     required
                     value={formData.name}
                     onChange={e => setFormData({...formData, name: e.target.value})}
-                    placeholder="e.g. Term 1 Tuition"
+                    placeholder="e.g. Tuition Fee – Term 1" minLength={2} maxLength={100}
                     className="w-full h-9 px-3 rounded-md border border-[#cccccc] bg-white text-[14px] focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] outline-none transition-shadow"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[13px] font-medium text-[#333333] mb-1.5">Amount *</label>
-                  <div className="relative">
-                    <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#888888]" />
-                    <input
-                      type="number"
-                      required
-                      min="0"
-                      step="0.01"
-                      value={formData.amount}
-                      onChange={e => setFormData({...formData, amount: parseFloat(e.target.value)})}
-                      placeholder="0.00"
-                      className="w-full h-9 pl-9 pr-3 rounded-md border border-[#cccccc] bg-white text-[14px] focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] outline-none transition-shadow"
-                    />
-                  </div>
+                  <label className="block text-[13px] font-medium text-[#333333] mb-1.5">Amount (₹) *</label>
+                  <AmountInput
+                    value={amountText}
+                    onValueChange={setAmountText}
+                    placeholder="e.g. 12500"
+                    className="w-full h-9 pr-3 rounded-md border border-[#cccccc] bg-white text-[14px] focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] outline-none transition-shadow"
+                  />
                 </div>
 
                 <div>

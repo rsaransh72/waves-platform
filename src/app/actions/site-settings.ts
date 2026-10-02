@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requirePlatformAdmin } from "@/lib/supabase-server";
+import { emailError, toStoredPhone } from "@/lib/india";
 
 const FIELDS = [
   "company_name",
@@ -16,7 +17,6 @@ const FIELDS = [
 ] as const;
 
 const EMAIL_FIELDS = new Set(["sales_email", "support_email", "lead_notification_email"]);
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function saveSiteSettings(input: Record<string, string>): Promise<{ error?: string; message?: string }> {
   try {
@@ -24,10 +24,12 @@ export async function saveSiteSettings(input: Record<string, string>): Promise<{
     const value: Record<string, string> = {};
     for (const field of FIELDS) {
       const text = typeof input[field] === "string" ? input[field].trim().slice(0, field === "address" ? 500 : 200) : "";
-      if (text && EMAIL_FIELDS.has(field) && !EMAIL_PATTERN.test(text)) {
+      if (text && EMAIL_FIELDS.has(field) && emailError(text)) {
         return { error: `Enter a valid email address for ${field.replaceAll("_", " ")}.` };
       }
-      value[field] = text;
+      value[field] = field === "phone" ? toStoredPhone(text, { kind: "landline", label: "Phone" }) ?? ""
+        : field === "whatsapp" ? toStoredPhone(text, { label: "WhatsApp number" }) ?? ""
+        : EMAIL_FIELDS.has(field) ? text.toLowerCase() : text;
     }
     if (!value.company_name) return { error: "Company name is required." };
 

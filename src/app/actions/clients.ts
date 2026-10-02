@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requirePlatformAdmin } from "@/lib/supabase-server";
 import { changeMemberRole, inviteMember, removeMember, resendInvite, sendPasswordReset } from "@/lib/client-members";
 import { siteOrigin } from "@/lib/site-origin";
+import { amountError } from "@/lib/india";
 
 export type ActionResult = { error?: string; message?: string };
 
@@ -33,7 +34,8 @@ function parseDate(value: string, label: string) {
 }
 
 function parseAmount(value: number, label: string, allowZero = true) {
-  if (!Number.isFinite(value) || value < 0 || (!allowZero && value === 0)) throw new Error(`Enter a valid ${label}.`);
+  const problem = Number.isFinite(value) ? amountError(String(Math.round(value * 100) / 100), { allowZero }) : "Enter the amount in rupees.";
+  if (problem) throw new Error(`${label[0].toUpperCase()}${label.slice(1)}: ${problem}`);
   return Math.round(value * 100) / 100;
 }
 
@@ -178,7 +180,7 @@ export async function recordInvoicePayment(organizationId: string, invoiceId: st
         status: "paid",
         paid_at: parseDate(input.paidOn, "payment date").toISOString(),
         payment_method: input.method,
-        payment_reference: input.reference.trim() || null,
+        payment_reference: input.reference.trim().slice(0, 100) || null,
       })
       .eq("id", invoiceId)
       .eq("organization_id", organizationId)

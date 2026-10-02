@@ -17,6 +17,7 @@ import { describeError } from "@/lib/error-message";
 import { useCanManage } from "@/components/school/SchoolSessionContext";
 import { schoolToday } from "@/lib/school-date";
 import { useRouter } from "next/navigation";
+import { formatDate } from "@/lib/india";
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 
@@ -77,6 +78,15 @@ export function LibraryList({ initialBooks, students, initialIssues }: { initial
 
   const handleAddBook = async (e: React.FormEvent) => {
     e.preventDefault();
+    const isbnDigits = bookForm.isbn.replace(/-/g, "");
+    if (isbnDigits && isbnDigits.length !== 10 && isbnDigits.length !== 13) {
+      toast.error("An ISBN has 10 or 13 digits (hyphens are fine).");
+      return;
+    }
+    if (!Number.isInteger(bookForm.quantity) || bookForm.quantity < 1 || bookForm.quantity > 1000) {
+      toast.error("Enter a quantity between 1 and 1,000.");
+      return;
+    }
     setIsSubmitting(true);
 
     try {
@@ -245,7 +255,7 @@ export function LibraryList({ initialBooks, students, initialIssues }: { initial
                     <div className="text-[14px] font-medium text-[#111111]">{issue.school_library_books?.title ?? "Book"}</div>
                     <div className="text-[12px] text-[#555555]">
                       {issue.school_students ? `${issue.school_students.first_name} ${issue.school_students.last_name} (${issue.school_students.roll_number})` : "Student"}
-                      {" · "}Due {new Date(`${issue.due_date}T00:00:00`).toLocaleDateString("en-IN")}
+                      {" · "}Due {formatDate(issue.due_date)}
                       {overdue && <span className="ml-2 rounded bg-[#fef2f2] px-1.5 py-0.5 text-[11px] font-semibold text-[#b91c1c]">Overdue</span>}
                     </div>
                   </div>
@@ -287,7 +297,7 @@ export function LibraryList({ initialBooks, students, initialIssues }: { initial
                     required
                     value={bookForm.title}
                     onChange={e => setBookForm({...bookForm, title: e.target.value})}
-                    placeholder="e.g. The Great Gatsby"
+                    placeholder="e.g. Godaan" minLength={2} maxLength={200}
                     className="w-full h-9 px-3 rounded-md border border-[#cccccc] bg-white text-[14px] focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] outline-none transition-shadow"
                   />
                 </div>
@@ -297,7 +307,7 @@ export function LibraryList({ initialBooks, students, initialIssues }: { initial
                     type="text"
                     value={bookForm.author}
                     onChange={e => setBookForm({...bookForm, author: e.target.value})}
-                    placeholder="e.g. F. Scott Fitzgerald"
+                    placeholder="e.g. Munshi Premchand" maxLength={120}
                     className="w-full h-9 px-3 rounded-md border border-[#cccccc] bg-white text-[14px] focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] outline-none transition-shadow"
                   />
                 </div>
@@ -306,8 +316,9 @@ export function LibraryList({ initialBooks, students, initialIssues }: { initial
                   <input
                     type="text"
                     value={bookForm.isbn}
-                    onChange={e => setBookForm({...bookForm, isbn: e.target.value})}
-                    placeholder="e.g. 978-3-16-148410-0"
+                    onChange={e => setBookForm({...bookForm, isbn: e.target.value.toUpperCase().replace(/[^0-9X-]/g, "").slice(0, 17)})}
+                    inputMode="numeric"
+                    placeholder="e.g. 978-81-7028-123-4"
                     className="w-full h-9 px-3 rounded-md border border-[#cccccc] bg-white text-[14px] focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] outline-none transition-shadow"
                   />
                 </div>
@@ -317,8 +328,10 @@ export function LibraryList({ initialBooks, students, initialIssues }: { initial
                     type="number"
                     required
                     min="1"
-                    value={bookForm.quantity}
-                    onChange={e => setBookForm({...bookForm, quantity: parseInt(e.target.value)})}
+                    max="1000"
+                    step="1"
+                    value={Number.isFinite(bookForm.quantity) ? bookForm.quantity : ""}
+                    onChange={e => setBookForm({...bookForm, quantity: parseInt(e.target.value, 10)})}
                     className="w-full h-9 px-3 rounded-md border border-[#cccccc] bg-white text-[14px] focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] outline-none transition-shadow"
                   />
                 </div>

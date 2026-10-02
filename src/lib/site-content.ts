@@ -1,6 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { supabase } from "@/lib/supabase";
+import { rupeePrice } from "@/lib/money";
 
 // Everything the public website shows comes from the admin console: company details
 // from Settings, and products, services and pages that are published there. Nothing
@@ -232,7 +233,8 @@ export async function getPublishedPage(slug: string): Promise<ContentPage | null
 
 export { productHref } from "@/lib/product-routes";
 
-export function planPrice(plan: PricingPlan) {
-  if (plan.price === undefined || plan.price === null || plan.price === "") return null;
-  return plan.price;
+// The price in rupees, or null for "Pricing on request". Prices are always rupee
+// amounts; any other text (an old "$49/mo", "On request") is never shown as a price.
+export function planPrice(plan: PricingPlan): number | null {
+  return rupeePrice(plan.price);
 }

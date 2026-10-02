@@ -7,6 +7,8 @@ import { ArrowLeft, Save, Globe, EyeOff, Archive, Check, Plus, Trash2, GripVerti
 import Link from "next/link";
 import { clsx } from "clsx";
 import { createClient } from "@/lib/supabase-browser";
+import { AmountInput } from "@/components/forms/IndiaInputs";
+import { amountError } from "@/lib/india";
 
 const tabs = ["General", "Features", "Pricing", "SEO", "Publishing"];
 
@@ -67,6 +69,11 @@ export function MarketplaceItemEditor({ initialData, isNew }: { initialData: any
   };
 
   const handleSave = async () => {
+    const badPrice = formData.pricing.find((plan: any) => amountError(plan.price, { required: false }));
+    if (badPrice) {
+      toast.error(`Plan "${badPrice.plan || "untitled"}": ${amountError(badPrice.price, { required: false })}`);
+      return;
+    }
     setIsSaving(true);
     try {
       const supabase = createClient();
@@ -307,13 +314,7 @@ export function MarketplaceItemEditor({ initialData, isNew }: { initialData: any
                         placeholder="Plan Name (e.g., Professional)"
                         className="w-full pr-10 rounded border border-gray-300 bg-white px-3 py-2 text-sm font-bold text-slate-900"
                       />
-                      <input 
-                        type="text" 
-                        value={plan.price}
-                        onChange={(e) => updatePricing(idx, "price", e.target.value)}
-                        placeholder="Price (e.g., $49/mo)"
-                        className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-slate-900"
-                      />
+<AmountInput required={false} value={plan.price} onValueChange={(value) => updatePricing(idx, "price", value)} placeholder="Price in rupees (empty = on request)" className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-slate-900" />
                       <textarea 
                         value={plan.features}
                         onChange={(e) => updatePricing(idx, "features", e.target.value)}
