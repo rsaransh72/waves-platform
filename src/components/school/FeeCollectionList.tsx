@@ -250,7 +250,7 @@ export function FeeCollectionList({ initialInvoices, students, structures, class
                       </td>
                       <td className="py-3 px-4">
                         <div className="text-[14px] text-[#111111]">{inv.school_fee_structures?.name}</div>
-                        <div className="text-[12px] text-[#888888]">Due: {inv.due_date}</div>
+                        <div className="text-[12px] text-[#888888]">Due: {formatDate(inv.due_date)}</div>
                       </td>
                       <td className="py-3 px-4 text-[14px] text-[#111111] font-medium">
                         {formatMoney(inv.amount_due)}
