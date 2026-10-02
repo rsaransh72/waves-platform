@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -11,6 +11,7 @@ import { formatAdminDate, formatAdminDateTime } from "@/lib/admin-format";
 import { CityInput, EmailInput, NameInput, PhoneInput, TextInput } from "@/components/forms/IndiaInputs";
 import { formatPhone, phoneHref, whatsAppHref } from "@/lib/india";
 import { addLeadNote, createLead, deleteLead, updateLeadPipeline, type LeadActionResult } from "@/app/actions/leads";
+import { useAdminStore } from "@/store/adminStore";
 import { INQUIRY_LABELS, LEAD_STATUSES, LEAD_STATUS_HINTS, LEAD_STATUS_LABELS, OPEN_LEAD_STATUSES, type LeadStatus } from "@/lib/lead-pipeline";
 
 type Lead = {
@@ -64,6 +65,39 @@ function useAction() {
   return { run, isPending };
 }
 
+// The console's realtime connection (RealtimeProvider) records every lead change in
+// the admin store. This page renders the list the server sent, so on a change it
+// asks the server for the list again, and announces enquiries it has not shown yet.
+function useLiveLeads(leads: Lead[], openLead: (id: string) => void) {
+  const router = useRouter();
+  const shown = useRef(new Set<string>());
+  useEffect(() => {
+    for (const lead of leads) shown.current.add(lead.id);
+  }, [leads]);
+  useEffect(() => {
+    let refresh: ReturnType<typeof setTimeout> | undefined;
+    const unsubscribe = useAdminStore.subscribe((state, previous) => {
+      if (state.leads.data === previous.leads.data) return;
+      for (const [id, lead] of Object.entries(state.leads.data) as Array<[string, Partial<Lead>]>) {
+        if (shown.current.has(id) || id in previous.leads.data || !lead.name) continue;
+        shown.current.add(id);
+        const request = (INQUIRY_LABELS[lead.inquiry_type ?? "demo"] ?? "Enquiry").toLowerCase();
+        toast.info(`New ${request} from ${lead.name}${lead.organization_name ? `, ${lead.organization_name}` : ""}`, {
+          duration: 15000,
+          action: { label: "Open", onClick: () => openLead(id) },
+        });
+      }
+      // Several changes often arrive together; refresh once.
+      clearTimeout(refresh);
+      refresh = setTimeout(() => router.refresh(), 400);
+    });
+    return () => {
+      unsubscribe();
+      clearTimeout(refresh);
+    };
+  }, [router, openLead]);
+}
+
 export function LeadPipeline({ leads, products, today, openCreate = false }: { leads: Lead[]; products: Array<{ slug: string; title: string; status: string }>; today: string; openCreate?: boolean }) {
   const [filter, setFilter] = useState<"open" | "due" | LeadStatus | "all">("open");
   const [query, setQuery] = useState("");
@@ -71,6 +105,7 @@ export function LeadPipeline({ leads, products, today, openCreate = false }: { l
   const [isCreating, setIsCreating] = useState(openCreate);
   const productTitles = useMemo(() => new Map(products.map((product) => [product.slug, product.title])), [products]);
   const selected = leads.find((lead) => lead.id === selectedId) ?? null;
+  useLiveLeads(leads, setSelectedId);
 
   const isDue = (lead: Lead) => OPEN_LEAD_STATUSES.includes(lead.status) && (lead.status === "new" || (lead.next_follow_up !== null && lead.next_follow_up <= today));
 
