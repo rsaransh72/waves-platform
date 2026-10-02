@@ -45,9 +45,12 @@ export async function proxy(request: NextRequest) {
   if (isSchoolRoute && !isSchoolPublicRoute && user) {
     const { data: organizationId, error } = await supabase.rpc('get_auth_organization_id')
     if (error || !organizationId) {
+      // A paused school gets its own page explaining how to restore access.
+      const { data: account } = await supabase.rpc('get_my_school_account').maybeSingle<{ organization_status: string }>()
+      const paused = account?.organization_status === 'suspended' || account?.organization_status === 'inactive'
       const url = request.nextUrl.clone()
       url.pathname = '/access-denied'
-      url.search = '?area=school'
+      url.search = paused ? '?area=school&reason=paused' : '?area=school'
       return NextResponse.redirect(url)
     }
 
