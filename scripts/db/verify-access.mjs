@@ -37,7 +37,7 @@ try {
   }
   await check("read published products", "anon", anon, `select count(*)::int as n from public.products`, "rows>0 if any published");
   await check("read menus", "anon", anon, `select count(*)::int as n from public.menus`, "rows>0");
-  await check("submit lead", "anon", anon, `insert into public.leads (name, email, phone, product, source, status) values ('RLS test', 'rls@test.invalid', '0', 'test', 'rls_check', 'new')`, "ok");
+  await check("submit lead", "anon", anon, `insert into public.leads (name, email, phone, product, source, status) values ('RLS test', 'rls@test.invalid', '+919876543210', 'test', 'rls_check', 'new')`, "ok");
   await check("self-promote to superadmin", "anon", anon, `insert into public.team_members (name, email, role, status) values ('x', 'x@test.invalid', 'superadmin', 'active')`, "denied");
   await check("is_platform_admin()", "authenticated", adminClaims, `select public.is_platform_admin() as ok`, "value=true");
   await check("admin reads team_members", "authenticated", adminClaims, `select count(*)::int as n from public.team_members`, "rows>=1");
