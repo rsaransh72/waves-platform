@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
 import { LayoutDashboard, Users, BookOpen, Clock, Settings, GraduationCap, CreditCard, FileText, Bell, Library, CalendarDays, Bus, ShieldCheck } from "lucide-react";
@@ -32,9 +33,17 @@ function NavLink({ item, pathname, onNavigate }: { item: typeof schoolNavigation
   const isActive = pathname === item.href
     || (item.href !== "/school" && item.href !== "/school/fees" && pathname.startsWith(`${item.href}/`));
   const Icon = item.icon;
+  // Every school page is rendered per request, so prefetching all 15 links on each page
+  // view cost ~30 server renders. Prefetch a link only once the user shows intent.
+  const [intent, setIntent] = useState(false);
+  const showIntent = () => setIntent(true);
   return (
     <Link
       href={item.href}
+      prefetch={intent ? null : false}
+      onMouseEnter={showIntent}
+      onFocus={showIntent}
+      onTouchStart={showIntent}
       onClick={onNavigate}
       className={clsx(
         "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all group",

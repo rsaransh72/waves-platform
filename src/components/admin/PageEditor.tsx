@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase-browser";
 import { clsx } from "clsx";
+import { refreshPublicSite } from "@/app/actions/public-site";
 
 interface PageEditorProps {
   initialData: any;
@@ -68,12 +69,14 @@ export function PageEditor({ initialData, isNew = false }: PageEditorProps) {
         const { data, error } = await supabase.from("pages").insert([finalData]).select().single();
         if (error) throw error;
         addPage(data);
+        void refreshPublicSite();
         toast.success("Page created!");
         router.push(`/admin/pages/${data.slug}`);
       } else {
         updatePage(initialData.id, finalData); // optimistic
         const { error } = await supabase.from("pages").update(finalData).eq("id", initialData.id);
         if (error) throw error;
+        void refreshPublicSite();
         toast.success("Page saved!");
         setFormData(finalData); // update local state with final status
       }

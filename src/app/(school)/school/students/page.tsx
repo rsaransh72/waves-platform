@@ -10,15 +10,16 @@ export const metadata = {
 
 export default async function StudentsPage() {
   const supabase = await createServerSupabaseClient();
-  const { data: students, error } = await supabase
-    .from("school_students")
-    .select("*, school_classes(name, section)")
-    .order("created_at", { ascending: false });
-
-  const { data: classes } = await supabase
-    .from("school_classes")
-    .select("id, name, section")
-    .order("name", { ascending: true });
+  const [{ data: students, error }, { data: classes }] = await Promise.all([
+    supabase
+      .from("school_students")
+      .select("*, school_classes(name, section)")
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("school_classes")
+      .select("id, name, section")
+      .order("name", { ascending: true }),
+  ]);
 
   if (error) {
     console.error("Error fetching school students:", error);

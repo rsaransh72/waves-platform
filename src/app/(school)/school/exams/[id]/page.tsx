@@ -28,17 +28,17 @@ export default async function ExamGradingPage({
   }
 
   // 2. Fetch all students in this class
-  const { data: students } = await supabase
-    .from("school_students")
-    .select("id, first_name, last_name, roll_number")
-    .eq("class_id", exam.class_id)
-    .order("roll_number");
-
-  // 3. Fetch all existing results for this exam
-  const { data: results } = await supabase
-    .from("school_exam_results")
-    .select("*")
-    .eq("exam_id", examId);
+  const [{ data: students }, { data: results }] = await Promise.all([
+    supabase
+      .from("school_students")
+      .select("id, first_name, last_name, roll_number")
+      .eq("class_id", exam.class_id)
+      .order("roll_number"),
+    supabase
+      .from("school_exam_results")
+      .select("*")
+      .eq("exam_id", examId),
+  ]);
 
   return (
     <div className="flex-1 flex flex-col">

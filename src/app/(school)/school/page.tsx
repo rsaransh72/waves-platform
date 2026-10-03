@@ -8,16 +8,15 @@ import { formatDate, formatIndianNumber } from "@/lib/india";
 export default async function SchoolDashboardPage({ searchParams }: { searchParams: Promise<{ denied?: string }> }) {
   const { denied } = await searchParams;
   const supabase = await createServerSupabaseClient();
-  const { data: roleValue } = await supabase.rpc("get_auth_school_role");
-  const role = normalizeSchoolRole(roleValue);
-
   const today = schoolToday();
-  const [studentsResult, teachersResult, classesResult, attendanceResult] = await Promise.all([
+  const [{ data: roleValue }, studentsResult, teachersResult, classesResult, attendanceResult] = await Promise.all([
+    supabase.rpc("get_auth_school_role"),
     supabase.from("school_students").select("id", { count: "exact", head: true }).eq("status", "active"),
     supabase.from("school_teachers").select("id", { count: "exact", head: true }).eq("status", "active"),
     supabase.from("school_classes").select("id", { count: "exact", head: true }),
     supabase.from("school_attendance").select("status").eq("date", today),
   ]);
+  const role = normalizeSchoolRole(roleValue);
 
   const hasQueryError = [studentsResult, teachersResult, classesResult, attendanceResult].some(
     (result) => result.error

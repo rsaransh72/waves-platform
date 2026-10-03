@@ -10,6 +10,7 @@ import { describeError } from "@/lib/error-message";
 import { RESERVED_SLUGS } from "@/lib/product-routes";
 import { AmountInput } from "@/components/forms/IndiaInputs";
 import { amountError } from "@/lib/india";
+import { refreshPublicSite } from "@/app/actions/public-site";
 
 const tabs = ["General", "Features", "Use cases", "Pricing", "FAQs", "SEO", "Publishing"];
 
@@ -121,6 +122,7 @@ export function ProductEditor({ initialData, isNew, onClose }: { initialData: an
         if (error) throw error;
         updateProduct(initialData.id, data);
       }
+      void refreshPublicSite();
       toast.success(isNew ? "Product created." : "Product saved.");
       onClose();
     } catch (error) {

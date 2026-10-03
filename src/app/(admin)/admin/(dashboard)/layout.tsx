@@ -4,7 +4,7 @@ import { RealtimeProvider } from "@/components/admin/RealtimeProvider";
 import { CommandPalette } from "@/components/admin/CommandPalette";
 import { Toaster } from "sonner";
 import { Metadata } from "next";
-import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { createServerSupabaseClient, getSessionUser } from "@/lib/supabase-server";
 import { schoolToday } from "@/lib/school-date";
 import { OPEN_LEAD_STATUSES } from "@/lib/lead-pipeline";
 import type { AdminShellData } from "@/lib/admin-shell";
@@ -20,8 +20,7 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const supabase = await createServerSupabaseClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  const email = user?.email ?? "";
+  const email = (await getSessionUser(supabase))?.email ?? "";
   const [{ data: member }, { count: newLeads }, { count: dueFollowUps }] = await Promise.all([
     supabase.from("team_members").select("name, role").eq("email", email).maybeSingle(),
     supabase.from("leads").select("id", { count: "exact", head: true }).eq("status", "new"),

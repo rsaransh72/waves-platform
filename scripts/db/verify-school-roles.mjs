@@ -35,7 +35,11 @@ async function expect(role, userId, label, sql, expected) {
 
 await client.query("BEGIN");
 try {
-  for (const migration of migrations) await client.query(fs.readFileSync(migration, "utf8").replace(/^NOTIFY .*$/gm, ""));
+  // A migration's own BEGIN/COMMIT would end this transaction and make the test data
+  // permanent, so strip them (any case) and let the final ROLLBACK undo everything.
+  for (const migration of migrations) {
+    await client.query(fs.readFileSync(migration, "utf8").replace(/^\s*(begin;|commit;|notify.*)\s*$/gim, ""));
+  }
 
   const { rows: [org] } = await client.query(
     `insert into organizations (name, slug, type, status) values ('Role Test School', $1, 'school', 'active') returning id`,

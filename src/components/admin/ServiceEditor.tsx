@@ -9,6 +9,7 @@ import { clsx } from "clsx";
 import { createClient } from "@/lib/supabase-browser";
 import { AmountInput } from "@/components/forms/IndiaInputs";
 import { amountError } from "@/lib/india";
+import { refreshPublicSite } from "@/app/actions/public-site";
 
 const tabs = ["General", "Features", "Pricing", "SEO", "Publishing"];
 
@@ -88,6 +89,7 @@ export function ServiceEditor({ initialData, isNew }: { initialData: any, isNew:
         if (error) throw error;
       }
       router.push("/admin/services");
+      void refreshPublicSite();
       router.refresh();
     } catch (err: any) {
       console.error(err);

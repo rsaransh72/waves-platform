@@ -8,24 +8,24 @@ export const metadata = {
 export default async function TimetablePage() {
   const supabase = await createServerSupabaseClient();
 
-  const { data: timetables } = await supabase
-    .from("school_timetables")
-    .select(`
-      *,
-      school_classes(id, name, section),
-      school_teachers(id, first_name, last_name)
-    `)
-    .order("start_time", { ascending: true });
-
-  const { data: classes } = await supabase
-    .from("school_classes")
-    .select("id, name, section")
-    .order("name", { ascending: true });
-
-  const { data: teachers } = await supabase
-    .from("school_teachers")
-    .select("id, first_name, last_name")
-    .order("first_name", { ascending: true });
+  const [{ data: timetables }, { data: classes }, { data: teachers }] = await Promise.all([
+    supabase
+      .from("school_timetables")
+      .select(`
+        *,
+        school_classes(id, name, section),
+        school_teachers(id, first_name, last_name)
+      `)
+      .order("start_time", { ascending: true }),
+    supabase
+      .from("school_classes")
+      .select("id, name, section")
+      .order("name", { ascending: true }),
+    supabase
+      .from("school_teachers")
+      .select("id, first_name, last_name")
+      .order("first_name", { ascending: true }),
+  ]);
 
   return (
     <div className="flex-1 flex flex-col">

@@ -4,7 +4,8 @@ import PageHero from "@/components/site/PageHero";
 import { ProductOverview } from "@/components/site/product/ProductPages";
 import { getPublishedPage, getPublishedProduct, getSiteSettings } from "@/lib/site-content";
 
-export const revalidate = 0;
+// Cached for a minute; admin edits clear it at once (refreshPublicSite).
+export const revalidate = 60;
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

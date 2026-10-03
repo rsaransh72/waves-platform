@@ -9,35 +9,32 @@ export default async function FeeCollectionPage() {
   const supabase = await createServerSupabaseClient();
 
   // Fetch Student Fees (Invoices)
-  const { data: invoices } = await supabase
-    .from("school_student_fees")
-    .select(`
-      *,
-      school_students (id, first_name, last_name, roll_number),
-      school_fee_structures (id, name, amount),
-      school_fee_payments (id, receipt_number, amount_paid, payment_date, payment_method)
-    `)
-    .order("created_at", { ascending: false });
-
-  // Fetch Students for dropdown
-  const { data: students } = await supabase
-    .from("school_students")
-    .select("id, first_name, last_name, roll_number, class_id")
-    .eq("status", "active")
-    .order("first_name");
-
-  const { data: classes } = await supabase
-    .from("school_classes")
-    .select("id, name, section")
-    .order("name")
-    .order("section");
-
-  // Fetch Fee Structures for dropdown
-  const { data: structures } = await supabase
-    .from("school_fee_structures")
-    .select("id, name, amount")
-    .is("archived_at", null)
-    .order("name");
+  const [{ data: invoices }, { data: students }, { data: classes }, { data: structures }] = await Promise.all([
+    supabase
+      .from("school_student_fees")
+      .select(`
+        *,
+        school_students (id, first_name, last_name, roll_number),
+        school_fee_structures (id, name, amount),
+        school_fee_payments (id, receipt_number, amount_paid, payment_date, payment_method)
+      `)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("school_students")
+      .select("id, first_name, last_name, roll_number, class_id")
+      .eq("status", "active")
+      .order("first_name"),
+    supabase
+      .from("school_classes")
+      .select("id, name, section")
+      .order("name")
+      .order("section"),
+    supabase
+      .from("school_fee_structures")
+      .select("id, name, amount")
+      .is("archived_at", null)
+      .order("name"),
+  ]);
 
   return (
     <div className="flex-1 flex flex-col">

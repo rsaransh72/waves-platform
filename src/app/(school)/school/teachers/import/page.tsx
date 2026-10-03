@@ -11,10 +11,11 @@ export const metadata = {
 
 export default async function ImportTeachersPage() {
   const supabase = await createServerSupabaseClient();
-  const { data: role } = await supabase.rpc("get_auth_school_role");
+  const [{ data: role }, { data: teachers }] = await Promise.all([
+    supabase.rpc("get_auth_school_role"),
+    supabase.from("school_teachers").select("employee_id"),
+  ]);
   if (!canManageSchoolArea(normalizeSchoolRole(role), "teachers")) redirect("/school?denied=1");
-
-  const { data: teachers } = await supabase.from("school_teachers").select("employee_id");
 
   return <SpreadsheetImport kind="teachers" classes={[]} taken={{ employeeIds: (teachers ?? []).map((teacher) => teacher.employee_id) }} />;
 }

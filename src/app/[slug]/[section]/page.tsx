@@ -3,7 +3,8 @@ import { ProductDemo, ProductFaq, ProductFeatures, ProductPricing } from "@/comp
 import { getPublishedProduct, getSiteSettings } from "@/lib/site-content";
 import { isProductSection } from "@/lib/product-routes";
 
-export const revalidate = 0;
+// Cached for a minute; admin edits clear it at once (refreshPublicSite).
+export const revalidate = 60;
 
 const TITLES = { features: "Features", pricing: "Pricing", faq: "FAQs", demo: "Request a demo" } as const;
 

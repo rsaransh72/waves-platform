@@ -8,6 +8,7 @@ import { clsx } from "clsx";
 import { createClient } from "@/lib/supabase-browser";
 import { useRouter } from "next/navigation";
 import { formatDate } from "@/lib/india";
+import { refreshPublicSite } from "@/app/actions/public-site";
 
 export function ServiceList({ initialServices }: { initialServices: any[] }) {
   const router = useRouter();
@@ -39,6 +40,7 @@ export function ServiceList({ initialServices }: { initialServices: any[] }) {
       const { error } = await supabase.from("services").delete().eq("id", id);
       if (error) throw error;
       setServices(services.filter(p => p.id !== id));
+      void refreshPublicSite();
       router.refresh();
     } catch (err: any) {
       toast.error(`Error deleting service: ${err.message}`);
@@ -55,6 +57,7 @@ export function ServiceList({ initialServices }: { initialServices: any[] }) {
       const { error } = await supabase.from("services").update({ status: newStatus }).eq("id", id);
       if (error) throw error;
       setServices(services.map(p => p.id === id ? { ...p, status: newStatus } : p));
+      void refreshPublicSite();
       router.refresh();
     } catch (err: any) {
       toast.error(`Error updating service status: ${err.message}`);

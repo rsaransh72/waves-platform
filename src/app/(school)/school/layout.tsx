@@ -1,6 +1,6 @@
 import { SchoolShell } from "@/components/school/SchoolShell";
 import type { SchoolSession } from "@/components/school/SchoolSessionContext";
-import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { createServerSupabaseClient, getSessionUser } from "@/lib/supabase-server";
 import { normalizeSchoolRole } from "@/lib/school-permissions";
 import { billingNotice, type SchoolAccount } from "@/lib/school-account";
 import { getSiteSettings } from "@/lib/site-content";
@@ -17,7 +17,7 @@ export default async function SchoolLayout({
   children: React.ReactNode;
 }) {
   const supabase = await createServerSupabaseClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
 
   let session: SchoolSession | null = null;
   if (user) {
@@ -30,10 +30,9 @@ export default async function SchoolLayout({
     // eslint-disable-next-line react-hooks/purity -- the layout renders per request
     const billing = schoolRole === "admin" ? billingNotice(account, Date.now()) : null;
     if (billing) billing.phone = (await getSiteSettings()).phone || undefined;
-    const metadataName = user.user_metadata?.full_name ?? user.user_metadata?.name;
     session = {
-      email: user.email ?? "",
-      name: typeof metadataName === "string" && metadataName.trim() ? metadataName.trim() : null,
+      email: user.email,
+      name: user.name,
       role: schoolRole,
       schoolName: settings?.school_name || "School ERP",
       billing,

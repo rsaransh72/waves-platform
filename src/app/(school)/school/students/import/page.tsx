@@ -12,15 +12,15 @@ export const metadata = {
 
 export default async function ImportStudentsPage() {
   const supabase = await createServerSupabaseClient();
-  const { data: role } = await supabase.rpc("get_auth_school_role");
-  if (!canManageSchoolArea(normalizeSchoolRole(role), "students")) redirect("/school?denied=1");
-
   // Every roll and admission number in use, active or not: the database keeps roll
-  // numbers unique per class and admission numbers unique per school.
-  const [{ data: classes }, { data: students }] = await Promise.all([
+  // numbers unique per class and admission numbers unique per school. Loaded alongside
+  // the role check; RLS returns nothing to a role that may not read them anyway.
+  const [{ data: role }, { data: classes }, { data: students }] = await Promise.all([
+    supabase.rpc("get_auth_school_role"),
     supabase.from("school_classes").select("id, name, section").order("name"),
     supabase.from("school_students").select("roll_number, class_id, admission_number"),
   ]);
+  if (!canManageSchoolArea(normalizeSchoolRole(role), "students")) redirect("/school?denied=1");
 
   return (
     <SpreadsheetImport
