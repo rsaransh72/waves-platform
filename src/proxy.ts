@@ -24,9 +24,11 @@ export async function proxy(request: NextRequest) {
     }
   )
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // getClaims() refreshes an expired session (writing the new cookies above) and then
+  // verifies the access token's signature locally against the project's public keys,
+  // instead of asking Supabase Auth on every request as getUser() did.
+  const { data: claimsData } = await supabase.auth.getClaims()
+  const user = claimsData?.claims?.sub ? claimsData.claims : null
 
   const pathname = request.nextUrl.pathname
   const isSchoolRoute = pathname === '/school' || pathname.startsWith('/school/')
@@ -43,8 +45,10 @@ export async function proxy(request: NextRequest) {
   }
 
   if (isSchoolRoute && !isSchoolPublicRoute && user) {
-    const { data: organizationId, error } = await supabase.rpc('get_auth_organization_id')
-    if (error || !organizationId) {
+    // One round trip: the role is null unless the user belongs to exactly one school
+    // that is active or on trial (it goes through get_auth_organization_id()).
+    const { data: role, error } = await supabase.rpc('get_auth_school_role')
+    if (error || !role) {
       // A paused school gets its own page explaining how to restore access.
       const { data: account } = await supabase.rpc('get_my_school_account').maybeSingle<{ organization_status: string }>()
       const paused = account?.organization_status === 'suspended' || account?.organization_status === 'inactive'
@@ -55,14 +59,11 @@ export async function proxy(request: NextRequest) {
     }
 
     const area = schoolAreaForPath(pathname)
-    if (area && area !== 'dashboard') {
-      const { data: role } = await supabase.rpc('get_auth_school_role')
-      if (!canViewSchoolArea(normalizeSchoolRole(role), area)) {
-        const url = request.nextUrl.clone()
-        url.pathname = '/school'
-        url.search = '?denied=1'
-        return NextResponse.redirect(url)
-      }
+    if (area && area !== 'dashboard' && !canViewSchoolArea(normalizeSchoolRole(role), area)) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/school'
+      url.search = '?denied=1'
+      return NextResponse.redirect(url)
     }
   }
 
@@ -102,8 +103,14 @@ export async function proxy(request: NextRequest) {
   return supabaseResponse
 }
 
+// Only the signed-in areas need the session check. The public website is cached and
+// served straight from the CDN, without running this on every visit.
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/school/:path*',
+    '/client/:path*',
+    '/admin/:path*',
+    '/api/admin/:path*',
+    '/access-denied',
   ],
 }

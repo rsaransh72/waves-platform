@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { createServerSupabaseClient, getSessionUser } from "@/lib/supabase-server";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import { TeamList, type TeamMember } from "@/components/admin/TeamList";
 
@@ -7,8 +7,8 @@ export const metadata = { title: "Platform team | Waves Admin" };
 
 export default async function PlatformTeamPage() {
   const supabase = await createServerSupabaseClient();
-  const [{ data: { user } }, { data: rows, error }] = await Promise.all([
-    supabase.auth.getUser(),
+  const [user, { data: rows, error }] = await Promise.all([
+    getSessionUser(supabase),
     supabase.from("team_members").select("id, name, email, role, status, created_at").order("created_at"),
   ]);
   if (error) console.error("Error fetching platform team:", error);
