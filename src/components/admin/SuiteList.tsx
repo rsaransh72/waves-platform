@@ -11,6 +11,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Drawer } from "./Drawer";
 import { SuiteEditor } from "./SuiteEditor";
 import { formatDate } from "@/lib/india";
+import { refreshPublicSite } from "@/app/actions/public-site";
 
 export function SuiteList({ initialSuites }: { initialSuites: any[] }) {
   const { suites, setSuites, removeSuite, updateSuite } = useAdminStore();
@@ -31,6 +32,7 @@ export function SuiteList({ initialSuites }: { initialSuites: any[] }) {
 
     // Optimistic Delete
     removeSuite(id);
+    void refreshPublicSite();
     toast.success(`Deleted ${title}`);
     
     // Background execution
@@ -48,6 +50,7 @@ export function SuiteList({ initialSuites }: { initialSuites: any[] }) {
     
     // Optimistic Update
     updateSuite(id, { status: newStatus });
+    void refreshPublicSite();
     toast.success(`Status changed to ${newStatus}`);
 
     // Background execution

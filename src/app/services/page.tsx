@@ -6,7 +6,8 @@ import ContactDetails from "@/components/site/ContactDetails";
 import { getPublishedProducts, getPublishedServices, getSiteSettings, planPrice } from "@/lib/site-content";
 import { formatMoney } from "@/lib/money";
 
-export const revalidate = 0;
+// Cached for a minute; admin edits clear it at once (refreshPublicSite).
+export const revalidate = 60;
 
 export async function generateMetadata() {
   const settings = await getSiteSettings();

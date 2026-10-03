@@ -11,6 +11,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Drawer } from "./Drawer";
 import { ProductEditor } from "./ProductEditor";
 import { formatDate } from "@/lib/india";
+import { refreshPublicSite } from "@/app/actions/public-site";
 
 export function ProductList({ initialProducts }: { initialProducts: any[] }) {
   const { products, setProducts, removeProduct, updateProduct } = useAdminStore();
@@ -31,6 +32,7 @@ export function ProductList({ initialProducts }: { initialProducts: any[] }) {
 
     // Optimistic Delete
     removeProduct(id);
+    void refreshPublicSite();
     toast.success(`Deleted ${title}`);
     
     // Background execution
@@ -48,6 +50,7 @@ export function ProductList({ initialProducts }: { initialProducts: any[] }) {
     
     // Optimistic Update
     updateProduct(id, { status: newStatus });
+    void refreshPublicSite();
     toast.success(`Status changed to ${newStatus}`);
 
     // Background execution

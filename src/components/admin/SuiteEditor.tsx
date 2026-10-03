@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import { AmountInput } from "@/components/forms/IndiaInputs";
 import { amountError } from "@/lib/india";
+import { refreshPublicSite } from "@/app/actions/public-site";
 
 const tabs = ["General", "Features", "Pricing", "SEO", "Publishing"];
 
@@ -80,6 +81,7 @@ export function SuiteEditor({ initialData, isNew, onClose }: { initialData: any,
         recordId = uuidv4();
         const optimisticSuite = { ...formData, id: recordId, created_at: new Date().toISOString() };
         addSuite(optimisticSuite);
+        void refreshPublicSite();
         toast.success("Suite created optimistically!");
         onClose();
 
@@ -88,6 +90,7 @@ export function SuiteEditor({ initialData, isNew, onClose }: { initialData: any,
       } else {
         const previousSuite = initialData;
         updateSuite(formData.id, formData);
+        void refreshPublicSite();
         toast.success("Changes saved optimistically!");
         onClose();
 

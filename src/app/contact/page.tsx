@@ -6,7 +6,8 @@ import LeadForm from "@/components/site/LeadForm";
 import ContactDetails from "@/components/site/ContactDetails";
 import { getPublishedProducts, getSiteSettings } from "@/lib/site-content";
 
-export const revalidate = 0;
+// Cached for a minute; admin edits clear it at once (refreshPublicSite).
+export const revalidate = 60;
 
 export async function generateMetadata() {
   const settings = await getSiteSettings();

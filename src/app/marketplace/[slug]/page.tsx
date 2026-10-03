@@ -1,6 +1,7 @@
 import CatalogDetailPage, { catalogMetadata } from "@/components/site/CatalogDetailPage";
 
-export const revalidate = 0;
+// Cached for a minute; admin edits clear it at once (refreshPublicSite).
+export const revalidate = 60;
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

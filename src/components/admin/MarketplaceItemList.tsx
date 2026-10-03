@@ -8,6 +8,7 @@ import { clsx } from "clsx";
 import { createClient } from "@/lib/supabase-browser";
 import { useRouter } from "next/navigation";
 import { formatDate } from "@/lib/india";
+import { refreshPublicSite } from "@/app/actions/public-site";
 
 export function MarketplaceItemList({ initialMarketplaceItems }: { initialMarketplaceItems: any[] }) {
   const router = useRouter();
@@ -39,6 +40,7 @@ export function MarketplaceItemList({ initialMarketplaceItems }: { initialMarket
       const { error } = await supabase.from("marketplaceitems").delete().eq("id", id);
       if (error) throw error;
       setMarketplaceItems(marketplaceitems.filter(p => p.id !== id));
+      void refreshPublicSite();
       router.refresh();
     } catch (err: any) {
       toast.error(`Error deleting marketplaceitem: ${err.message}`);
@@ -55,6 +57,7 @@ export function MarketplaceItemList({ initialMarketplaceItems }: { initialMarket
       const { error } = await supabase.from("marketplaceitems").update({ status: newStatus }).eq("id", id);
       if (error) throw error;
       setMarketplaceItems(marketplaceitems.map(p => p.id === id ? { ...p, status: newStatus } : p));
+      void refreshPublicSite();
       router.refresh();
     } catch (err: any) {
       toast.error(`Error updating marketplaceitem status: ${err.message}`);

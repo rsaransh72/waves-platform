@@ -3,7 +3,8 @@ import { getPublishedPages, getPublishedProducts, getSiteSettings } from "@/lib/
 import { buildPublicMenuPathSet, sanitizeMenuItems } from "@/lib/public-menu";
 import ClientNavbar from "./ClientNavbar";
 
-export const revalidate = 0;
+// Cached for a minute; admin edits clear it at once (refreshPublicSite).
+export const revalidate = 60;
 
 const DEFAULT_MENU = [
   { label: "Products", href: "/products" },

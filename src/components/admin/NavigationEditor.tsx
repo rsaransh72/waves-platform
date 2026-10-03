@@ -6,6 +6,7 @@ import { Plus, Trash2, GripVertical, Save, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase-browser";
 import { useRouter } from "next/navigation";
 import { normalizePublicMenuPath } from "@/lib/public-menu";
+import { refreshPublicSite } from "@/app/actions/public-site";
 
 export function NavigationEditor({ initialMenu, validPaths }: { initialMenu: any; validPaths: string[] }) {
   const router = useRouter();
@@ -58,6 +59,7 @@ export function NavigationEditor({ initialMenu, validPaths }: { initialMenu: any
         const { error } = await supabase.from("menus").insert([{ name: "Main Navbar", items }]);
         if (error) throw error;
       }
+      void refreshPublicSite();
       toast.success(hidden.length ? `Website menu saved. Hidden until their pages have content: ${hidden.join(", ")}.` : "Website menu saved.");
       router.refresh();
     } catch (err: any) {
