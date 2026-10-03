@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import { organizationTypeForProduct } from "@/lib/product-workspaces";
 import { friendlyAuthEmailError } from "@/lib/client-members";
+import { siteOrigin } from "@/lib/site-origin";
 import { toStoredPhone } from "@/lib/india";
 import { slugError, validateOnboarding, type OnboardingErrors, type OnboardingInput } from "@/lib/client-onboarding";
 
@@ -149,9 +150,9 @@ export async function POST(request: Request) {
     });
     if (subscriptionError) throw subscriptionError;
 
-    const redirectTo = new URL("/school/accept-invite", request.url).toString();
+    const redirectTo = `${await siteOrigin()}/school/accept-invite`;
     const { data: invitation, error: invitationError } = await adminClient.auth.admin.inviteUserByEmail(input.email, {
-      data: { role: organizationType === "school" ? "school_admin" : "client_admin", organization_id: organization.id, organization_type: organizationType, organization_name: input.name },
+      data: { role: organizationType === "school" ? "school_admin" : "client_admin", organization_id: organization.id, organization_type: organizationType, organization_name: input.name, invited_role: "admin" },
       redirectTo,
     });
     if (invitationError) throw invitationError;
