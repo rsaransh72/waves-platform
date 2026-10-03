@@ -9,9 +9,11 @@ interface DrawerProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  // "wide" for forms with tables, such as adding many classes at once.
+  size?: "default" | "wide";
 }
 
-export function Drawer({ isOpen, onClose, title, children }: DrawerProps) {
+export function Drawer({ isOpen, onClose, title, children, size = "default" }: DrawerProps) {
   const drawerRef = useRef<HTMLDivElement>(null);
   const [isRendered, setIsRendered] = useState(false);
   const titleId = useId();
@@ -59,7 +61,8 @@ export function Drawer({ isOpen, onClose, title, children }: DrawerProps) {
         aria-labelledby={titleId}
         aria-hidden={!isOpen}
         className={clsx(
-          "fixed inset-y-0 right-0 z-50 w-full md:w-[600px] bg-white shadow-xl flex flex-col transition-transform duration-300 transform",
+          "fixed inset-y-0 right-0 z-50 w-full bg-white shadow-xl flex flex-col transition-transform duration-300 transform",
+          size === "wide" ? "md:w-[900px]" : "md:w-[600px]",
           isOpen ? "translate-x-0" : "translate-x-full"
         )}
       >

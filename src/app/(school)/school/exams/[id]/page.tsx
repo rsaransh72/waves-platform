@@ -19,7 +19,7 @@ export default async function ExamGradingPage({
   // 1. Fetch Exam Details
   const { data: exam } = await supabase
     .from("school_exams")
-    .select("*, school_classes(id, name, section)")
+    .select("*, school_classes(id, name, section, subjects)")
     .eq("id", examId)
     .single();
 
@@ -60,6 +60,7 @@ export default async function ExamGradingPage({
             examId={examId}
             students={students || []} 
             initialResults={results || []} 
+            classSubjects={exam.school_classes?.subjects ?? []}
           />
         </div>
       </main>
