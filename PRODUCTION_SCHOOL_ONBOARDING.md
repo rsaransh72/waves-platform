@@ -3,7 +3,7 @@
 ## Required Configuration
 
 - Set `SUPABASE_SERVICE_ROLE_KEY` in the server runtime only. Never prefix it with `NEXT_PUBLIC_`.
-- Keep the Supabase Auth invitation redirect allowlist configured for the deployed `/school/accept-invite` URL.
+- Apply the branded invitation and password-reset emails, the Site URL and the redirect allowlist with `SUPABASE_ACCESS_TOKEN=sbp_... node scripts/supabase/apply-auth-emails.mjs https://<your-domain>` (add `--dry-run` to preview). The templates live in `supabase/email-templates/` and link with `?token_hash=…`, which `/school/accept-invite` and `/account/reset-password` verify. Without this, invitation links fall back to the Site URL (for example `http://localhost:3000`). Re-run it when the domain changes. `node scripts/qa/invite-links.mjs` checks the links end to end without sending email.
 - Optionally set `NEXT_PUBLIC_SITE_URL` (for example `https://waves.example.com`) so invitation and password-reset emails link to the public domain rather than the request host.
 - Optionally set `NEXT_PUBLIC_BILLING_CURRENCY` (ISO code, default `INR`). All platform amounts are displayed in this currency.
 - Rotate the PostgreSQL password that was previously embedded in repository scripts before using `DATABASE_URL` again.

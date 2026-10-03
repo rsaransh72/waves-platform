@@ -62,6 +62,16 @@ async function getMember(organizationId: string, userId: string) {
   return { membership, user: data.user, email: data.user.email };
 }
 
+// Opening an invitation link confirms the email, signs the person in and gives the
+// account a random password, so none of those says they finished. The invitation and
+// reset pages record password_set_at when a password is chosen; accounts from before
+// that count as active once they signed in again later.
+export function hasActivatedAccount(user: { email_confirmed_at?: string | null; last_sign_in_at?: string | null; user_metadata?: Record<string, unknown> | null }) {
+  if (!user.email_confirmed_at) return false;
+  if (user.user_metadata?.password_set_at) return true;
+  return Boolean(user.last_sign_in_at) && Date.parse(user.last_sign_in_at!) - Date.parse(user.email_confirmed_at) > 60_000;
+}
+
 async function countAdmins(organizationId: string) {
   const { count, error } = await createSupabaseAdminClient()
     .from("organization_members")
@@ -91,7 +101,7 @@ export async function listMembers(organizationId: string): Promise<ClientMember[
       role: membership.role,
       email: user?.email ?? null,
       name: name ?? null,
-      accountStatus: !user ? "unknown" : user.email_confirmed_at ? "active" : "invited",
+      accountStatus: !user ? "unknown" : hasActivatedAccount(user) ? "active" : "invited",
       lastSignInAt: user?.last_sign_in_at ?? null,
     };
   }));
@@ -106,7 +116,7 @@ export async function inviteMember(organizationId: string, emailInput: string, r
 
   const authAdmin = createSupabaseAdminClient();
   const { data: invitation, error: inviteError } = await authAdmin.auth.admin.inviteUserByEmail(email, {
-    data: { organization_id: organizationId, organization_type: organization.type, organization_name: organization.name },
+    data: { organization_id: organizationId, organization_type: organization.type, organization_name: organization.name, invited_role: role },
     redirectTo: `${origin}/school/accept-invite`,
   });
   if (inviteError) {
@@ -131,13 +141,21 @@ export async function inviteMember(organizationId: string, emailInput: string, r
 }
 
 export async function resendInvite(organizationId: string, userId: string, actor: Actor, origin: string) {
-  const { user, email } = await getMember(organizationId, userId);
-  if (user.email_confirmed_at) throw new Error("This user has already accepted the invitation. Send a password reset instead.");
+  const { membership, user, email } = await getMember(organizationId, userId);
+  const opened = Boolean(user.email_confirmed_at);
+  if (hasActivatedAccount(user)) {
+    throw new Error("This user has already set a password. Send a password reset instead.");
+  }
   const organization = await getOrganization(organizationId);
-  const { error } = await createSupabaseAdminClient().auth.admin.inviteUserByEmail(email, {
-    data: { organization_id: organizationId, organization_type: organization.type, organization_name: organization.name },
-    redirectTo: `${origin}/school/accept-invite`,
-  });
+  const authAdmin = createSupabaseAdminClient();
+  // Supabase will not re-invite a confirmed email, so someone who opened the invitation but
+  // stopped before choosing a password gets a set-password email that opens the same page.
+  const { error } = opened
+    ? await authAdmin.auth.resetPasswordForEmail(email, { redirectTo: `${origin}/school/accept-invite` })
+    : await authAdmin.auth.admin.inviteUserByEmail(email, {
+      data: { organization_id: organizationId, organization_type: organization.type, organization_name: organization.name, invited_role: membership.role },
+      redirectTo: `${origin}/school/accept-invite`,
+    });
   if (error) throw friendlyAuthEmailError(error) ?? error;
   await logMemberEvent(organizationId, actor, "member.invite_resent", { email, user_id: userId });
   return `Invitation re-sent to ${email}.`;

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import { workspaceLabel } from "@/lib/product-workspaces";
+import { hasActivatedAccount } from "@/lib/client-members";
 
 type AuthUser = {
   id: string;
@@ -80,7 +81,7 @@ export async function GET() {
       clientName: organization?.name ?? "Unknown client",
       clientSlug: organization?.slug ?? "",
       clientStatus: organization?.status ?? "unknown",
-      accountStatus: !authUser ? "identity unavailable" : authUser.banned_until ? "restricted" : authUser.email_confirmed_at ? "active" : "invited",
+      accountStatus: !authUser ? "identity unavailable" : authUser.banned_until ? "restricted" : hasActivatedAccount(authUser) ? "active" : "invited",
       lastSignInAt: authUser?.last_sign_in_at ?? null,
       membershipCreatedAt: membership.created_at,
       canSendReset: Boolean(authUser?.email),
