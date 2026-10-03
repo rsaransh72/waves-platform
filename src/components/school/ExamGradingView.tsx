@@ -17,7 +17,7 @@ import { useRouter } from "next/navigation";
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 
-export function ExamGradingView({ examId, students, initialResults }: { examId: string, students: any[], initialResults: any[] }) {
+export function ExamGradingView({ examId, students, initialResults, classSubjects = [] }: { examId: string, students: any[], initialResults: any[], classSubjects?: string[] }) {
   const router = useRouter();
   const [results, setResults] = useState<any[]>(initialResults);
   const [searchQuery, setSearchQuery] = useState("");
@@ -53,8 +53,9 @@ export function ExamGradingView({ examId, students, initialResults }: { examId: 
         remarks: e.remarks || ""
       })));
     } else {
-      // Default empty subjects to start
-      setStudentMarks([{ subject: "Mathematics", marks_obtained: 0, max_marks: 100, remarks: "" }]);
+      // Start from the class's subjects (set on the Classes page), or one blank row.
+      const subjects = classSubjects.length ? classSubjects : [""];
+      setStudentMarks(subjects.map((subject) => ({ subject, marks_obtained: 0, max_marks: 100, remarks: "" })));
     }
     
     setIsDrawerOpen(true);
@@ -265,6 +266,9 @@ export function ExamGradingView({ examId, students, initialResults }: { examId: 
                 </div>
 
                 <div className="space-y-4">
+                  <datalist id="exam-subject-options">
+                    {classSubjects.map((subject) => <option key={subject} value={subject} />)}
+                  </datalist>
                   {studentMarks.length === 0 ? (
                     <div className="text-center py-8 border-2 border-dashed border-[#e5e5e5] rounded-lg">
                       <p className="text-[13px] text-[#888888]">No subjects added yet.</p>
@@ -281,6 +285,7 @@ export function ExamGradingView({ examId, students, initialResults }: { examId: 
                             required
                             value={mark.subject}
                             onChange={e => handleMarkChange(index, 'subject', e.target.value)}
+                            list="exam-subject-options"
                             placeholder="e.g. Mathematics"
                             className="w-full h-9 px-3 rounded-md border border-[#cccccc] bg-white text-[14px] focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] outline-none"
                           />

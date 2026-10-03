@@ -262,9 +262,14 @@ export function TimetableList({ initialTimetables, classes, teachers }: { initia
                     value={formData.subject}
                     id="period-subject"
                     onChange={e => setFormData({...formData, subject: e.target.value})}
+                    list="period-subject-options"
                     placeholder="e.g. Physics" minLength={2} maxLength={60}
                     className="w-full h-9 px-3 rounded-md border border-[#cccccc] bg-white text-[14px] focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] outline-none transition-shadow"
                   />
+                  {/* The class's subjects (set on the Classes page) are offered as choices. */}
+                  <datalist id="period-subject-options">
+                    {(classes.find((item: any) => item.id === formData.class_id)?.subjects ?? []).map((subject: string) => <option key={subject} value={subject} />)}
+                  </datalist>
                 </div>
 
                 <div>

@@ -19,7 +19,7 @@ export default async function TimetablePage() {
       .order("start_time", { ascending: true }),
     supabase
       .from("school_classes")
-      .select("id, name, section")
+      .select("id, name, section, subjects")
       .order("name", { ascending: true }),
     supabase
       .from("school_teachers")
