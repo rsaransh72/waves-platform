@@ -13,7 +13,9 @@ type RowDetails = { teacherId: string; room: string };
 
 const chip = (selected: boolean) =>
   `inline-flex h-8 items-center gap-1 rounded border px-3 text-sm font-semibold transition-colors ${selected ? "border-blue-600 bg-blue-600 text-white" : "border-slate-300 bg-white text-slate-700 hover:border-blue-400 hover:text-blue-700"}`;
-const inputClass = "h-9 w-full rounded border border-slate-300 px-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
+// Sized per use; inputClass is full width.
+const fieldClass = "rounded border border-slate-300 px-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
+const inputClass = `${fieldClass} h-9 w-full`;
 
 // Adds many classes in one go: choose class names and sections, adjust each class's
 // subjects, optionally set a class teacher and room per section, and save together.
@@ -29,13 +31,22 @@ export function BulkClassesForm({ existing, teachers, onDone, onCancel }: {
   const [details, setDetails] = useState<Record<string, RowDetails>>({});
   const [customName, setCustomName] = useState("");
   const [customSection, setCustomSection] = useState("");
+  // Per-class changes to the sections chosen for all: extra sections for one class,
+  // and sections switched off for one class (keyed by classKey).
+  const [extraSections, setExtraSections] = useState<Record<string, string[]>>({});
+  const [excluded, setExcluded] = useState<Set<string>>(new Set());
+  const [extraDrafts, setExtraDrafts] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
 
   const existingKeys = useMemo(() => new Set(existing.map((item) => classKey(item.name, item.section))), [existing]);
   const sortedNames = useMemo(() => [...names].sort((left, right) => compareClasses({ name: left }, { name: right })), [names]);
-  const sortedSections = useMemo(() => [...sections].sort((left, right) => left.localeCompare(right, undefined, { numeric: true })), [sections]);
-  const newRows = sortedNames.flatMap((name) => sortedSections.filter((section) => !existingKeys.has(classKey(name, section))).map((section) => ({ name, section })));
-  const skipped = sortedNames.length * sortedSections.length - newRows.length;
+  const sortSections = (list: string[]) => [...list].sort((left, right) => left.localeCompare(right, undefined, { numeric: true }));
+  // Every section offered for a class (shared ones plus its own), and the ones switched on.
+  const sectionChoices = (name: string) => sortSections([...sections, ...(extraSections[name.toLowerCase()] ?? [])].filter((section, index, all) => all.findIndex((item) => item.toLowerCase() === section.toLowerCase()) === index));
+  const sectionsOf = (name: string) => sectionChoices(name).filter((section) => !excluded.has(classKey(name, section)));
+  const plannedRows = sortedNames.flatMap((name) => sectionsOf(name).map((section) => ({ name, section })));
+  const newRows = plannedRows.filter(({ name, section }) => !existingKeys.has(classKey(name, section)));
+  const skipped = plannedRows.length - newRows.length;
 
   const subjectsFor = (name: string) => subjects[name.toLowerCase()] ?? suggestedSubjects(name);
   const setSubjectsFor = (name: string, value: string[]) => setSubjects((current) => ({ ...current, [name.toLowerCase()]: value }));
@@ -59,6 +70,24 @@ export function BulkClassesForm({ existing, teachers, onDone, onCancel }: {
   const addCustomSection = () => {
     setSections((current) => addUnique(current, customSection.toUpperCase(), LIMITS.section));
     setCustomSection("");
+  };
+  const toggleClassSection = (name: string, section: string) => {
+    const key = classKey(name, section);
+    setExcluded((current) => {
+      const next = new Set(current);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  };
+  const addExtraSection = (name: string) => {
+    const draft = (extraDrafts[name.toLowerCase()] ?? "").toUpperCase();
+    setExtraSections((current) => ({ ...current, [name.toLowerCase()]: addUnique(current[name.toLowerCase()] ?? [], draft, LIMITS.section) }));
+    setExcluded((current) => {
+      const next = new Set(current);
+      next.delete(classKey(name, draft));
+      return next;
+    });
+    setExtraDrafts((current) => ({ ...current, [name.toLowerCase()]: "" }));
   };
   const copySubjectsToAll = (from: string) => {
     const value = subjectsFor(from);
@@ -119,7 +148,7 @@ export function BulkClassesForm({ existing, teachers, onDone, onCancel }: {
                 </button>
               ))}
               <span className="flex gap-1.5">
-                <input value={customName} onChange={(event) => setCustomName(event.target.value)} onKeyDown={onEnter(addCustomName)} maxLength={LIMITS.name} placeholder="e.g. Play Group" aria-label="Other class name" className={`${inputClass} h-8 w-40`} />
+                <input value={customName} onChange={(event) => setCustomName(event.target.value)} onKeyDown={onEnter(addCustomName)} maxLength={LIMITS.name} placeholder="e.g. Play Group" aria-label="Other class name" className={`${fieldClass} h-8 w-40`} />
                 <button type="button" onClick={addCustomName} disabled={!customName.trim()} className="inline-flex h-8 items-center gap-1 rounded border border-slate-300 px-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40">
                   <Plus className="h-3.5 w-3.5" />Add
                 </button>
@@ -129,7 +158,8 @@ export function BulkClassesForm({ existing, teachers, onDone, onCancel }: {
         </section>
 
         <section aria-labelledby="bulk-sections-step">
-          <h3 id="bulk-sections-step" className="text-sm font-bold text-slate-900">2. Sections in every class</h3>
+          <h3 id="bulk-sections-step" className="text-sm font-bold text-slate-900">2. Sections</h3>
+          <p className="mt-1 text-xs text-slate-500">Added to every class. Below, you can switch a section off for one class or add one just for it.</p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             {[...new Set([...SECTION_PRESETS, ...sections])].map((section) => (
               <button key={section} type="button" aria-pressed={sections.includes(section)} onClick={() => toggleSection(section)} className={chip(sections.includes(section))}>
@@ -137,7 +167,7 @@ export function BulkClassesForm({ existing, teachers, onDone, onCancel }: {
               </button>
             ))}
             <span className="flex gap-1.5">
-              <input value={customSection} onChange={(event) => setCustomSection(event.target.value)} onKeyDown={onEnter(addCustomSection)} maxLength={LIMITS.section} placeholder="e.g. Rose" aria-label="Other section name" className={`${inputClass} h-8 w-28`} />
+              <input value={customSection} onChange={(event) => setCustomSection(event.target.value)} onKeyDown={onEnter(addCustomSection)} maxLength={LIMITS.section} placeholder="e.g. Rose" aria-label="Other section name" className={`${fieldClass} h-8 w-28`} />
               <button type="button" onClick={addCustomSection} disabled={!customSection.trim()} className="inline-flex h-8 items-center gap-1 rounded border border-slate-300 px-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40">
                 <Plus className="h-3.5 w-3.5" />Add
               </button>
@@ -146,12 +176,13 @@ export function BulkClassesForm({ existing, teachers, onDone, onCancel }: {
         </section>
 
         <section aria-labelledby="bulk-review-step">
-          <h3 id="bulk-review-step" className="text-sm font-bold text-slate-900">3. Subjects, class teachers and rooms</h3>
-          {!sortedNames.length || !sortedSections.length ? (
+          <h3 id="bulk-review-step" className="text-sm font-bold text-slate-900">3. Each class: sections, subjects, class teachers and rooms</h3>
+          {!sortedNames.length ? (
             <p className="mt-3 rounded border border-dashed border-slate-300 p-4 text-sm text-slate-500">Choose at least one class and one section.</p>
           ) : (
             <>
               <p className="mt-1 text-xs text-slate-500">Subjects are suggested for each level; change them as needed. Class teacher and room are optional.</p>
+              {!plannedRows.length && <p className="mt-3 rounded border border-dashed border-slate-300 p-4 text-sm text-slate-500">Choose at least one section.</p>}
               <div className="mt-3 space-y-4">
                 {sortedNames.map((name, index) => (
                   <div key={name} className="rounded border border-slate-200">
@@ -165,11 +196,30 @@ export function BulkClassesForm({ existing, teachers, onDone, onCancel }: {
                     </div>
                     <div className="space-y-3 p-4">
                       <div>
+                        <p id={`sections-${index}`} className="mb-1 text-xs font-semibold text-slate-600">Sections in {name} ({sectionsOf(name).length})</p>
+                        <div role="group" aria-labelledby={`sections-${index}`} className="flex flex-wrap items-center gap-1.5">
+                          {sectionChoices(name).map((section) => {
+                            const on = !excluded.has(classKey(name, section));
+                            return (
+                              <button key={section} type="button" aria-pressed={on} aria-label={`${name} section ${section}`} onClick={() => toggleClassSection(name, section)} className={`${chip(on)} h-7 px-2.5`}>
+                                {on && <Check className="h-3 w-3" />}{section}
+                              </button>
+                            );
+                          })}
+                          <span className="flex gap-1">
+                            <input value={extraDrafts[name.toLowerCase()] ?? ""} onChange={(event) => setExtraDrafts((current) => ({ ...current, [name.toLowerCase()]: event.target.value }))} onKeyDown={onEnter(() => addExtraSection(name))} maxLength={LIMITS.section} placeholder="Another" aria-label={`Add a section to ${name} only`} className={`${fieldClass} h-7 w-24`} />
+                            <button type="button" onClick={() => addExtraSection(name)} disabled={!(extraDrafts[name.toLowerCase()] ?? "").trim()} aria-label={`Add section to ${name}`} className="inline-flex h-7 items-center rounded border border-slate-300 px-2 text-slate-700 hover:bg-slate-50 disabled:opacity-40">
+                              <Plus className="h-3.5 w-3.5" />
+                            </button>
+                          </span>
+                        </div>
+                      </div>
+                      <div>
                         <label htmlFor={`subjects-${index}`} className="mb-1 block text-xs font-semibold text-slate-600">Subjects ({subjectsFor(name).length})</label>
                         <SubjectsInput id={`subjects-${index}`} label={`${name} subjects`} value={subjectsFor(name)} onChange={(value) => setSubjectsFor(name, value)} />
                       </div>
                       <div className="divide-y divide-slate-100">
-                        {sortedSections.map((section) => {
+                        {sectionsOf(name).map((section) => {
                           const exists = existingKeys.has(classKey(name, section));
                           const row = detailsFor(name, section);
                           return (

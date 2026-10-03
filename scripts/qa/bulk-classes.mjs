@@ -67,6 +67,13 @@ try {
   await clickText("B");
   check("counts new classes and skips existing ones", (await status()).includes("13 classes to add · 1 already added"), await status());
 
+  // Not every class has every section: Class 4 has no B, Class 5 also has a C.
+  await page.click('button[aria-label="Class 4 section B"]');
+  check("switching off one class's section drops only that one", (await status()).includes("12 classes to add"), await status());
+  await page.type('input[aria-label="Add a section to Class 5 only"]', "c");
+  await page.keyboard.press("Enter");
+  check("adding a section to one class adds only that one", (await status()).includes("13 classes to add"), await status());
+
   // Class 3: drop General Knowledge, add Sanskrit.
   await page.click('button[aria-label="Remove General Knowledge from Class 3 subjects"]').catch(() => null);
   const class3Input = await page.$('input[aria-label="Class 3 subjects"]');
@@ -87,6 +94,7 @@ try {
   check("suggested subjects saved for untouched classes", find("Nursery", "A")?.subjects.includes("EVS"), JSON.stringify(find("Nursery", "A")?.subjects));
   check("teacher and room saved for Class 1 B", find("Class 1", "B")?.class_teacher_id === teacher.id && find("Class 1", "B")?.room_number === "101");
   check("existing Class 1 A left unchanged", find("Class 1", "A")?.subjects.length === 0);
+  check("Class 4 saved without B; only Class 5 got C", !find("Class 4", "B") && find("Class 4", "A") && find("Class 5", "C") && saved.filter((item) => item.section === "C").length === 1);
 
   await page.reload({ waitUntil: "networkidle2" });
   const firstRows = await page.evaluate(() => [...document.querySelectorAll("tbody tr")].slice(0, 6).map((row) => [...row.querySelectorAll("td")].slice(0, 2).map((cell) => cell.textContent.trim()).join(" ")));
