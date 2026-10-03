@@ -8,22 +8,22 @@ export const metadata = {
 export default async function LibraryPage() {
   const supabase = await createServerSupabaseClient();
 
-  const { data: books } = await supabase
-    .from("school_library_books")
-    .select("*")
-    .order("title", { ascending: true });
-
-  const { data: students } = await supabase
-    .from("school_students")
-    .select("id, first_name, last_name, roll_number")
-    .eq("status", "active")
-    .order("first_name", { ascending: true });
-
-  const { data: issues } = await supabase
-    .from("school_library_issues")
-    .select("id, issue_date, due_date, book_id, school_library_books(title), school_students(first_name, last_name, roll_number)")
-    .eq("status", "issued")
-    .order("due_date", { ascending: true });
+  const [{ data: books }, { data: students }, { data: issues }] = await Promise.all([
+    supabase
+      .from("school_library_books")
+      .select("*")
+      .order("title", { ascending: true }),
+    supabase
+      .from("school_students")
+      .select("id, first_name, last_name, roll_number")
+      .eq("status", "active")
+      .order("first_name", { ascending: true }),
+    supabase
+      .from("school_library_issues")
+      .select("id, issue_date, due_date, book_id, school_library_books(title), school_students(first_name, last_name, roll_number)")
+      .eq("status", "issued")
+      .order("due_date", { ascending: true }),
+  ]);
 
   return (
     <div className="flex-1 flex flex-col">

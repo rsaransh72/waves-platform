@@ -9,19 +9,19 @@ export default async function ExamsPage() {
   const supabase = await createServerSupabaseClient();
 
   // Fetch Exams
-  const { data: exams } = await supabase
-    .from("school_exams")
-    .select(`
-      *,
-      school_classes (id, name, section)
-    `)
-    .order("start_date", { ascending: false });
-
-  // Fetch classes for the dropdown
-  const { data: classesList } = await supabase
-    .from("school_classes")
-    .select("id, name, section")
-    .order("name");
+  const [{ data: exams }, { data: classesList }] = await Promise.all([
+    supabase
+      .from("school_exams")
+      .select(`
+        *,
+        school_classes (id, name, section)
+      `)
+      .order("start_date", { ascending: false }),
+    supabase
+      .from("school_classes")
+      .select("id, name, section")
+      .order("name"),
+  ]);
 
   return (
     <div className="flex-1 flex flex-col">
